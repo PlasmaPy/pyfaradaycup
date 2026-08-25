@@ -28,4 +28,8 @@ test = [
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
-testpaths = [ "tests", "src/pyfaradaycup" ]
+addopts = [
+  "--durations=5",
+  "--durations-min=0.4",
+  "--tb=short",
+]
