@@ -29,6 +29,9 @@ dev = [
   { include-group = "test" },
   { include-group = "typecheck" },
 ]
+lint = [
+    "pre-commit>=4.6.2",
+]
 test = [
   "pytest>=9.1",
   "pytest-filter-subpackage>=0.2",
@@ -36,6 +39,9 @@ test = [
 ]
 typecheck = [
   "ty>=0.0.74",
+]
+zizmor = [
+    "zizmor>=1.29.0",
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
