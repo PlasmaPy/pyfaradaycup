@@ -36,3 +36,10 @@ addopts = [
   "--numprocesses=auto",
   "--tb=short",
 ]
+filterwarnings = [
+  # To prevent the number of warnings issue during tests from ballooning,
+  # treat warnings as errors unless otherwise specified. Please raise a
+  # GitHub issue when ignoring a FutureWarning or DeprecationWarning,
+  # and label it with "needed for release".
+  "error",
+]
