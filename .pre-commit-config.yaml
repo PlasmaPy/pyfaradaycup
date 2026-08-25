@@ -33,7 +33,7 @@ repos:
   - id: trailing-whitespace
     exclude: .*\.py  # use ruff format instead
   - id: end-of-file-fixer
-    exclude: .*\.py
+    exclude: .github/PULL_REQUEST_TEMPLATE.md|.*\.py
   - id: check-merge-conflict
     exclude: .*\.rst
   - id: check-case-conflict
