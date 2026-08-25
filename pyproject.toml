@@ -20,7 +20,9 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = []
+dependencies = [
+    "pytest-filter-subpackage>=0.2.0",
+]
 
 [dependency-groups]
 test = [
