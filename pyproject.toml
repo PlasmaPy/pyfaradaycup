@@ -26,3 +26,6 @@ dependencies = []
 test = [
     "pytest>=9.1",
 ]
+
+[tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
+testpaths = [ "tests", "src/pyfaradaycup" ]
