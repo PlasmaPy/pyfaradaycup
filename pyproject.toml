@@ -43,3 +43,6 @@ filterwarnings = [
   # and label it with "needed for release".
   "error",
 ]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
