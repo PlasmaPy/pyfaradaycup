@@ -24,7 +24,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "nox>=2026.8.10",
+  "nox>=2026.8.10",
 ]
 test = [
   "pytest>=9.1",
