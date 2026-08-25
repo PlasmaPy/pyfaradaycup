@@ -25,11 +25,17 @@ dependencies = []
 [dependency-groups]
 dev = [
   "nox>=2026.8.10",
+  "nox-uv>=0.8",
+  { include-group = "test" },
+  { include-group = "typecheck" },
 ]
 test = [
   "pytest>=9.1",
   "pytest-filter-subpackage>=0.2",
   "pytest-xdist>=3.8",
+]
+typecheck = [
+  "ty>=0.0.74",
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
