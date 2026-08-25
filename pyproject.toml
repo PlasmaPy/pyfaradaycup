@@ -20,4 +20,34 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = []
+dependencies = [
+    "pytest-filter-subpackage>=0.2.0",
+]
+
+[dependency-groups]
+test = [
+  "pytest>=9.1",
+  "pytest-xdist>=3.8",
+]
+
+[tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
+addopts = [
+  "--dist=loadfile",
+  "--durations=5",
+  "--durations-min=0.4",
+  "--numprocesses=auto",
+  "--tb=short",
+]
+empty_parameter_set_mark = "fail_at_collect"
+filterwarnings = [
+  # To prevent the number of warnings issue during tests from ballooning,
+  # treat warnings as errors unless otherwise specified. Please raise a
+  # GitHub issue when ignoring a FutureWarning or DeprecationWarning,
+  # and label it with "needed for release".
+  "error",
+]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+strict = true
+testpaths = [ "tests", "src/pyfaradaycup" ]
