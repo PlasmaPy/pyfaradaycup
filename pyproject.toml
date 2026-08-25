@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Tools for data pipelines and data analysis for Faraday cups"
 readme = "README.md"
 authors = [
-    { name = "Nick Murphy", email = "namurphy@cfa.harvard.edu" }
+  { name = "Kristoff Paulson" },
+  { name = "Mike Stevens" },
+  { name = "Joy Velasquez" },
   { name = "Nick Murphy", email = "namurphy@cfa.harvard.edu" },
 ]
 requires-python = ">=3.12"
