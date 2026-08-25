@@ -1,0 +1,11 @@
+# Configuration file for typos: https://github.com/crate-ci/typos
+# (see also .pre-commit-config.yaml)
+
+[default]
+
+[default.extend-words]
+# Add false positives identified by the typos pre-commit hook
+arange = "arange"
+newshape = "newshape"
+texttt = "texttt"
+nbins = "nbins"
