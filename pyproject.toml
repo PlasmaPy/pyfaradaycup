@@ -24,15 +24,11 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "nox",
+    "nox>=2026.8.10",
 ]
-||||||| 103de44
-dependencies = []
-
-[dependency-groups]
 test = [
   "pytest>=9.1",
-  "pytest-filter-subpackage",
+  "pytest-filter-subpackage>=0.2",
   "pytest-xdist>=3.8",
 ]
 
