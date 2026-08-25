@@ -36,6 +36,7 @@ addopts = [
   "--numprocesses=auto",
   "--tb=short",
 ]
+empty_parameter_set_mark = "fail_at_collect"
 filterwarnings = [
   # To prevent the number of warnings issue during tests from ballooning,
   # treat warnings as errors unless otherwise specified. Please raise a
@@ -46,4 +47,5 @@ filterwarnings = [
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+strict = true
 testpaths = [ "tests", "src/pyfaradaycup" ]
