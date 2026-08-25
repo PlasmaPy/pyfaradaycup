@@ -14,7 +14,6 @@
 #
 # For more information, please refer to the following resources.
 #
-# PlasmaPy Contributor Guide: https://docs.plasmapy.org/en/latest/contributing/pre-commit.html
 # pre-commit.ci configuration: https://pre-commit.ci/#configuration
 # pre-commit docs: https://pre-commit.com/#adding-pre-commit-plugins-to-your-project
 
@@ -41,7 +40,6 @@ repos:
   - id: check-illegal-windows-names
   - id: name-tests-test
     args: [--pytest-test-first]
-    exclude: src/plasmapy/tests/_helpers/.*
   - id: detect-private-key
   - id: fix-byte-order-marker
   - id: mixed-line-ending
@@ -96,7 +94,7 @@ repos:
   hooks:
   - id: typos
     name: typos (add false positives to _typos.toml)
-    exclude: CITATION.cff|docs/notebooks/dispersion/stix_dispersion.ipynb
+    exclude: CITATION.cff
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.16.1
@@ -186,7 +184,7 @@ repos:
     entry: bibtex-tidy
     language: node
     additional_dependencies: [bibtex-tidy@1.14.0]
-    files: docs/bibliography.bib
+    files: docs/bibliography.bib  # Update this after creating bibliography
     args: # https://github.com/FlamingTempura/bibtex-tidy#cli
     - --modify
     - --omit=abstract,month,address,adsurl,adsnote
