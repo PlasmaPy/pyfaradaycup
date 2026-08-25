@@ -110,7 +110,6 @@ repos:
   - id: blacken-docs
     name: autoformat code blocks in docs
     # docstrings are formatted using the ruff-format hook
-    exclude: docs/contributing/coding_guide.rst|.*\.py
     additional_dependencies:
     - black==26.5.1
 
@@ -184,7 +183,7 @@ repos:
     entry: bibtex-tidy
     language: node
     additional_dependencies: [bibtex-tidy@1.14.0]
-    files: docs/bibliography.bib  # Update this after creating bibliography
+    files: docs/source/bibliography.bib  # Update this after creating bibliography
     args: # https://github.com/FlamingTempura/bibtex-tidy#cli
     - --modify
     - --omit=abstract,month,address,adsurl,adsnote
