@@ -24,12 +24,15 @@ dependencies = []
 
 [dependency-groups]
 test = [
-    "pytest>=9.1",
+  "pytest>=9.1",
+  "pytest-xdist>=3.8",
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
 addopts = [
+  "--dist=loadfile",
   "--durations=5",
   "--durations-min=0.4",
+  "--numprocesses=auto",
   "--tb=short",
 ]
