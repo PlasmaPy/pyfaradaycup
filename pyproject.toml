@@ -21,3 +21,8 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = []
+
+[dependency-groups]
+dev = [
+    "nox",
+]
