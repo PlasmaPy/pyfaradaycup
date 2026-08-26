@@ -20,14 +20,33 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = [
-  "pytest-filter-subpackage>=0.2",
-]
+dependencies = []
 
 [dependency-groups]
+dev = [
+  { include-group = "lint" },
+  { include-group = "nox" },
+  { include-group = "test" },
+  { include-group = "typecheck" },
+  { include-group = "zizmor" },
+]
 test = [
   "pytest>=9.1",
+  "pytest-filter-subpackage>=0.2",
   "pytest-xdist>=3.8",
+]
+lint = [
+  "pre-commit>=4.6.2",
+]
+nox = [
+  "nox>=2026.8.10",
+  "nox-uv>=0.8",
+]
+typecheck = [
+  "ty>=0.0.74",
+]
+zizmor = [
+  "zizmor>=1.29",
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
