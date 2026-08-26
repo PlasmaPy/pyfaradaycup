@@ -6,5 +6,4 @@ def hello() -> str:
     >>> 6 * 9
     54
     """
-
     return "Hello from pyfaradaycup!"
