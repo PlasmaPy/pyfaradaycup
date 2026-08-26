@@ -78,7 +78,7 @@ lint.extend-select = [
   "C90",
   "COM",
   "D",
-  # enable DOC rule set when it is no longer in preview
+  "DOC",    # in preview and not enabled as of August 2026
   "DTZ",
   "E",
   "EM",
@@ -191,14 +191,12 @@ lint.ignore = [
   "E501",    # handled by ruff format
   "PLC2401", # flags variables used as mathematical symbols
   "PLC2403", # flags variables used as mathematical symbols
-  "PT011",   # would require using match keyword argument
   "Q001",    # handled by ruff format
   "Q002",    # handled by ruff format
   "Q003",    # handled by ruff format
   "Q004",    # handled by ruff format
   "W191",    # handled by ruff format
 ]
-lint.extend-per-file-ignores.".github/scripts/*.py" = [ "D103", "INP001" ]
 lint.extend-per-file-ignores."__init__.py" = [ "D104", "E402", "F401", "F402", "F403" ]  # ignore import errors
 lint.extend-per-file-ignores."docs/conf.py" = [ "D100", "D103", "E402", "EXE001", "EXE005", "F401" ]
 lint.extend-per-file-ignores."tests/**/__init__.py" = [ "D104" ]
@@ -245,7 +243,6 @@ lint.allowed-confusables = [
   "υ",
   "ℤ",
 ]
-lint.dummy-variable-rgx = "^(Z|mass_numb|request|event|_.*)$"
 lint.flake8-annotations.allow-star-arg-any = true
 lint.flake8-annotations.ignore-fully-untyped = true
 lint.flake8-annotations.suppress-dummy-args = true
