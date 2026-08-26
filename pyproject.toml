@@ -21,8 +21,8 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "astropy>=3",
-    "plasmapy>=0.3.1",
+  "astropy>=3",
+  "plasmapy>=0.3.1",
 ]
 
 [dependency-groups]

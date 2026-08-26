@@ -10,7 +10,6 @@ The [`.github/workflows`](.) directory contains [YAML] files that describe the [
 
 - [`ci.yml`](./ci.yml) — perform standard continuous integration (CI) checks on PRs
 
-
 ### Maintenance and triage
 
 - [`upgrade-uv-lock.yml`](./upgrade-uv-lock.yml) — update the locked Python environments used in CI
