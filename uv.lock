@@ -213,10 +213,12 @@ source = { editable = "." }
 dev = [
     { name = "nox" },
     { name = "nox-uv" },
+    { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
     { name = "ty" },
+    { name = "zizmor" },
 ]
 lint = [
     { name = "pre-commit" },
@@ -239,10 +241,12 @@ zizmor = [
 dev = [
     { name = "nox", specifier = ">=2026.8.10" },
     { name = "nox-uv", specifier = ">=0.8" },
+    { name = "pre-commit", specifier = ">=4.6.2" },
     { name = "pytest", specifier = ">=9.1" },
     { name = "pytest-filter-subpackage", specifier = ">=0.2" },
     { name = "pytest-xdist", specifier = ">=3.8" },
     { name = "ty", specifier = ">=0.0.74" },
+    { name = "zizmor", specifier = ">=1.29.0" },
 ]
 lint = [{ name = "pre-commit", specifier = ">=4.6.2" }]
 test = [
