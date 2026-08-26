@@ -223,6 +223,10 @@ dev = [
 lint = [
     { name = "pre-commit" },
 ]
+nox = [
+    { name = "nox" },
+    { name = "nox-uv" },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-filter-subpackage" },
@@ -246,16 +250,20 @@ dev = [
     { name = "pytest-filter-subpackage", specifier = ">=0.2" },
     { name = "pytest-xdist", specifier = ">=3.8" },
     { name = "ty", specifier = ">=0.0.74" },
-    { name = "zizmor", specifier = ">=1.29.0" },
+    { name = "zizmor", specifier = ">=1.29" },
 ]
 lint = [{ name = "pre-commit", specifier = ">=4.6.2" }]
+nox = [
+    { name = "nox", specifier = ">=2026.8.10" },
+    { name = "nox-uv", specifier = ">=0.8" },
+]
 test = [
     { name = "pytest", specifier = ">=9.1" },
     { name = "pytest-filter-subpackage", specifier = ">=0.2" },
     { name = "pytest-xdist", specifier = ">=3.8" },
 ]
 typecheck = [{ name = "ty", specifier = ">=0.0.74" }]
-zizmor = [{ name = "zizmor", specifier = ">=1.29.0" }]
+zizmor = [{ name = "zizmor", specifier = ">=1.29" }]
 
 [[package]]
 name = "pygments"
