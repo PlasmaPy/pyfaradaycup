@@ -20,7 +20,10 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = []
+dependencies = [
+    "astropy>=3",
+    "plasmapy>=0.3.1",
+]
 
 [dependency-groups]
 dev = [
