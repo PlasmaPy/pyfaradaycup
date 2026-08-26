@@ -78,4 +78,3 @@ jobs:
         branch: upgrade-uv-lock
         base: main
         delete-branch: true
-        token: ${{ steps.generate_token.outputs.token }}
