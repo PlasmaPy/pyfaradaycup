@@ -24,9 +24,8 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-  "nox>=2026.8.10",
-  "nox-uv>=0.8",
   { include-group = "lint" },
+  { include-group = "nox" },
   { include-group = "test" },
   { include-group = "typecheck" },
   { include-group = "zizmor" },
@@ -38,6 +37,10 @@ test = [
 ]
 lint = [
   "pre-commit>=4.6.2",
+]
+nox = [
+  "nox>=2026.8.10",
+  "nox-uv>=0.8",
 ]
 typecheck = [
   "ty>=0.0.74",
