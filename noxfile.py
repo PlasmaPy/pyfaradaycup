@@ -4,8 +4,8 @@
 # ///
 
 """
-Nox is an automation tool used to run tests, build documentation, and perform other
-checks. Nox sessions are defined in noxfile.py.
+Nox is an automation tool used to run tests, build documentation, and
+perform other checks. Nox sessions are defined in noxfile.py.
 
 Running `nox` without arguments will run tests with the version of
 Python that `nox` is installed under, skipping slow tests. To invoke a
@@ -13,10 +13,10 @@ nox session, enter the top-level directory of this repository and run
 `nox -s "<session>"`, where <session> is replaced with the name of the
 session. To list available sessions, run `nox -l`.
 
-Doctests are run only for the most recent versions of Python and
-PlasmaPy dependencies, and not when code coverage checks are performed.
-Some of the checks require the most recent supported version of Python
-to be installed.
+Doctests are run only for the most recent versions of Python and package
+dependencies, and not when code coverage checks are performed. Some of
+the checks require the most recent supported version of Python to be
+installed.
 
 Nox documentation: https://nox.thea.codes
 """
@@ -67,7 +67,7 @@ def validate_lockfile(session: nox.Session) -> None:
             "with the requirements defined in 'pyproject.toml'. "
             "After installing Nox, this problem can be fixed by running "
             "`nox -s validate_lockfile` in the top-level directory of "
-            "your clone of PlasmaPy, and then pushing the updated "
+            "your clone of the repository, and then pushing the updated "
             "'uv.lock' to GitHub. "
         )
     else:
