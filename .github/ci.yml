@@ -1,0 +1,108 @@
+# Define continuous integration checks to be run for all pull requests.
+#
+# These checks include running tests for different versions of Python,
+# building the documentation, and performing static type checking.
+#
+# The checks are defined in `noxfile.py`. After installing uv, the
+# checks can be run locally in the top-level directory with
+#
+#    uvx nox -s '<nox_session>'
+#
+# where <nox_session> is replaced by the name of the session. Quotes are
+# necessary around <nox_session> when it contains parentheses.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+    - main
+    - stable
+    - v*.*.*
+    tags:
+    - v*
+  schedule:
+  - cron: 57 11 * * 1    # run shortly after uv.lock update
+  workflow_dispatch:
+
+permissions: {}  # disable all GitHub permissions for the workflow
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+
+        - name: Tests, Python 3.14
+          # Doctests are run only for most recent Python (see noxfile.py)
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: tests-3.14
+
+        - name: Tests, Python 3.13
+          os: macos-latest
+          python: '3.13'
+          nox_session: tests-3.13
+
+        - name: Tests, Python 3.12
+          os: windows-latest
+          python: '3.12'
+          nox_session: tests-3.12
+
+        - name: Static type checking with ty, Python 3.14, Ubuntu
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: typecheck
+
+        - name: Packaging, Python 3.14, Windows
+          os: windows-latest
+          python: '3.14'
+          nox_session: build
+
+        - name: Check GitHub workflow security
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: zizmor
+
+        - name: Check consistency of locked & project requirements
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: validate_lockfile
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10.0.1
+      with:
+        python-version: ${{ matrix.python }}
+        enable-cache: true  # zizmor: ignore[cache-poisoning]
+        cache-suffix: ${{ matrix.nox_session }}-${{ matrix.python }}-${{ runner.os }}
+
+    - name: Run Nox session ${{ matrix.nox_session }}
+      shell: bash -el {0}
+      run: uv run noxfile.py --session '${{ matrix.nox_session }}'
+
+    - name: Upload coverage reports to Codecov
+      if: ${{ contains(matrix.nox_session, 'cov') }}
+      uses: codecov/codecov-action@v7.0.0
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
