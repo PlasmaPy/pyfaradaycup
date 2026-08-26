@@ -38,7 +38,7 @@ RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
 
-@nox_uv.session(uv_groups=["test"])
+@nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
 def tests(session: nox.Session) -> None:
     """Run tests with pytest."""
     session.install(".")
