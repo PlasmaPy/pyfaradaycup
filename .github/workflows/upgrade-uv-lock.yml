@@ -10,8 +10,10 @@ on:
   - cron: 37 11 * * 1
   workflow_dispatch:
 
+permissions: {}  # disable all GitHub permissions for the workflow
+
 jobs:
-  upgrade-requirements:
+  upgrade-requirements: # zizmor:ignore[excessive-permissions]
     name: Upgrade uv.lock
     runs-on: ubuntu-latest
     if: github.repository == 'PlasmaPy/pyfaradaycup'
