@@ -56,14 +56,12 @@ zizmor = [
 target-version = "py312"
 namespace-packages = [ ".github/workflows", "docs" ]
 extend-exclude = [
-  ".hypothesis",
+  ".code",
   ".idea",
-  ".jupyter",
   "__pycache__",
-  "_dev",
 ]
 show-fixes = true
-output-format = "grouped"
+# output-format = "grouped"
 format.line-ending = "lf"
 format.docstring-code-format = true
 # Using an IDE like PyCharm with a ruff plugin will make rule names appear as inlay hints
@@ -243,10 +241,6 @@ lint.allowed-confusables = [
   "υ",
   "ℤ",
 ]
-lint.flake8-annotations.allow-star-arg-any = true
-lint.flake8-annotations.ignore-fully-untyped = true
-lint.flake8-annotations.suppress-dummy-args = true
-lint.flake8-annotations.suppress-none-returning = true
 lint.flake8-import-conventions.aliases."astropy.constants" = "const"
 lint.flake8-import-conventions.aliases."astropy.units" = "u"
 lint.flake8-import-conventions.aliases."matplotlib.pyplot" = "plt"
@@ -275,9 +269,7 @@ lint.flake8-tidy-imports.banned-api."typing.Sequence".msg = "Deprecated alias. C
 lint.flake8-tidy-imports.banned-api."typing.Set".msg = "Deprecated alias. Change to set"
 lint.flake8-tidy-imports.banned-api."typing.Tuple".msg = "Deprecated alias. Change to tuple"
 lint.flake8-tidy-imports.banned-api."typing.Type".msg = "Deprecated alias. Change to type"
-lint.flake8-unused-arguments.ignore-variadic-names = true
-lint.isort.known-first-party = [ "plasmapy" ]
-lint.mccabe.max-complexity = 10
+lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
