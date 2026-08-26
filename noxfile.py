@@ -24,6 +24,7 @@ Nox documentation: https://nox.thea.codes
 import os
 
 import nox
+import nox.command
 import nox_uv
 
 nox.options.default_venv_backend = "uv"
