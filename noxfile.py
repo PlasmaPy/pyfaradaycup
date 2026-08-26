@@ -53,6 +53,36 @@ def typecheck(session) -> None:
 
 
 @nox.session
+def validate_lockfile(session: nox.Session) -> None:
+    """
+    Ensure that uv.lock is consistent with pyproject.toml.
+
+    This check is normally performed locally when running pre-commit or
+    prek. Because pre-commit.ci blocks network access, this check is
+    instead done in CI via a GitHub workflow that calls this session.
+    """
+    if RUNNING_ON_CI:
+        errmsg = (
+            "The Python environments in file 'uv.lock' are inconsistent "
+            "with the requirements defined in 'pyproject.toml'. "
+            "After installing Nox, this problem can be fixed by running "
+            "`nox -s validate_lockfile` in the top-level directory of "
+            "your clone of PlasmaPy, and then pushing the updated "
+            "'uv.lock' to GitHub. "
+        )
+    else:
+        errmsg = (
+            "File 'uv.lock' has been updated for consistency with the "
+            "requirements defined in 'pyproject.toml'."
+        )
+
+    try:
+        session.run("uv", "lock", "--no-progress")
+    except nox.command.CommandFailed:
+        session.error(errmsg)
+
+
+@nox.session
 def build(session: nox.Session) -> None:
     """
     Build the source distribution (sdist) and wheel.
