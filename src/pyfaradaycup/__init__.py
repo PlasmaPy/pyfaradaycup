@@ -1,14 +1,5 @@
 """Faraday cup data pipeline and data analysis tools."""
 
-__all__: list[str] = ["hello"]
+__all__: list[str] = ["utils"]
 
-
-def hello() -> str:
-    """Check that docstrings are tested.
-
-    Examples
-    --------
-    >>> 6 * 9
-    54
-    """
-    return "Hello from pyfaradaycup!"
+from pyfaradaycup import utils
