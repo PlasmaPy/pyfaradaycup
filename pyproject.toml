@@ -38,6 +38,9 @@ test = [
   "pytest-filter-subpackage>=0.2",
   "pytest-xdist>=3.8",
 ]
+docs = [
+  "sphinx>=9.1",
+]
 lint = [
   "pre-commit>=4.6.2",
 ]
@@ -50,9 +53,6 @@ typecheck = [
 ]
 zizmor = [
   "zizmor>=1.29",
-]
-docs = [
-    "sphinx>=9.1.0",
 ]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
