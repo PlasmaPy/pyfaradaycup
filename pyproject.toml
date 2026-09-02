@@ -51,6 +51,9 @@ typecheck = [
 zizmor = [
   "zizmor>=1.29",
 ]
+docs = [
+    "sphinx>=9.1.0",
+]
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
 addopts = [
