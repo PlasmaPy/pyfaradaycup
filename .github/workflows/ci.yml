@@ -70,6 +70,11 @@ jobs:
           python: '3.14'
           nox_session: build
 
+        - name: Documentation, Python 3.14, Ubuntu
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: docs
+
         - name: Check GitHub workflow security
           os: ubuntu-latest
           python: '3.14'
