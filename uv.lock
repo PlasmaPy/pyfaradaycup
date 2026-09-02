@@ -1094,6 +1094,9 @@ dev = [
     { name = "pytest" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
+    { name = "sphinx" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-notfound-page" },
     { name = "ty" },
     { name = "zizmor" },
 ]
@@ -1135,13 +1138,16 @@ dev = [
     { name = "pytest", specifier = ">=9.1" },
     { name = "pytest-filter-subpackage", specifier = ">=0.2" },
     { name = "pytest-xdist", specifier = ">=3.8" },
+    { name = "sphinx", specifier = ">=9.1" },
+    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
+    { name = "sphinx-notfound-page", specifier = ">=1.1" },
     { name = "ty", specifier = ">=0.0.74" },
     { name = "zizmor", specifier = ">=1.29" },
 ]
 docs = [
     { name = "sphinx", specifier = ">=9.1" },
     { name = "sphinx-copybutton", specifier = ">=0.5.2" },
-    { name = "sphinx-notfound-page", specifier = ">=1.1.0" },
+    { name = "sphinx-notfound-page", specifier = ">=1.1" },
 ]
 lint = [{ name = "pre-commit", specifier = ">=4.6.2" }]
 nox = [

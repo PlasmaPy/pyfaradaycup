@@ -15,7 +15,7 @@ release = "0.1.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    # build-in extensions
+    # built-in extensions
     "sphinx.ext.apidoc",  # generate API docs
     "sphinx.ext.autodoc",  # include documentation from docstrings
     "sphinx.ext.duration",  # show durations in documentation builds
