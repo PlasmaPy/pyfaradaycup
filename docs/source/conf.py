@@ -15,33 +15,17 @@ release = "0.1.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    # plasmapy extensions & setups
-    #"plasmapy_sphinx.theme",
-    #"plasmapy_sphinx.ext.autodoc",
-    #"plasmapy_sphinx.ext.directives",
+    # build-in extensions
+    "sphinx.ext.apidoc",  # generate API docs
+    "sphinx.ext.autodoc",  # include documentation from docstrings
+    "sphinx.ext.duration",  # show durations in documentation builds
+    "sphinx.ext.intersphinx",  # link to other projects' documentation
+    "sphinx.ext.mathjax",  # render math with MathJax
+    "sphinx.ext.napoleon",  # support numpy and google style docstrings
+    "sphinx.ext.viewcode",  # add links to highlighted source code
     # other 3rd party extensions
-    #"IPython.sphinxext.ipython_console_highlighting",
-    #"nbsphinx",
-    #"notfound.extension",
-    #"sphinx.ext.duration",
-    #"sphinx.ext.extlinks",
-    #"sphinx.ext.graphviz",
-    #"sphinx.ext.intersphinx",
-    #"sphinx.ext.mathjax",
-    #"sphinx.ext.napoleon",
-    #"sphinx.ext.todo",
-    #"sphinx.ext.viewcode",
-    #"sphinx_changelog",
-    #"sphinx_copybutton",
-    #"sphinx_gallery.load_style",
-    #"sphinx_issues",
-    #"sphinx_reredirects",
-    #"sphinx_tabs.tabs",
-    #"sphinx_toolbox.collapse",
-    #"sphinx_toolbox.rest_example",
-    #"sphinxcontrib.bibtex",
-    #"sphinxemoji.sphinxemoji",
-    #"sphinxcontrib.globalsubs",
+    "notfound.extension",  # adds a notfound page
+    "sphinx_copybutton",  # adds a button that enables code to be copied
 ]
 
 templates_path = ["_templates"]
