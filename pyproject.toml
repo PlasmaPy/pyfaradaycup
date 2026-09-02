@@ -38,6 +38,9 @@ test = [
   "pytest-filter-subpackage>=0.2",
   "pytest-xdist>=3.8",
 ]
+docs = [
+  "sphinx>=9.1",
+]
 lint = [
   "pre-commit>=4.6.2",
 ]
@@ -76,7 +79,7 @@ lint.extend-select = [
   "C90",
   "COM",
   "D",
-  "DOC",    # in preview and not enabled as of August 2026
+  # "DOC",    # in preview and not enabled as of August 2026
   "DTZ",
   "E",
   "EM",

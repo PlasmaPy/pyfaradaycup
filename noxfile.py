@@ -22,6 +22,7 @@ Nox documentation: https://nox.thea.codes
 """
 
 import os
+import pathlib
 
 import nox
 import nox.command
@@ -38,12 +39,120 @@ MINPYTHON = min(SUPPORTED_PYTHON_VERSIONS)
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
+DOCPYTHON = "3.14"
+
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
 def tests(session: nox.Session) -> None:
     """Run tests with pytest."""
     session.install(".")
     session.run("pytest", *session.posargs)
+
+
+if RUNNING_ON_RTD:
+    rtd_output_path = pathlib.Path(os.environ.get("READTHEDOCS_OUTPUT")) / "html"  # ty:ignore[invalid-argument-type]
+    rtd_output_path.mkdir(parents=True, exist_ok=True)
+    doc_build_dir = str(rtd_output_path)
+else:
+    doc_build_dir = "docs/_build/html"
+
+
+SPHINX_BASE_COMMAND: list[str] = [
+    "sphinx-build",
+    "docs/source/",
+    doc_build_dir,
+    "--nitpicky",
+    "--keep-going",
+]
+
+if not RUNNING_ON_RTD:
+    SPHINX_BASE_COMMAND.extend(["--fail-on-warning"])
+
+BUILD_HTML: tuple[str, ...] = ("--builder", "html")
+CHECK_HYPERLINKS: tuple[str, ...] = ("--builder", "linkcheck")
+
+DOC_TROUBLESHOOTING_MESSAGE = """
+
+📘 Tips for troubleshooting common documentation build failures are in
+PlasmaPy's documentation guide at:
+
+🔗 https://docs.plasmapy.org/en/latest/contributing/doc_guide.html#troubleshooting
+"""
+
+
+@nox_uv.session(python=DOCPYTHON, uv_groups=["docs"])
+def docs(session: nox.Session) -> None:
+    """
+    Build documentation with Sphinx.
+
+    This session may require installation of pandoc and graphviz.
+
+    Configuration file: docs/source/conf.py
+    """
+    if RUNNING_ON_CI:
+        session.log(DOC_TROUBLESHOOTING_MESSAGE)
+
+    # Can we use pixi or conda to install graphviz and pandoc if they
+    # are not installed?
+
+    # session.run_install("dot", "-V", external=True)
+    # session.run_install("pandoc", "--version", external=True)
+
+    session.run(*SPHINX_BASE_COMMAND, *BUILD_HTML, *session.posargs)
+
+    landing_page = pathlib.Path(doc_build_dir) / "index.html"
+    if landing_page.exists():
+        session.log(f"The documentation may be previewed at {landing_page}")
+    else:
+        session.error(f"Documentation preview landing page not found: {landing_page}")
+
+
+# The following session was copied from PlasmaPy's noxfile.py, and will
+# be necessary for when we connect to Read the Docs.
+
+# @nox_uv.session(python=DOCPYTHON, uv_groups=["docs"])
+# def htmlzip(session: nox.Session) -> None:
+#     """Bundle documentation build into a zip file on Read the Docs."""
+#     if not RUNNING_ON_RTD:
+#         session.error("This session must be run on Read the Docs.")
+#
+#     html_build_dir = pathlib.Path(doc_build_dir)
+#     html_landing_page = (html_build_dir / "index.html").resolve()
+#     READTHEDOCS_OUTPUT = html_build_dir.parent
+#     if not html_landing_page.exists():
+#         session.error(
+#             f"No documentation build found at: {html_landing_page}\n"
+#             f"It appears the documentation has not been built.",
+#         )
+#
+#     command = [
+#         "sphinx-build",
+#         "--show-traceback",
+#         "--doctree-dir",
+#         f"{html_build_dir / '.doctrees'}",
+#         "--builder",
+#         "singlehtml",
+#         "--define",
+#         "language=en",
+#         "./docs/source",  # source directory
+#         f"{READTHEDOCS_OUTPUT / 'htmlzip'}",  # output directory
+#     ]
+#     session.run(*command)
+#
+#     # now build the zip file
+#     READTHEDOCS_PROJECT = os.environ.get("READTHEDOCS_PROJECT")
+#     READTHEDOCS_LANGUAGE = os.environ.get("READTHEDOCS_LANGUAGE")
+#     READTHEDOCS_VERSION = os.environ.get("READTHEDOCS_VERSION")
+#
+#     # mimic RTD default naming convention
+#     zip_name = f"{READTHEDOCS_PROJECT}-{READTHEDOCS_LANGUAGE}-{READTHEDOCS_VERSION}.zip"
+#
+#     cwd = pathlib.Path.cwd()
+#     session.chdir(f"{READTHEDOCS_OUTPUT / 'htmlzip'}")
+#     session.run("zip", "-r", "-m", f"{zip_name}", ".", external=True)
+#     session.chdir(f"{cwd}")
+#
+#     session.log(f"The htmlzip was placed in: {READTHEDOCS_OUTPUT / 'htmlzip'}")
 
 
 @nox_uv.session(uv_groups=["dev"])
