@@ -25,7 +25,6 @@ extensions = [
     "sphinx.ext.viewcode",  # add links to highlighted source code
     # other 3rd party extensions
     "notfound.extension",  # adds a notfound page
-    "sphinxcontrib.bibtex",  # allows a bibliography via bibtex
     "sphinx_copybutton",  # adds a button that enables code to be copied
 ]
 
