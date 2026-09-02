@@ -156,7 +156,7 @@ def docs(session: nox.Session) -> None:
 
 
 @nox_uv.session(uv_groups=["dev"])
-def typecheck(session) -> None:
+def typecheck(session: nox.Session) -> None:
     """Perform static type checking with ty."""
     session.install(".")
     session.run("ty", "check", *session.posargs or ["--fix"])
