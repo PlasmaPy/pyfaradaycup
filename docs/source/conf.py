@@ -24,7 +24,7 @@ extensions = [
     "sphinx.ext.napoleon",  # support numpy and google style docstrings
     "sphinx.ext.viewcode",  # add links to highlighted source code
     # other 3rd party extensions
-    "notfound.extension",  # adds a notfound page
+    "notfound.extension",  # adds a notfound 404 page
     "sphinx_copybutton",  # adds a button that enables code to be copied
 ]
 
