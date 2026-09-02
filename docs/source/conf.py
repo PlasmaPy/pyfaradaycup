@@ -8,7 +8,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "pyFaradayCup"
-copyright = "2026, pyFaradayCup developers"
+copyright = "2026, pyFaradayCup developers"  # ruff:ignore[A001]
 author = "pyFaradayCup developers"
 release = "0.1.0"
 
