@@ -46,7 +46,12 @@ DOCPYTHON = "3.14"
 def tests(session: nox.Session) -> None:
     """Run tests with pytest."""
     session.install(".")
-    session.run("pytest", *session.posargs)
+
+    # Test examples in docstrings only using the most recent Python
+    # because string representations may change.
+    doctest_options = ["--doctest-modules"] if session.python == MAXPYTHON else []
+
+    session.run("pytest", *doctest_options, *session.posargs)
 
 
 if RUNNING_ON_RTD:
