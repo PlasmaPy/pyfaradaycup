@@ -1,4 +1,4 @@
-from . import pipeline
+from pyfaradaycup import pipeline
 
 
 def hello() -> str:
