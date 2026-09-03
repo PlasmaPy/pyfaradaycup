@@ -5,6 +5,21 @@
 #  $LastChangedBy: acase $
 """  # noqa: D400
 
+__all__ = [
+    "apid_obj",
+    "choose_file",
+    "file2bytestr",
+    "get_layout",
+    "get_layout_sc",
+    "parse_ccsds_head",
+    "parse_pkt",
+    "read_bytestr",
+    "read_file",
+    "read_file_sc",
+    "read_stdin",
+    "wrapper_status",
+]
+
 import datetime
 import os
 import re
@@ -284,7 +299,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
                 + "[0-9][0-9][0-9]"
                 + os.path.sep,
                 path,
-            ).span()
+            ).span()  # ty: ignore[unresolved-attribute]
             file_dt = (
                 datetime.datetime(  # noqa: DTZ001
                     int(path[match[0] + 1 : match[0] + 5]), 1, 1
@@ -300,7 +315,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
             print(  # noqa: T201
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]
+            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -525,11 +540,11 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
 
     """
 	#This *might* be a faster way to parse values?
-	#This will work for the non sw_data_vars variables, 
+	#This will work for the non sw_data_vars variables,
 	#but I haven't written anything for the sw_data_vars yet
-	
+
 	for i_bit, bit in enumerate(form.bits[0:len(form.bits)-sw_data_vars_len]):
-	
+
 		bytes = bytearr[form.bytestart[i_bit]:form.byteend[i_bit]+1] #the bytes that contain the value for this mnemonic
 		valint = sum([bytes[len(bytes)-1-i]<<i*8 for i in range(len(bytes))]) #those bytes combined into single integer
 		mask = 2**form.bits[i_bit]-1 << (7-form.bitend[i_bit])
@@ -538,7 +553,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
 		#store in our data variable
 		thisname = form.names[i_bit]
 		thisdat[thisname].append(thisval)
-	"""  # noqa: W291, W293
+	"""
 
     # SC packets are defined in a different format than SWEAP packets
     # Each mnemonic has a start byte, start bit, and length
@@ -646,7 +661,7 @@ def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
             thisapid = apid_obj()
-            thisapid.apid = apid
+            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
             line = ""  # so that the while loop will start out ok  # noqa: PLW2901
             while line[0:4] != "APID":
                 i += 1  # noqa: PLW2901
@@ -658,11 +673,11 @@ def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
                         thisapid.bits.append(int(pieces[3].strip()))
                         thisapid.data[pieces[0].strip()] = []
                         if hasattr(thisapid, "sw_data_vars"):
-                            thisapid.sw_data_vars.append(thisapid.names[-1])
+                            thisapid.sw_data_vars.append(thisapid.names[-1])  # ty: ignore[unresolved-attribute]
                     elif (line.strip()[0:9] == "( SW_DATA") | (
                         line.strip()[0:12] == "( SW_SPC_SCI"
                     ):
-                        thisapid.sw_data_vars = []
+                        thisapid.sw_data_vars = []  # ty: ignore[unresolved-attribute]
                 except IndexError:
                     break
                 except:  # noqa: E722
@@ -708,7 +723,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # noqa: ANN001, ANN201, C9
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
             thisapid = apid_obj()
-            thisapid.apid = apid
+            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
 
             line = ""  # noqa: PLW2901
             while line[0:4] != "SC_H":
@@ -744,4 +759,4 @@ def get_layout_sc(apid, verbose=False, filename=""):  # noqa: ANN001, ANN201, C9
 
 
 if __name__ == "__main__":
-    read_file(ptp=False, verbose=True)
+    read_file(ptp=False, verbose=True)  # ty: ignore[unknown-argument]
