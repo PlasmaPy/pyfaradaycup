@@ -274,6 +274,7 @@ lint.flake8-tidy-imports.banned-api."typing.Tuple".msg = "Deprecated alias. Chan
 lint.flake8-tidy-imports.banned-api."typing.Type".msg = "Deprecated alias. Change to type"
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
+lint.pylint.max-positional-args = 6
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
 addopts = [
