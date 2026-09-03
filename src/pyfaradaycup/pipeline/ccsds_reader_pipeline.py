@@ -3,7 +3,7 @@
 #  $LastChangedRevision: 103 $
 #  $LastChangedDate: 2020-08-13 08:42:52 -0400 (Thu, 13 Aug 2020) $
 #  $LastChangedBy: acase $
-"""
+"""  # noqa: D400
 
 import datetime
 import os
@@ -20,45 +20,45 @@ import numpy as np
 
 
 #########################################
-def read_stdin(ptp=False, verbose=False):
-    """Parse binary stream on stdin"""
+def read_stdin(ptp=False, verbose=False):  # noqa: ANN001, ANN201, FBT002
+    """Parse binary stream on stdin"""  # noqa: D400
 
 
 #########################################
-def file2bytestr(path="", verbose=False, gzip=False):
+def file2bytestr(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
     try:
         if gzip:
-            import gzip
+            import gzip  # noqa: PLC0415
 
             with gzip.open(path, "rb") as f:
                 bytestr = f.read()
-            return bytestr
-        with open(path, "rb") as f:
+            return bytestr  # noqa: RET504
+        with open(path, "rb") as f:  # noqa: PTH123
             bytestr = f.read()
-        return bytestr
+        return bytestr  # noqa: RET504, TRY300
 
-    except:
-        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")
-        print(sys.exc_info())
-        import pdb
+    except:  # noqa: E722
+        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # noqa: T201
+        print(sys.exc_info())  # noqa: T201
+        import pdb  # noqa: PLC0415, T100
 
-        pdb.set_trace()
+        pdb.set_trace()  # noqa: T100
         sys.exit()
 
 
 #########################################
-def choose_file(path="", ptp=False, verbose=False):
+def choose_file(path="", ptp=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
     # make sure file exists
     try:
-        open(path).close()
-    except:
-        print("***ERROR*** File can not be read...will give option to choose file")
+        open(path).close()  # noqa: PTH123
+    except:  # noqa: E722
+        print("***ERROR*** File can not be read...will give option to choose file")  # noqa: T201
         path = ""
 
     # pop up a dialog to choose a file if path==''
     # path = 'C:\\Users\\comra_000\\SWEAP\\SPC\\FEU\\Testing\\20150228_UCB_SPC_FEU_LVPS_PTP_data\\PTP_data.dat'
     if path == "":
-        print("***ERROR*** Must define a file path")
+        print("***ERROR*** Must define a file path")  # noqa: T201
         # root = Tkinter.Tk()
         # root.withdraw()
         # path = tkFileDialog.askopenfilename()
@@ -67,7 +67,7 @@ def choose_file(path="", ptp=False, verbose=False):
 
 
 #########################################
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
+def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
 
     # get a filename if not specified
     path = choose_file(path)
@@ -77,7 +77,7 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
-    if spconly:
+    if spconly:  # noqa: SIM108
         ok_apids = [0x351, 0x352, 0x353, 0x354, 0x35E, 0x35F]
     else:
         ok_apids = range(0x351, 0x3A0, 1)
@@ -111,13 +111,13 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:
+    except:  # noqa: E722
         return data
 
-    npackets = len(pkt_starts)
+    npackets = len(pkt_starts)  # noqa: F841
 
     # Loop through each packet beginning and decommutate it
-    for i_pointer, pointer in enumerate(pkt_starts):
+    for i_pointer, pointer in enumerate(pkt_starts):  # noqa: B007
         wrap_cchead = parse_ccsds_head(bytestr[pointer : pointer + 10])
         data_cchead = parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
         data["wrap_met"].append(wrap_cchead["CCSDS_MET"])
@@ -131,8 +131,8 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
 
 
 #########################################
-def read_file(path="", verbose=False, gzip=False):
-    """Read a CCSDS File and return data structure"""
+def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901, FBT002
+    """Read a CCSDS File and return data structure"""  # noqa: D400
     # get a filename if not specified
     path = choose_file(path)
 
@@ -183,7 +183,7 @@ def read_file(path="", verbose=False, gzip=False):
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:
+    except:  # noqa: E722
         return data
 
     npackets = len(pkt_starts)
@@ -194,13 +194,13 @@ def read_file(path="", verbose=False, gzip=False):
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(
+        foo = read_bytestr(  # noqa: F841
             bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
         )
 
         # Update status
         nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:
+        if (nowtime - updatetime) > 0.5:  # noqa: PLR2004
             sys.stdout.write(
                 "\b" * 40
                 + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
@@ -213,7 +213,7 @@ def read_file(path="", verbose=False, gzip=False):
         "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
     )
     sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():
+    for thisapid in pktcnt[0].keys():  # noqa: SIM118
         sys.stdout.write(
             f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
         )
@@ -223,8 +223,8 @@ def read_file(path="", verbose=False, gzip=False):
 
 
 #########################################
-def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
-    """Read a CCSDS File and return data structure"""
+def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001, ANN201, C901, FBT002, PLR0912, PLR0915
+    """Read a CCSDS File and return data structure"""  # noqa: D400
     # get a filename if not specified
     path = choose_file(path)
 
@@ -236,7 +236,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
     # Those versions (and respective dates) are listed in the L1 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
     # Corresponding SC_HK files that we will read in are in ./sc_hk_def/
-    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:
+    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:  # noqa: PTH123
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])
@@ -254,7 +254,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
     # and thus which SC_HK.blk file to use
     # we'll assume the first bytes in the file are a header
     try:
-        if ptp:
+        if ptp:  # noqa: SIM108
             cchead = parse_ccsds_head(bytestr[17:])
         else:
             cchead = parse_ccsds_head(bytestr)
@@ -263,8 +263,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
             | (cchead["CCSDS_PacketType"] != 0)
             | (cchead["CCSDS_SecHdrFlag"] != 1)
         ):
-            raise ValueError("CCSDS header values not as expected")
-        file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(
+            raise ValueError("CCSDS header values not as expected")  # noqa: EM101, TRY003
+        file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # noqa: DTZ001
             seconds=cchead["CCSDS_MET"]
         )
         try:
@@ -272,10 +272,10 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
         except IndexError:
             good_time = 0
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
-    except:
-        print(sys.exc_info())
-        print("Could not find which SC_HK file to use based on packet header")
-        print("Attempting to find correct date based on filename/path")
+    except:  # noqa: E722
+        print(sys.exc_info())  # noqa: T201
+        print("Could not find which SC_HK file to use based on packet header")  # noqa: T201
+        print("Attempting to find correct date based on filename/path")  # noqa: T201
         try:
             match = re.search(
                 os.path.sep
@@ -285,7 +285,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
                 + os.path.sep,
                 path,
             ).span()
-            file_dt = datetime.datetime(
+            file_dt = datetime.datetime(  # noqa: DTZ001
                 int(path[match[0] + 1 : match[0] + 5]), 1, 1
             ) + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
             try:
@@ -293,8 +293,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
             except IndexError:
                 good_time = 0
             sc_hk_filename = sc_hk_filenames[versions[good_time]]
-        except:
-            print(
+        except:  # noqa: E722
+            print(  # noqa: T201
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
             sc_hk_filename = sc_hk_filenames[-1]
@@ -309,7 +309,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
     apidformat = {}
     for apid in ok_apids:
         apidformat[apid], lengths[apid] = get_layout_sc(
-            apid, verbose=verbose, filename=os.path.join("sc_hk_def", sc_hk_filename)
+            apid, verbose=verbose, filename=os.path.join("sc_hk_def", sc_hk_filename)  # noqa: PTH118
         )
         if apidformat[apid]:
             data[apid] = {}
@@ -351,7 +351,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
                 "2B", (2048 + inst_ap & 0xFF00) >> 8, 2048 + inst_ap & 0x00FF
             )
             pattern += b".."
-            if inst_ap == 0x256:
+            if inst_ap == 0x256:  # noqa: PLR2004
                 # because the length shown in SPP.SC.HK.XX.YY.ZZ_GWW.blk doesn't correspond to packet length
                 # we just hard-code the length
                 # As of 2020/06/08 there were only two different possible sizes of 0x256 packets 0x098d and 0x0a91
@@ -375,7 +375,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:
+    except:  # noqa: E722
         return data
     npackets = len(pkt_starts)
 
@@ -385,13 +385,13 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(
+        foo = read_bytestr(  # noqa: F841
             bytestr, pointer + offset_bytes, data, apidformat, pktcnt, verbose=verbose
         )
 
         # Update status
         nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:
+        if (nowtime - updatetime) > 0.5:  # noqa: PLR2004
             sys.stdout.write(
                 "\b" * 40
                 + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
@@ -404,7 +404,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
         "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
     )
     sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():
+    for thisapid in pktcnt[0].keys():  # noqa: SIM118
         sys.stdout.write(
             f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
         )
@@ -414,14 +414,14 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):
 
 
 #########################################
-def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):
-    """Take a hex string and find packets"""
+def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # noqa: ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503
+    """Take a hex string and find packets"""  # noqa: D400
     # Parse the CCSDS header
     try:
         ccsds_head = parse_ccsds_head(bytestr[pointer : pointer + 10])
     except ValueError:
         if verbose:
-            print("Full CCSDS Header Not Present")
+            print("Full CCSDS Header Not Present")  # noqa: T201
         return ()
     apid = ccsds_head["CCSDS_ApID"]
     pkt_len = ccsds_head["CCSDS_PacketLen"]
@@ -429,30 +429,30 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):
     # Verify that the CCSDS header is valid
     if ccsds_head["CCSDS_Version"] != 0:
         if verbose:
-            print("CCSDS Version is invalid")
+            print("CCSDS Version is invalid")  # noqa: T201
         return ()
 
     if ccsds_head["CCSDS_PacketType"] != 0:
         if verbose:
-            print("CCSDS Type is invalid")
+            print("CCSDS Type is invalid")  # noqa: T201
         return ()
 
     if ccsds_head["CCSDS_SecHdrFlag"] != 1:
         if verbose:
-            print("CCSDS Secondary Header flag is invalid")
+            print("CCSDS Secondary Header flag is invalid")  # noqa: T201
         return ()
 
     # Make sure the full packet is here
     if pointer + pkt_len + 7 > len(bytestr):
         if verbose:
-            print("Full CCSDS packet not available at end of bytestr")
+            print("Full CCSDS packet not available at end of bytestr")  # noqa: T201
         return ()
 
     # This packet only (no PTP header and no wrapper header (if they existed))
     thispkt = bytestr[pointer : pointer + pkt_len + 7]
 
     # make sure we know how to decom this packet
-    if apid in apidformat.keys():
+    if apid in apidformat.keys():  # noqa: SIM118
         # count this as a good packet
         pktcnt[0][apid] += 1
 
@@ -461,7 +461,7 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):
             thispkt, data, apidformat, apid, ccsds_head
         )  # could send this off to a parallel task?  Might try that if too slow this way
 
-    elif apid in pktcnt[1].keys():
+    elif apid in pktcnt[1].keys():  # noqa: SIM118
         pktcnt[1][apid] += 1
     else:
         pktcnt[1][apid] = 1
@@ -469,18 +469,18 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):
     return ()
 
     # we shouldn't make it here
-    import pdb
+    import pdb  # noqa: PLC0415, T100
 
-    pdb.set_trace()
+    pdb.set_trace()  # noqa: T100
 
 
 #########################################
-def parse_ccsds_head(bytestr, verbose=False):
+def parse_ccsds_head(bytestr, verbose=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
     if len(bytearr) < exp_length:
-        raise ValueError("CCSDS header is not as long as expected")
+        raise ValueError("CCSDS header is not as long as expected")  # noqa: EM101, TRY003
 
     head = {}
     head["CCSDS_Version"] = bytearr[0] >> 5
@@ -499,21 +499,21 @@ def parse_ccsds_head(bytestr, verbose=False):
 
 
 #########################################
-def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
-    """Parse one CCSDS packet"""
+def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # noqa: ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913
+    """Parse one CCSDS packet"""  # noqa: D400
     # The format for this APIDs packet list
     form = apidformat[apid]
     thisdat = data[apid]
 
     # Convert to a bit string
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
-    str_bin = "".join([bin(i)[2:].zfill(8) for i in bytearr])
+    str_bin = "".join([bin(i)[2:].zfill(8) for i in bytearr])  # noqa: FURB116
 
     # For SWEAP packets, we just have each mnemonic listed and each bit length
     # So we have to step through them in order
     # Take care of the variables in sw_data (the repeating bit of the packet) separately
     pointer = 0
-    if hasattr(form, "sw_data_vars"):
+    if hasattr(form, "sw_data_vars"):  # noqa: SIM108
         sw_data_vars_len = len(form.sw_data_vars)
     else:
         sw_data_vars_len = 0
@@ -533,7 +533,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
 		#store in our data variable
 		thisname = form.names[i_bit]
 		thisdat[thisname].append(thisval)
-	"""
+	"""  # noqa: W291, W293
 
     # SC packets are defined in a different format than SWEAP packets
     # Each mnemonic has a start byte, start bit, and length
@@ -545,7 +545,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
             thisbin = str_bin[startbit:endbit]
             try:
                 thisval = int(thisbin, 2)
-            except:
+            except:  # noqa: E722
                 # print(sys.exc_info())
                 thisval = -999
             thisdat[thisname].append(thisval)
@@ -553,17 +553,17 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
 
     # If the full packet isn't here, then don't bother parsing
     if len(bytearr) * 8.0 < sum(form.bits):
-        print(f"short packet: {hex(apid)}")
+        print(f"short packet: {hex(apid)}")  # noqa: T201
         return
 
     for i_bit, bit in enumerate(form.bits[0 : len(form.bits) - sw_data_vars_len]):
         thisbin = str_bin[pointer : pointer + bit]
         try:
             thisval = int(thisbin, 2)
-        except:
-            import pdb
+        except:  # noqa: E722
+            import pdb  # noqa: PLC0415, T100
 
-            pdb.set_trace()
+            pdb.set_trace()  # noqa: T100
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -590,9 +590,9 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
                 try:
                     thisval = int(thisbin, 2)
                 except ValueError:
-                    import pdb
+                    import pdb  # noqa: PLC0415, T100
 
-                    pdb.set_trace()
+                    pdb.set_trace()  # noqa: T100
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -604,8 +604,8 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):
 
 
 #########################################
-class apid_obj:
-    def __init__(self):
+class apid_obj:  # noqa: D101, N801
+    def __init__(self):  # noqa: ANN204
         self.names = []
         self.bits = []
         self.bytestart = []
@@ -618,34 +618,34 @@ class apid_obj:
 
 
 #########################################
-def get_layout(apid, verbose=False):
+def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
     try:
-        file = open("sweap_tlm.blk")
-    except:
+        file = open("sweap_tlm.blk")  # noqa: PTH123, SIM115
+    except:  # noqa: E722
         if verbose:
-            print(
+            print(  # noqa: T201
                 "***INFO*** No local 'sweap_tlm.blk' found...using the one near ccsds_reader_pipeline.py"
             )
         try:
             thisdir = os.path.realpath(__file__)
             thisdir = "\\".join(thisdir.split("\\")[0:-1])
-            file = open(thisdir + "\\sweap_tlm.blk")
-        except:
-            print(sys.exc_info())
-            import pdb
+            file = open(thisdir + "\\sweap_tlm.blk")  # noqa: PTH123, SIM115
+        except:  # noqa: E722
+            print(sys.exc_info())  # noqa: T201
+            import pdb  # noqa: PLC0415, T100
 
-            pdb.set_trace()
+            pdb.set_trace()  # noqa: T100
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():
+        if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # noqa: FURB116
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())
+                print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
             thisapid = apid_obj()
             thisapid.apid = apid
-            line = ""  # so that the while loop will start out ok
+            line = ""  # so that the while loop will start out ok  # noqa: PLW2901
             while line[0:4] != "APID":
-                i += 1
-                line = lines[i]
+                i += 1  # noqa: PLW2901
+                line = lines[i]  # noqa: PLW2901
                 try:
                     if line.strip()[0] not in ["(", "{", "}", ")"]:
                         pieces = re.split(",|;", line.strip())
@@ -660,11 +660,11 @@ def get_layout(apid, verbose=False):
                         thisapid.sw_data_vars = []
                 except IndexError:
                     break
-                except:
-                    print(sys.exc_info())
-                    import pdb
+                except:  # noqa: E722
+                    print(sys.exc_info())  # noqa: T201
+                    import pdb  # noqa: PLC0415, T100
 
-                    pdb.set_trace()
+                    pdb.set_trace()  # noqa: T100
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -679,36 +679,36 @@ def get_layout(apid, verbose=False):
             return thisapid
 
     # if we didn't find that APID
-    print(
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()
+    print(  # noqa: T201
+        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # noqa: FURB116
     )
     return None
 
 
 #########################################
-def get_layout_sc(apid, verbose=False, filename=""):
+def get_layout_sc(apid, verbose=False, filename=""):  # noqa: ANN001, ANN201, C901, D103, FBT002
     try:
-        file = open(filename)
-        print(f"using sc_hk file: {filename}")
-    except:
-        print("could not open SC HK BLK file")
-        print(sys.exc_info())
-        import pdb
+        file = open(filename)  # noqa: PTH123, SIM115
+        print(f"using sc_hk file: {filename}")  # noqa: T201
+    except:  # noqa: E722
+        print("could not open SC HK BLK file")  # noqa: T201
+        print(sys.exc_info())  # noqa: T201
+        import pdb  # noqa: PLC0415, T100
 
-        pdb.set_trace()
+        pdb.set_trace()  # noqa: T100
 
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":
+        if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # noqa: FURB116
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())
+                print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
             thisapid = apid_obj()
             thisapid.apid = apid
 
-            line = ""
+            line = ""  # noqa: PLW2901
             while line[0:4] != "SC_H":
-                i += 1
-                line = lines[i].strip()
+                i += 1  # noqa: PLW2901
+                line = lines[i].strip()  # noqa: PLW2901
                 if line[0:8] == "( Block[":
                     length = int(line.split("[")[1].split("]")[0])
                 try:
@@ -725,15 +725,15 @@ def get_layout_sc(apid, verbose=False, filename=""):
                         thisapid.bits.append(int(pieces[3].strip()))
                 except IndexError:
                     break
-                except:
-                    print(sys.exc_info())
-                    import pdb
+                except:  # noqa: E722
+                    print(sys.exc_info())  # noqa: T201
+                    import pdb  # noqa: PLC0415, T100
 
-                    pdb.set_trace()
+                    pdb.set_trace()  # noqa: T100
             return (thisapid, length)
     # if we didn't find that APID
-    print(
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()
+    print(  # noqa: T201
+        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # noqa: FURB116
     )
     return None
 
