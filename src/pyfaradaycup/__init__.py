@@ -1,9 +1,5 @@
-def hello() -> str:
-    """Check that docstrings are tested.
+"""Faraday cup data pipeline and data analysis tools."""
 
-    Examples
-    --------
-    >>> 6 * 9
-    54
-    """
-    return "Hello from pyfaradaycup!"
+__all__: list[str] = ["utils"]
+
+from pyfaradaycup import utils
