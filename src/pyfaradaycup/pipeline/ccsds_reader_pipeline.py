@@ -285,9 +285,12 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
                 + os.path.sep,
                 path,
             ).span()
-            file_dt = datetime.datetime(  # noqa: DTZ001
-                int(path[match[0] + 1 : match[0] + 5]), 1, 1
-            ) + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
+            file_dt = (
+                datetime.datetime(  # noqa: DTZ001
+                    int(path[match[0] + 1 : match[0] + 5]), 1, 1
+                )
+                + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
+            )
             try:
                 good_time = np.where(vers_dt < file_dt)[0][-1]
             except IndexError:
@@ -309,7 +312,9 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
     apidformat = {}
     for apid in ok_apids:
         apidformat[apid], lengths[apid] = get_layout_sc(
-            apid, verbose=verbose, filename=os.path.join("sc_hk_def", sc_hk_filename)  # noqa: PTH118
+            apid,
+            verbose=verbose,
+            filename=os.path.join("sc_hk_def", sc_hk_filename),  # noqa: PTH118
         )
         if apidformat[apid]:
             data[apid] = {}
