@@ -1,3 +1,6 @@
+from . import pipeline
+
+
 def hello() -> str:
     """Check that docstrings are tested.
 
