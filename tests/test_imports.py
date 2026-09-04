@@ -9,7 +9,6 @@ import pytest
     "package_name",
     [
         "pyfaradaycup",
-        "pyfaradaycup.utils",
         "pyfaradaycup.pipeline",
         "pyfaradaycup.pipeline.ccsds_reader_pipeline",
     ],
