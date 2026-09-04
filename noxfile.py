@@ -30,7 +30,14 @@ import nox_uv
 
 nox.options.default_venv_backend = "uv"
 
-SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = ("3.12", "3.13", "3.14")
+SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+    "3.14",
+)
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
 MAXPYTHON = max(SUPPORTED_PYTHON_VERSIONS)
