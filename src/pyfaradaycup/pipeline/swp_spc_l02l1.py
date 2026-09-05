@@ -5,6 +5,18 @@
 #  $LastChangedBy: acase $
 """  # noqa: D400
 
+__all__ = [
+    "cdf35e_35f",
+    "cdf351_353_354",
+    "cdf352",
+    "get_newest_kernel",
+    "get_newest_skeleton",
+    "main",
+    "secsubsec2scet",
+    "setup",
+    "statusmsg",
+]
+
 import argparse
 import datetime
 import glob
@@ -300,10 +312,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
     logfile.close()
 
 
-#####################################################
-##
-#####################################################
-def cdf35e_35f(cdf, dat, verbose=False):  # noqa: ANN001, ANN201, C901, FBT002
+def cdf35e_35f(cdf, dat, verbose=False):  # noqa: ANN001, FBT002
     """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # noqa: D400
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
@@ -526,10 +535,8 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
             pdb.set_trace()  # noqa: T100
 
 
-#####################################################
-##
-#####################################################
-def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915
+
+def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, FBT002
     try:
         # Calculate SCET from the variables in the L0 data
         dt = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
@@ -663,9 +670,6 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
     return ()
 
 
-#####################################################
-##
-#####################################################
 def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
     """Parse a fairly standard CCSDS time structure into decimal MET: first 4 bytes=MET seconds, second 2 bytes = MET subseconds"""  # noqa: D400
     sec_str = [f"{i:1.0f}" for i in sec]
@@ -686,9 +690,6 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # noqa: ANN00
     return ephem_nanosec_j2000  # noqa: RET504
 
 
-#####################################################
-##
-#####################################################
 def statusmsg(string, screen=False, file=True, verbose=False):  # noqa: ANN001, ANN201, FBT002
     """Output status message to screen or logfile (default to file, but not screen)"""  # noqa: D400
     nowdtstr = datetime.datetime.now().isoformat()  # noqa: DTZ005
@@ -699,9 +700,6 @@ def statusmsg(string, screen=False, file=True, verbose=False):  # noqa: ANN001, 
             print(string)  # noqa: T201
 
 
-#####################################################
-##
-#####################################################
 def get_newest_kernel(tls=False, sclk=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
     """Find the path to the newest NAIF TLS (leap second) kernel file"""  # noqa: D400
     # Make sure we chose exactly one of the options
@@ -738,9 +736,6 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # noqa: ANN001, AN
     return path  # noqa: RET504
 
 
-#####################################################
-##
-#####################################################
 def get_newest_skeleton(apid, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
     """Find the path to the newest skeleton CDF file"""  # noqa: D400
     return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # noqa: FURB116
