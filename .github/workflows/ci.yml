@@ -46,19 +46,19 @@ jobs:
 
         - name: Tests, Python 3.14
           # Doctests are run only for most recent Python (see noxfile.py)
-          os: ubuntu-latest
+          os: macos-latest
           python: '3.14'
           nox_session: tests-3.14
 
-        - name: Tests, Python 3.13
-          os: macos-latest
-          python: '3.13'
+        - name: Tests, Python 3.10
+          os: windows-latest
+          python: '3.10'
           nox_session: tests-3.13
 
-        - name: Tests, Python 3.12
-          os: windows-latest
-          python: '3.12'
-          nox_session: tests-3.12
+        - name: Tests, Python 3.9
+          os: ubuntu-latest
+          python: '3.9'
+          nox_session: tests-3.9
 
         - name: Static type checking with ty, Python 3.14, Ubuntu
           os: ubuntu-latest
