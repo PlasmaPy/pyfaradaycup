@@ -316,7 +316,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
     logfile.close()
 
 
-def cdf35e_35f(cdf, dat, verbose=False):  # noqa: ANN001, FBT002
+def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, FBT002
     """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # noqa: D400
     # Calculate MET from the variables in the L0 data
     # MET of each NYS

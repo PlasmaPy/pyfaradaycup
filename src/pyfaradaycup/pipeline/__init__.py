@@ -1,1 +1,1 @@
-from . import ccsds_reader_pipeline, swp_spc_l02l1
+from pyfaradaycup.pipeline import ccsds_reader_pipeline, swp_spc_l02l1
