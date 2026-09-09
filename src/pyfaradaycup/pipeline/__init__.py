@@ -1,2 +1,1 @@
-from . import swp_spc_l02l1
-from . import ccsds_reader_pipeline
+from . import ccsds_reader_pipeline, swp_spc_l02l1
