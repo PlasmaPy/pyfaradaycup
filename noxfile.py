@@ -24,13 +24,20 @@ Nox documentation: https://nox.thea.codes
 import os
 import pathlib
 
-import nox
-import nox.command
-import nox_uv
+import nox  # ty:ignore[unresolved-import]
+import nox.command  # ty:ignore[unresolved-import]
+import nox_uv  # ty:ignore[unresolved-import]
 
 nox.options.default_venv_backend = "uv"
 
-SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = ("3.12", "3.13", "3.14")
+SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+    "3.14",
+)
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
 MAXPYTHON = max(SUPPORTED_PYTHON_VERSIONS)
@@ -284,16 +291,8 @@ def zizmor(session: nox.Session) -> None:
     """
     if RUNNING_ON_CI:
         session.log(ZIZMOR_TROUBLESHOOTING_MESSAGE)
-
-    options = [
-        "--show-audit-urls=always",
-    ]
-
-    if not RUNNING_ON_CI and not session.posargs:
-        options.append("--quiet")
-
+    options = ["--quiet"] if not RUNNING_ON_CI and not session.posargs else []
     options.extend(session.posargs or ["--fix=safe"])
-
     session.run("zizmor", ".github", *options)
 
 

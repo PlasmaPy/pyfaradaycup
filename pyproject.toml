@@ -13,16 +13,50 @@ authors = [
   { name = "Joy Velasquez" },
   { name = "Nick Murphy", email = "namurphy@cfa.harvard.edu" },
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
-  "astropy>=3",
-  "plasmapy>=0.3.1",
+  "argcomplete>=3.6.3",
+  "bokeh>=2.3.3",
+  "cached-property>=1.5.2",
+  "certifi>=2020.4.5.1",
+  "charset-normalizer>=3.4.7",
+  "cycler>=0.11",
+  "et-xmlfile>=2",
+  "h5py>=3.1",
+  "idna>=3.16",
+  "imap-tools>=1.13",
+  "jinja2>=3.0.3",
+  "kiwisolver>=1.3.1",
+  "markupsafe>=2.0.1",
+  "matplotlib>=3.3.4",
+  "numpy>=1.19.5",
+  "openpyxl>=3.1.5",
+  "packaging>=21.3",
+  "pillow>=8.4",
+  "pip>=26.0.1",
+  "pyparsing>=3.0.7",
+  "python-dateutil>=2.8.2",
+  "pyyaml>=6",
+  "requests>=2.32.5",
+  "scipy>=1.5.4",
+  "setuptools>=82.0.1",
+  "six>=1.16",
+  "spacepy>=0.4.1",
+  "spiceypy>=4.0.1",
+  "tornado>=6.1",
+  "typing-extensions>=4.1.1",
+  "urllib3>=2.6.3",
+  "xlrd>=1.2",
 ]
 
 [dependency-groups]
@@ -35,31 +69,31 @@ dev = [
   { include-group = "zizmor" },
 ]
 test = [
-  "pytest>=9.1",
-  "pytest-filter-subpackage>=0.2",
-  "pytest-xdist>=3.8",
+  "pytest",
+  "pytest-filter-subpackage",
+  "pytest-xdist",
 ]
 docs = [
-  "sphinx>=9.1",
-  "sphinx-copybutton>=0.5.2",
-  "sphinx-notfound-page>=1.1",
+  "sphinx",
+  "sphinx-copybutton",
+  "sphinx-notfound-page",
 ]
 lint = [
-  "pre-commit>=4.6.2",
+  "pre-commit",
 ]
 nox = [
-  "nox>=2026.8.10",
-  "nox-uv>=0.8",
+  "nox",
+  "nox-uv",
 ]
 typecheck = [
-  "ty>=0.0.74",
+  "ty",
 ]
 zizmor = [
-  "zizmor>=1.29",
+  "zizmor",
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py39"
 namespace-packages = [ ".github/workflows", "docs" ]
 extend-exclude = [
   ".code",
@@ -217,35 +251,15 @@ lint.allowed-confusables = [
   "×",
   "–",
   "′",
-  "∨",
-  "∪",
   "∼",
-  "⊤",
   "α",
-  "ℂ",
-  "ℰ",
-  "ℱ",
   "γ",
-  "ℎ",
   "ι",
-  "ℐ",
-  "ℑ",
-  "ℒ",
-  "ℓ",
-  "ℳ",
   "ν",
-  "ℕ",
-  "ο",
-  "𝒪",
-  "ℚ",
   "ρ",
-  "ℜ",
-  "ℝ",
   "σ",
   "τ",
   "β",
-  "υ",
-  "ℤ",
 ]
 lint.flake8-import-conventions.aliases."astropy.constants" = "const"
 lint.flake8-import-conventions.aliases."astropy.units" = "u"
@@ -261,22 +275,9 @@ lint.flake8-import-conventions.banned-from = [
   "warnings",
 ]
 lint.flake8-tidy-imports.ban-relative-imports = "all"
-lint.flake8-tidy-imports.banned-api."typing.Callable".msg = "Deprecated alias. Change to collections.abc.Callable"
-lint.flake8-tidy-imports.banned-api."typing.Collection".msg = "Deprecated alias. Change to collections.abc.Collection"
-lint.flake8-tidy-imports.banned-api."typing.DefaultDict".msg = "Deprecated alias. Change to collections.defaultdict"
-lint.flake8-tidy-imports.banned-api."typing.Dict".msg = "Deprecated alias. Change to dict"
-lint.flake8-tidy-imports.banned-api."typing.Generator".msg = "Deprecated alias. Change to collections.abc.Generator"
-lint.flake8-tidy-imports.banned-api."typing.Iterable".msg = "Deprecated alias. Change to collections.abc.Iterable"
-lint.flake8-tidy-imports.banned-api."typing.Iterator".msg = "Deprecated alias. Change to collections.abc.Iterator"
-lint.flake8-tidy-imports.banned-api."typing.List".msg = "Deprecated alias. Change to list"
-lint.flake8-tidy-imports.banned-api."typing.Mapping".msg = "Deprecated alias. Change to collections.abc.mapping"
-lint.flake8-tidy-imports.banned-api."typing.MutableMapping".msg = "Deprecated alias. Change to collections.abc.MutableMapping"
-lint.flake8-tidy-imports.banned-api."typing.Sequence".msg = "Deprecated alias. Change to collections.abc.Sequence"
-lint.flake8-tidy-imports.banned-api."typing.Set".msg = "Deprecated alias. Change to set"
-lint.flake8-tidy-imports.banned-api."typing.Tuple".msg = "Deprecated alias. Change to tuple"
-lint.flake8-tidy-imports.banned-api."typing.Type".msg = "Deprecated alias. Change to type"
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
+lint.pylint.max-positional-args = 6
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
 addopts = [
