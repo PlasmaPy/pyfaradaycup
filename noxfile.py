@@ -286,16 +286,8 @@ def zizmor(session: nox.Session) -> None:
     """
     if RUNNING_ON_CI:
         session.log(ZIZMOR_TROUBLESHOOTING_MESSAGE)
-
-    options = [
-        "--show-audit-urls=always",
-    ]
-
-    if not RUNNING_ON_CI and not session.posargs:
-        options.append("--quiet")
-
+    options = ["--quiet"] if not RUNNING_ON_CI and not session.posargs else []
     options.extend(session.posargs or ["--fix=safe"])
-
     session.run("zizmor", ".github", *options)
 
 
