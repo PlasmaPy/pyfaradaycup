@@ -24,9 +24,9 @@ Nox documentation: https://nox.thea.codes
 import os
 import pathlib
 
-import nox
-import nox.command
-import nox_uv
+import nox  # ty:ignore[unresolved-import]
+import nox.command  # ty:ignore[unresolved-import]
+import nox_uv  # ty:ignore[unresolved-import]
 
 nox.options.default_venv_backend = "uv"
 

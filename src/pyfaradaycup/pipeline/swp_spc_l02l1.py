@@ -40,7 +40,7 @@ except:  # noqa: E722
 
 import distutils.dir_util
 
-import spiceypy
+import spiceypy  # ty:ignore[unresolved-import]
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 
@@ -101,7 +101,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         f"swp_spc_l02l1_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log",
     )
     try:
-        global logfile  # noqa: PLW0603
+        global logfile  # noqa: PLW0603  # ty:ignore[unresolved-global]
         logfile = open(logpath, "w")  # noqa: PTH123, SIM115
     except:  # noqa: E722
         print("\n***ERROR*** Could not open log file!\n")  # noqa: T201
@@ -269,7 +269,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         # Create a new CDF file from the provided skeleton
         try:
             cdf = pycdf.CDF(l1path, skeleton_filename)
-        except "CDFError":  # noqa: B030
+        except "CDFError":  # noqa: B030  # ty:ignore[invalid-exception-caught]
             statusmsg(
                 f"\n***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={apid})...continuing to next APID\n).",
                 screen=True,
@@ -894,13 +894,13 @@ def setup():  # noqa: ANN201
             statusmsg(
                 "***ERROR*** You must provide --l0file, if not using -b or -r",
                 screen=True,
-                verbose=verbose,  # noqa: F821
+                verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
             )
     elif args.l0dir == "":
         statusmsg(
             "***ERROR*** You must provide --l0dir if using -b or -r",
             screen=True,
-            verbose=verbose,  # noqa: F821
+            verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
         )
 
     # Convert APID to an integer (it is read as a string from the command line)
@@ -914,9 +914,9 @@ def setup():  # noqa: ANN201
         statusmsg(
             "Trouble parsing desired APID....exiting.",
             screen=True,
-            verbose=verbose,  # noqa: F821
+            verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
         )
-        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # noqa: F821
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # noqa: F821  # ty:ignore[unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
