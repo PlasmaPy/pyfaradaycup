@@ -3,7 +3,7 @@
 #  $LastChangedRevision: 103 $
 #  $LastChangedDate: 2020-08-13 08:42:52 -0400 (Thu, 13 Aug 2020) $
 #  $LastChangedBy: acase $
-"""  # noqa: D400
+"""  # ruff:ignore[D400]
 
 __all__ = [
     "apid_obj",
@@ -35,45 +35,45 @@ import numpy as np
 
 
 #########################################
-def read_stdin(ptp=False, verbose=False):  # noqa: ANN001, ANN201, FBT002
-    """Parse binary stream on stdin"""  # noqa: D400
+def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
+    """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
 #########################################
-def file2bytestr(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
+def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     try:
         if gzip:
-            import gzip  # noqa: PLC0415
+            import gzip  # ruff:ignore[PLC0415]
 
             with gzip.open(path, "rb") as f:
                 bytestr = f.read()
-            return bytestr  # noqa: RET504
-        with open(path, "rb") as f:  # noqa: PTH123
+            return bytestr  # ruff:ignore[RET504]
+        with open(path, "rb") as f:  # ruff:ignore[PTH123]
             bytestr = f.read()
-        return bytestr  # noqa: RET504, TRY300
+        return bytestr  # ruff:ignore[RET504, TRY300]
 
-    except:  # noqa: E722
-        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # noqa: T201
-        print(sys.exc_info())  # noqa: T201
-        import pdb  # noqa: PLC0415, T100
+    except:  # ruff:ignore[E722]
+        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # ruff:ignore[T201]
+        print(sys.exc_info())  # ruff:ignore[T201]
+        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # noqa: T100
+        pdb.set_trace()  # ruff:ignore[T100]
         sys.exit()
 
 
 #########################################
-def choose_file(path="", ptp=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
+def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     # make sure file exists
     try:
-        open(path).close()  # noqa: PTH123
-    except:  # noqa: E722
-        print("***ERROR*** File can not be read...will give option to choose file")  # noqa: T201
+        open(path).close()  # ruff:ignore[PTH123]
+    except:  # ruff:ignore[E722]
+        print("***ERROR*** File can not be read...will give option to choose file")  # ruff:ignore[T201]
         path = ""
 
     # pop up a dialog to choose a file if path==''
     # path = 'C:\\Users\\comra_000\\SWEAP\\SPC\\FEU\\Testing\\20150228_UCB_SPC_FEU_LVPS_PTP_data\\PTP_data.dat'
     if path == "":
-        print("***ERROR*** Must define a file path")  # noqa: T201
+        print("***ERROR*** Must define a file path")  # ruff:ignore[T201]
         # root = Tkinter.Tk()
         # root.withdraw()
         # path = tkFileDialog.askopenfilename()
@@ -82,7 +82,7 @@ def choose_file(path="", ptp=False, verbose=False):  # noqa: ANN001, ANN201, ARG
 
 
 #########################################
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
+def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
     # get a filename if not specified
     path = choose_file(path)
@@ -92,7 +92,7 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # noqa: 
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
-    if spconly:  # noqa: SIM108
+    if spconly:  # ruff:ignore[SIM108]
         ok_apids = [0x351, 0x352, 0x353, 0x354, 0x35E, 0x35F]
     else:
         ok_apids = range(0x351, 0x3A0, 1)
@@ -126,13 +126,13 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # noqa: 
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:  # noqa: E722
+    except:  # ruff:ignore[E722]
         return data
 
-    npackets = len(pkt_starts)  # noqa: F841
+    npackets = len(pkt_starts)  # ruff:ignore[F841]
 
     # Loop through each packet beginning and decommutate it
-    for i_pointer, pointer in enumerate(pkt_starts):  # noqa: B007
+    for i_pointer, pointer in enumerate(pkt_starts):  # ruff:ignore[B007]
         wrap_cchead = parse_ccsds_head(bytestr[pointer : pointer + 10])
         data_cchead = parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
         data["wrap_met"].append(wrap_cchead["CCSDS_MET"])
@@ -146,8 +146,8 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # noqa: 
 
 
 #########################################
-def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901, FBT002
-    """Read a CCSDS File and return data structure"""  # noqa: D400
+def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
     path = choose_file(path)
 
@@ -198,7 +198,7 @@ def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:  # noqa: E722
+    except:  # ruff:ignore[E722]
         return data
 
     npackets = len(pkt_starts)
@@ -209,13 +209,13 @@ def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # noqa: F841
+        foo = read_bytestr(  # ruff:ignore[F841]
             bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
         )
 
         # Update status
         nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:  # noqa: PLR2004
+        if (nowtime - updatetime) > 0.5:  # ruff:ignore[PLR2004]
             sys.stdout.write(
                 "\b" * 40
                 + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
@@ -228,7 +228,7 @@ def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901
         "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
     )
     sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():  # noqa: SIM118
+    for thisapid in pktcnt[0].keys():  # ruff:ignore[SIM118]
         sys.stdout.write(
             f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
         )
@@ -238,8 +238,8 @@ def read_file(path="", verbose=False, gzip=False):  # noqa: ANN001, ANN201, C901
 
 
 #########################################
-def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001, ANN201, C901, FBT002, PLR0912, PLR0915
-    """Read a CCSDS File and return data structure"""  # noqa: D400
+def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
+    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
     path = choose_file(path)
 
@@ -251,7 +251,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
     # Those versions (and respective dates) are listed in the L1 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
     # Corresponding SC_HK files that we will read in are in ./sc_hk_def/
-    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:  # noqa: PTH123
+    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:  # ruff:ignore[PTH123]
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])
@@ -269,7 +269,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
     # and thus which SC_HK.blk file to use
     # we'll assume the first bytes in the file are a header
     try:
-        if ptp:  # noqa: SIM108
+        if ptp:  # ruff:ignore[SIM108
             cchead = parse_ccsds_head(bytestr[17:])
         else:
             cchead = parse_ccsds_head(bytestr)
@@ -278,8 +278,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
             | (cchead["CCSDS_PacketType"] != 0)
             | (cchead["CCSDS_SecHdrFlag"] != 1)
         ):
-            raise ValueError("CCSDS header values not as expected")  # noqa: EM101, TRY003
-        file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # noqa: DTZ001
+            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003]
+        file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # ruff:ignore[DTZ001]
             seconds=cchead["CCSDS_MET"]
         )
         try:
@@ -287,10 +287,10 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
         except IndexError:
             good_time = 0
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
-    except:  # noqa: E722
-        print(sys.exc_info())  # noqa: T201
-        print("Could not find which SC_HK file to use based on packet header")  # noqa: T201
-        print("Attempting to find correct date based on filename/path")  # noqa: T201
+    except:  # ruff:ignore[E722]
+        print(sys.exc_info())  # ruff:ignore[T201]
+        print("Could not find which SC_HK file to use based on packet header")  # ruff:ignore[T201]
+        print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
         try:
             match = re.search(
                 os.path.sep
@@ -301,7 +301,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
                 path,
             ).span()  # ty: ignore[unresolved-attribute]
             file_dt = (
-                datetime.datetime(  # noqa: DTZ001
+                datetime.datetime(  # ruff:ignore[DTZ001]
                     int(path[match[0] + 1 : match[0] + 5]), 1, 1
                 )
                 + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
@@ -311,8 +311,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
             except IndexError:
                 good_time = 0
             sc_hk_filename = sc_hk_filenames[versions[good_time]]
-        except:  # noqa: E722
-            print(  # noqa: T201
+        except:  # ruff:ignore[E722]
+            print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
             sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
@@ -329,7 +329,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
         apidformat[apid], lengths[apid] = get_layout_sc(
             apid,
             verbose=verbose,
-            filename=os.path.join("sc_hk_def", sc_hk_filename),  # noqa: PTH118
+            filename=os.path.join("sc_hk_def", sc_hk_filename),  # ruff:ignore[PTH118]
         )
         if apidformat[apid]:
             data[apid] = {}
@@ -371,7 +371,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
                 "2B", (2048 + inst_ap & 0xFF00) >> 8, 2048 + inst_ap & 0x00FF
             )
             pattern += b".."
-            if inst_ap == 0x256:  # noqa: PLR2004
+            if inst_ap == 0x256:  # ruff:ignore[PLR2004]
                 # because the length shown in SPP.SC.HK.XX.YY.ZZ_GWW.blk doesn't correspond to packet length
                 # we just hard-code the length
                 # As of 2020/06/08 there were only two different possible sizes of 0x256 packets 0x098d and 0x0a91
@@ -395,7 +395,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
     )
     try:
         pkt_starts = pkt_inds[:, 0]
-    except:  # noqa: E722
+    except:  # ruff:ignore[E722]
         return data
     npackets = len(pkt_starts)
 
@@ -405,13 +405,13 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # noqa: F841
+        foo = read_bytestr(  # ruff:ignore[F841]
             bytestr, pointer + offset_bytes, data, apidformat, pktcnt, verbose=verbose
         )
 
         # Update status
         nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:  # noqa: PLR2004
+        if (nowtime - updatetime) > 0.5:  # ruff:ignore[PLR2004]
             sys.stdout.write(
                 "\b" * 40
                 + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
@@ -424,7 +424,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
         "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
     )
     sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():  # noqa: SIM118
+    for thisapid in pktcnt[0].keys():  # ruff:ignore[SIM118]
         sys.stdout.write(
             f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
         )
@@ -434,14 +434,14 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # noqa: ANN001
 
 
 #########################################
-def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # noqa: ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503
-    """Take a hex string and find packets"""  # noqa: D400
+def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
+    """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
     try:
         ccsds_head = parse_ccsds_head(bytestr[pointer : pointer + 10])
     except ValueError:
         if verbose:
-            print("Full CCSDS Header Not Present")  # noqa: T201
+            print("Full CCSDS Header Not Present")  # ruff:ignore[T201]
         return ()
     apid = ccsds_head["CCSDS_ApID"]
     pkt_len = ccsds_head["CCSDS_PacketLen"]
@@ -449,30 +449,30 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     # Verify that the CCSDS header is valid
     if ccsds_head["CCSDS_Version"] != 0:
         if verbose:
-            print("CCSDS Version is invalid")  # noqa: T201
+            print("CCSDS Version is invalid")  # ruff:ignore[T201]
         return ()
 
     if ccsds_head["CCSDS_PacketType"] != 0:
         if verbose:
-            print("CCSDS Type is invalid")  # noqa: T201
+            print("CCSDS Type is invalid")  # ruff:ignore[T201]
         return ()
 
     if ccsds_head["CCSDS_SecHdrFlag"] != 1:
         if verbose:
-            print("CCSDS Secondary Header flag is invalid")  # noqa: T201
+            print("CCSDS Secondary Header flag is invalid")  # ruff:ignore[T201]
         return ()
 
     # Make sure the full packet is here
     if pointer + pkt_len + 7 > len(bytestr):
         if verbose:
-            print("Full CCSDS packet not available at end of bytestr")  # noqa: T201
+            print("Full CCSDS packet not available at end of bytestr")  # ruff:ignore[T201]
         return ()
 
     # This packet only (no PTP header and no wrapper header (if they existed))
     thispkt = bytestr[pointer : pointer + pkt_len + 7]
 
     # make sure we know how to decom this packet
-    if apid in apidformat.keys():  # noqa: SIM118
+    if apid in apidformat.keys():  # ruff:ignore[SIM118]
         # count this as a good packet
         pktcnt[0][apid] += 1
 
@@ -481,7 +481,7 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
             thispkt, data, apidformat, apid, ccsds_head
         )  # could send this off to a parallel task?  Might try that if too slow this way
 
-    elif apid in pktcnt[1].keys():  # noqa: SIM118
+    elif apid in pktcnt[1].keys():  # ruff:ignore[SIM118]
         pktcnt[1][apid] += 1
     else:
         pktcnt[1][apid] = 1
@@ -489,18 +489,18 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     return ()
 
     # we shouldn't make it here
-    import pdb  # noqa: PLC0415, T100
+    import pdb  # ruff:ignore[PLC0415, T100]
 
-    pdb.set_trace()  # noqa: T100
+    pdb.set_trace()  # ruff:ignore[T100]
 
 
 #########################################
-def parse_ccsds_head(bytestr, verbose=False):  # noqa: ANN001, ANN201, ARG001, D103, FBT002
+def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
     if len(bytearr) < exp_length:
-        raise ValueError("CCSDS header is not as long as expected")  # noqa: EM101, TRY003
+        raise ValueError("CCSDS header is not as long as expected")  # ruff:ignore[EM101, TRY003]
 
     head = {}
     head["CCSDS_Version"] = bytearr[0] >> 5
@@ -519,21 +519,21 @@ def parse_ccsds_head(bytestr, verbose=False):  # noqa: ANN001, ANN201, ARG001, D
 
 
 #########################################
-def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # noqa: ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913
-    """Parse one CCSDS packet"""  # noqa: D400
+def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
+    """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
     form = apidformat[apid]
     thisdat = data[apid]
 
     # Convert to a bit string
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
-    str_bin = "".join([bin(i)[2:].zfill(8) for i in bytearr])  # noqa: FURB116
+    str_bin = "".join([bin(i)[2:].zfill(8) for i in bytearr])  # ruff:ignore[FURB116]
 
     # For SWEAP packets, we just have each mnemonic listed and each bit length
     # So we have to step through them in order
     # Take care of the variables in sw_data (the repeating bit of the packet) separately
     pointer = 0
-    if hasattr(form, "sw_data_vars"):  # noqa: SIM108
+    if hasattr(form, "sw_data_vars"):  # ruff:ignore[SIM108]
         sw_data_vars_len = len(form.sw_data_vars)
     else:
         sw_data_vars_len = 0
@@ -565,7 +565,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
             thisbin = str_bin[startbit:endbit]
             try:
                 thisval = int(thisbin, 2)
-            except:  # noqa: E722
+            except:  # ruff:ignore[E722]
                 # print(sys.exc_info())
                 thisval = -999
             thisdat[thisname].append(thisval)
@@ -573,17 +573,17 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
 
     # If the full packet isn't here, then don't bother parsing
     if len(bytearr) * 8.0 < sum(form.bits):
-        print(f"short packet: {hex(apid)}")  # noqa: T201
+        print(f"short packet: {hex(apid)}")  # ruff:ignore[T201]
         return
 
     for i_bit, bit in enumerate(form.bits[0 : len(form.bits) - sw_data_vars_len]):
         thisbin = str_bin[pointer : pointer + bit]
         try:
             thisval = int(thisbin, 2)
-        except:  # noqa: E722
-            import pdb  # noqa: PLC0415, T100
+        except:  # ruff:ignore[E722]
+            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # noqa: T100
+            pdb.set_trace()  # ruff:ignore[T100]
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -610,9 +610,9 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
                 try:
                     thisval = int(thisbin, 2)
                 except ValueError:
-                    import pdb  # noqa: PLC0415, T100
+                    import pdb  # ruff:ignore[PLC0415, T100]
 
-                    pdb.set_trace()  # noqa: T100
+                    pdb.set_trace()  # ruff:ignore[T100]
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -624,8 +624,8 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # no
 
 
 #########################################
-class apid_obj:  # noqa: D101, N801
-    def __init__(self):  # noqa: ANN204
+class apid_obj:  # ruff:ignore[D101, N801]
+    def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
         self.bits = []
         self.bytestart = []
@@ -638,34 +638,34 @@ class apid_obj:  # noqa: D101, N801
 
 
 #########################################
-def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
+def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
-        file = open("sweap_tlm.blk")  # noqa: PTH123, SIM115
-    except:  # noqa: E722
+        file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+    except:  # ruff:ignore[E722]
         if verbose:
-            print(  # noqa: T201
+            print(  # ruff:ignore[T201]
                 "***INFO*** No local 'sweap_tlm.blk' found...using the one near ccsds_reader_pipeline.py"
             )
         try:
             thisdir = os.path.realpath(__file__)
             thisdir = "\\".join(thisdir.split("\\")[0:-1])
-            file = open(thisdir + "\\sweap_tlm.blk")  # noqa: PTH123, SIM115
-        except:  # noqa: E722
-            print(sys.exc_info())  # noqa: T201
-            import pdb  # noqa: PLC0415, T100
+            file = open(thisdir + "\\sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+        except:  # ruff:ignore[E722]
+            print(sys.exc_info())  # ruff:ignore[T201]
+            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # noqa: T100
+            pdb.set_trace()  # ruff:ignore[T100]
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # noqa: FURB116
+        if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
+                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
-            line = ""  # so that the while loop will start out ok  # noqa: PLW2901
+            line = ""  # so that the while loop will start out ok  # ruff:ignore[PLW2901]
             while line[0:4] != "APID":
-                i += 1  # noqa: PLW2901
-                line = lines[i]  # noqa: PLW2901
+                i += 1  # ruff:ignore[PLW2901]
+                line = lines[i]  # ruff:ignore[PLW2901]
                 try:
                     if line.strip()[0] not in ["(", "{", "}", ")"]:
                         pieces = re.split(",|;", line.strip())
@@ -680,11 +680,11 @@ def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
                         thisapid.sw_data_vars = []  # ty: ignore[unresolved-attribute]
                 except IndexError:
                     break
-                except:  # noqa: E722
-                    print(sys.exc_info())  # noqa: T201
-                    import pdb  # noqa: PLC0415, T100
+                except:  # ruff:ignore[E722
+                    print(sys.exc_info())  # ruff:ignore[T201]
+                    import pdb  # ruff:ignore[PLC0415, T100]
 
-                    pdb.set_trace()  # noqa: T100
+                    pdb.set_trace()  # ruff:ignore[T100]
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -699,36 +699,36 @@ def get_layout(apid, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002
             return thisapid
 
     # if we didn't find that APID
-    print(  # noqa: T201
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # noqa: FURB116
+    print(  # ruff:ignore[T201
+        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None
 
 
 #########################################
-def get_layout_sc(apid, verbose=False, filename=""):  # noqa: ANN001, ANN201, C901, D103, FBT002
+def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
-        file = open(filename)  # noqa: PTH123, SIM115
-        print(f"using sc_hk file: {filename}")  # noqa: T201
-    except:  # noqa: E722
-        print("could not open SC HK BLK file")  # noqa: T201
-        print(sys.exc_info())  # noqa: T201
-        import pdb  # noqa: PLC0415, T100
+        file = open(filename)  # ruff:ignore[PTH123, SIM115]
+        print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
+    except:  # ruff:ignore[E722]
+        print("could not open SC HK BLK file")  # ruff:ignore[T201]
+        print(sys.exc_info())  # ruff:ignore[T201]
+        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # noqa: T100
+        pdb.set_trace()  # ruff:ignore[T100]
 
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # noqa: FURB116
+        if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # noqa: FURB116, T201
+                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
 
-            line = ""  # noqa: PLW2901
+            line = ""  # ruff:ignore[PLW2901]
             while line[0:4] != "SC_H":
-                i += 1  # noqa: PLW2901
-                line = lines[i].strip()  # noqa: PLW2901
+                i += 1  # ruff:ignore[PLW2901]
+                line = lines[i].strip()  # ruff:ignore[PLW2901]
                 if line[0:8] == "( Block[":
                     length = int(line.split("[")[1].split("]")[0])
                 try:
@@ -745,15 +745,15 @@ def get_layout_sc(apid, verbose=False, filename=""):  # noqa: ANN001, ANN201, C9
                         thisapid.bits.append(int(pieces[3].strip()))
                 except IndexError:
                     break
-                except:  # noqa: E722
-                    print(sys.exc_info())  # noqa: T201
-                    import pdb  # noqa: PLC0415, T100
+                except:  # ruff:ignore[E722]
+                    print(sys.exc_info())  # ruff:ignore[T201]
+                    import pdb  # ruff:ignore[PLC0415, T100]
 
-                    pdb.set_trace()  # noqa: T100
+                    pdb.set_trace()  # ruff:ignore[T100]
             return (thisapid, length)
     # if we didn't find that APID
-    print(  # noqa: T201
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # noqa: FURB116
+    print(  # ruff:ignore[T201]
+        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None
 
