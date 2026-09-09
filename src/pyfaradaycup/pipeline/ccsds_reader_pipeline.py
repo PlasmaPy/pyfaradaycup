@@ -269,7 +269,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     # and thus which SC_HK.blk file to use
     # we'll assume the first bytes in the file are a header
     try:
-        if ptp:  # ruff:ignore[SIM108
+        if ptp:  # ruff:ignore[SIM108]
             cchead = parse_ccsds_head(bytestr[17:])
         else:
             cchead = parse_ccsds_head(bytestr)
@@ -680,7 +680,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                         thisapid.sw_data_vars = []  # ty: ignore[unresolved-attribute]
                 except IndexError:
                     break
-                except:  # ruff:ignore[E722
+                except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
                     import pdb  # ruff:ignore[PLC0415, T100]
 
@@ -699,7 +699,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
             return thisapid
 
     # if we didn't find that APID
-    print(  # ruff:ignore[T201
+    print(  # ruff:ignore[T201]
         f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None

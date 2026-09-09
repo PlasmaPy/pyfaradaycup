@@ -3,7 +3,7 @@
 #  $LastChangedRevision: 97 $
 #  $LastChangedDate: 2020-08-04 09:20:42 -0400 (Tue, 04 Aug 2020) $
 #  $LastChangedBy: acase $
-"""  # noqa: D400
+"""  # ruff:ignore[D400]
 
 __all__ = [
     "cdf35e_35f",
@@ -28,12 +28,12 @@ import numpy as np
 
 try:
     from spacepy import pycdf
-except:  # noqa: E722
-    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)  # noqa: FIX002, TD002, TD003
+except:  # ruff:ignore[E722]
+    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)  # ruff:ignore[FIX002, TD002, TD003]
     # then we don't need this.
-    print(sys.exc_info())  # noqa: T201
-    print("***ERROR*** Could not import pycdf from spacepy")  # noqa: T201
-    print(  # noqa: T201
+    print(sys.exc_info())  # ruff:ignore[T201]
+    print("***ERROR*** Could not import pycdf from spacepy")  # ruff:ignore[T201]
+    print(  # ruff:ignore[T201]
         "\t You must have the environmental variable CDF_LIB set, perhaps to /opt/cdf/lib?"
     )
     sys.exit()
@@ -64,47 +64,47 @@ import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 # 				-	Added revision history
 
 
-def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
-    l0file="",  # noqa: ANN001
-    l1dir="",  # noqa: ANN001
-    logdir="",  # noqa: ANN001
-    spacecraft=False,  # noqa: ANN001, FBT002
-    ptp=False,  # noqa: ANN001, FBT002
-    gzip=False,  # noqa: ANN001, FBT002
-    apidreq=0,  # noqa: ANN001
-    overwrite=False,  # noqa: ANN001, FBT002
-    verbose=False,  # noqa: ANN001, FBT002
+def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
+    l0file="",  # ruff:ignore[ANN001]
+    l1dir="",  # ruff:ignore[ANN001]
+    logdir="",  # ruff:ignore[ANN001]
+    spacecraft=False,  # ruff:ignore[ANN001, FBT002]
+    ptp=False,  # ruff:ignore[ANN001, FBT002]
+    gzip=False,  # ruff:ignore[ANN001, FBT002]
+    apidreq=0,  # ruff:ignore[ANN001]
+    overwrite=False,  # ruff:ignore[ANN001, FBT002]
+    verbose=False,  # ruff:ignore[ANN001, FBT002]
 ):
-    """Convert a single L0 file to L1"""  # noqa: D400
+    """Convert a single L0 file to L1"""  # ruff:ignore[D400]
     # Try to create a filename for the new CDF that we're going to create
-    l0dirname = os.path.dirname(l0file)  # noqa: PTH120
-    l0basename = os.path.basename(l0file)  # noqa: PTH119
+    l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
+    l0basename = os.path.basename(l0file)  # ruff:ignore[PTH119]
     if l1dir == "":
         l1dir = (
             l0dirname  # use input L0 directory for L1 files, if nothing else specified
         )
 
     # Get a version of filename with no extension
-    l0file_noext = os.path.splitext(l0basename)[0]  # noqa: PTH122
+    l0file_noext = os.path.splitext(l0basename)[0]  # ruff:ignore[PTH122]
     if l0file_noext[-3:] == "ptp":
-        l0file_noext = os.path.splitext(l0file_noext)[0]  # noqa: PTH122
+        l0file_noext = os.path.splitext(l0file_noext)[0]  # ruff:ignore[PTH122]
 
     # Open a log file to write to
-    nowdt = datetime.datetime.now()  # noqa: DTZ005
+    nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
     if logdir == "":
         logdir = l1dir  # use L1 file output directory for log file, if nothing else specified
     distutils.dir_util.mkpath(
         logdir
     )  # in case the directory doesn't exist, this will create it
-    logpath = os.path.join(  # noqa: PTH118
+    logpath = os.path.join(  # ruff:ignore[PTH118]
         logdir,
         f"swp_spc_l02l1_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log",
     )
     try:
-        global logfile  # noqa: PLW0603  # ty:ignore[unresolved-global]
-        logfile = open(logpath, "w")  # noqa: PTH123, SIM115
-    except:  # noqa: E722
-        print("\n***ERROR*** Could not open log file!\n")  # noqa: T201
+        global logfile  # ruff:ignore[PLW0603]  # ty:ignore[unresolved-global]
+        logfile = open(logpath, "w")  # ruff:ignore[PTH123, SIM115]
+    except:  # ruff:ignore[E722]
+        print("\n***ERROR*** Could not open log file!\n")  # ruff:ignore[T201]
         sys.exit(1)
 
     # Write some information to the log file
@@ -120,7 +120,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
 
     # Make sure the L0 file exists and is readable
     try:
-        foo = open(l0file)  # noqa: PTH123, SIM115
+        foo = open(l0file)  # ruff:ignore[PTH123, SIM115]
         foo.close()
         statusmsg("L0 file exists and is readable")
     except OSError:
@@ -129,9 +129,9 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
             screen=True,
             verbose=verbose,
         )
-        import pdb  # noqa: PLC0415, T100
+        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # noqa: T100
+        pdb.set_trace()  # ruff:ignore[T100]
         sys.exit()
 
     # Load in Leap Second Kernel
@@ -146,7 +146,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {tls_path}")
             spiceypy.furnsh(tls_path)
-        except:  # noqa: E722
+        except:  # ruff:ignore[E722]
             statusmsg(
                 "***ERROR*** [swp_spc_l02l1.py] Could not furnsh leap second kernel...exiting"
             )
@@ -162,7 +162,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {sclk_path}")
             spiceypy.furnsh(sclk_path)
-        except:  # noqa: E722
+        except:  # ruff:ignore[E722]
             statusmsg(
                 "***ERROR*** [swp_spc_l02l1.py] Could not furnsh SCLK kernel...exiting"
             )
@@ -178,10 +178,10 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
     statusmsg("Event = Finished reading file")
 
     # Loop through the APIDs that we got
-    for apid in l0data.keys():  # noqa: SIM118
+    for apid in l0data.keys():  # ruff:ignore[SIM118]
         statusmsg(f"Event = Beginning APID: {hex(apid)}")
 
-        if apid == 0x07B:  # noqa: PLR2004
+        if apid == 0x07B:  # ruff:ignore[PLR2004]
             statusmsg(
                 "***WARNING*** [swp_spc_l02l1] APID 0x07B CDFs not yet implemented",
                 screen=True,
@@ -190,7 +190,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
             continue
 
         # Make sure we need to do this apid
-        if len(l0data[apid][list(l0data[apid].keys())[0]]) == 0:  # noqa: RUF015
+        if len(l0data[apid][list(l0data[apid].keys())[0]]) == 0:  # ruff:ignore[RUF015]
             statusmsg("No packets found for this apid.")
             continue  # skip this apid if there were no packets received
         if (apidreq != 0) & (apidreq != apid):
@@ -198,16 +198,16 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
             continue  # skip this apid if user only wanted one apid and this isn't it
 
         # Filename for the L1 file we're about to write for this apid
-        l1path = os.path.join(  # noqa: PTH118
+        l1path = os.path.join(  # ruff:ignore[PTH118]
             l1dir,
-            l0file_noext + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # noqa: FURB116
+            l0file_noext + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
         )
         statusmsg("About to write: " + l1path)
 
         # Make sure the skeleton file exists and is readable
         try:
             skeleton_filename = get_newest_skeleton(apid)
-            foo = open(skeleton_filename)  # noqa: PTH123, SIM115
+            foo = open(skeleton_filename)  # ruff:ignore[PTH123, SIM115]
             foo.close()
             statusmsg("Skeleton to be used: " + skeleton_filename)
         except OSError:
@@ -230,7 +230,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         try:
             # try to open and close it
             statusmsg("Using L1 path: " + l1path, screen=True, verbose=verbose)
-            foo = open(l1path)  # noqa: PTH123, SIM115
+            foo = open(l1path)  # ruff:ignore[PTH123, SIM115]
             foo.close()
 
             # if we get here, this file already exists; so delete it, if desired
@@ -245,19 +245,19 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
                     screen=True,
                     verbose=verbose,
                 )
-                os.remove(l1path)  # noqa: PTH107
+                os.remove(l1path)  # ruff:ignore[PTH107]
             else:
                 statusmsg(
                     "***ERROR*** [swp_spc_l02l1] L1 CDF already exists, and overwrite (-o option) was not requested...exiting.",
                     screen=True,
                     verbose=verbose,
                 )
-                raise (SystemExit)  # noqa: TRY301
+                raise (SystemExit)  # ruff:ignore[TRY301]
         except SystemExit:
             sys.exit()
         except OSError:
             pass  # Apparently the file did not exist already
-        except:  # noqa: E722
+        except:  # ruff:ignore[E722]
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
             statusmsg(
                 "\n***ERROR*** [swp_spc_l02l1] Could not check existence/delete L1 CDF file path. Exiting...\n",
@@ -269,7 +269,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         # Create a new CDF file from the provided skeleton
         try:
             cdf = pycdf.CDF(l1path, skeleton_filename)
-        except "CDFError":  # noqa: B030  # ty:ignore[invalid-exception-caught]
+        except "CDFError":  # ruff:ignore[B030]  # ty:ignore[invalid-exception-caught]
             statusmsg(
                 f"\n***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={apid})...continuing to next APID\n).",
                 screen=True,
@@ -295,7 +295,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
         }
         try:
             cdfproc[apid](cdf, l0data[apid], verbose=verbose)
-        except:  # noqa: E722
+        except:  # ruff:ignore[E722]
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
             statusmsg(
                 f"***WARNING*** [swp_spc_l02l1] CDF not processed for APID={hex(apid)}",
@@ -316,37 +316,37 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
     logfile.close()
 
 
-def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, C901, FBT002
-    """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # noqa: D400
+def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FBT002]
+    """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # ruff:ignore[D400]
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
-    if "CCSDS_MET" in dat.keys():  # noqa: SIM118
+    if "CCSDS_MET" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPC_SUBSEC"])
-    elif "FSW_HK_HK_INST_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "FSW_HK_HK_INST_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["FSW_HK_HK_INST_TPSH_MET_SEC"],
             dat["FSW_HK_HK_INST_TPSH_MET_SUBSEC"],
             spacecraft=True,
         )
-    elif "PDU_PRIO94_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "PDU_PRIO94_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["PDU_PRIO94_TPSH_MET_SEC"],
             dat["PDU_PRIO94_TPSH_MET_SUBSEC"],
             spacecraft=True,
         )
-    elif "HK_HIGH_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "HK_HIGH_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["HK_HIGH_TPSH_MET_SEC"], dat["HK_HIGH_TPSH_MET_SUBSEC"], spacecraft=True
         )
-    elif "HK_FSWL_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "HK_FSWL_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["HK_FSWL_TPSH_MET_SEC"], dat["HK_FSWL_TPSH_MET_SUBSEC"], spacecraft=True
         )
-    elif "HK_LOW_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "HK_LOW_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["HK_LOW_TPSH_MET_SEC"], dat["HK_LOW_TPSH_MET_SUBSEC"], spacecraft=True
         )
-    elif "RIU_DERIVED_TPSH_MET_SEC" in dat.keys():  # noqa: SIM118
+    elif "RIU_DERIVED_TPSH_MET_SEC" in dat.keys():  # ruff:ignore[SIM118]
         scet = secsubsec2scet(
             dat["RIU_DERIVED_TPSH_MET_SEC"],
             dat["RIU_DERIVED_TPSH_MET_SUBSEC"],
@@ -364,13 +364,13 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, C901, FBT002
     for key in keys:
         try:
             cdf[key] = dat[key]  # create variable and insert data
-        except KeyError:  # noqa: PERF203
-            if key not in dat.keys():  # noqa: SIM118
+        except KeyError:  # ruff:ignore[PERF203]
+            if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
-        except:  # noqa: E722
-            import pdb  # noqa: PLC0415, T100
+        except:  # ruff:ignore[E722]
+            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # noqa: T100
+            pdb.set_trace()  # ruff:ignore[T100]
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
@@ -382,7 +382,7 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, C901, FBT002
 #####################################################
 ##
 #####################################################
-def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503
+def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
     """Fill up a CDF with SCI, ALL, or RSS data."""
     # Take data sorted by NYS, and produce one long variable with all data
 
@@ -391,11 +391,11 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
 
     # Each different packet will require a different variable to calculate
     # The number of measurements each NYS
-    if apid == 0x351:  # noqa: PLR2004
+    if apid == 0x351:  # ruff:ignore[PLR2004]
         length_var = "A1S"
-    elif apid == 0x353:  # noqa: PLR2004
+    elif apid == 0x353:  # ruff:ignore[PLR2004]
         length_var = "ASIN"
-    elif apid == 0x354:  # noqa: PLR2004
+    elif apid == 0x354:  # ruff:ignore[PLR2004]
         length_var = "ARSS"
 
     # Calculate MET from the variables in the L0 data
@@ -403,12 +403,12 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
     scet = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
 
     # MET of each measurement (to be filled in in the future)
-    scet_exp = []  # noqa: F841
+    scet_exp = []  # ruff:ignore[F841]
 
     # Same keys as original data dictionary, but will hold one variable per key
     # instead of one for every NYS for every key
     dat_exp = {}
-    for key in dat.keys():  # noqa: SIM118
+    for key in dat.keys():  # ruff:ignore[SIM118]
         dat_exp[key] = []
 
     # Create the 'Epoch' variable in our data array
@@ -423,7 +423,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
         ticks_per_meas = dat["SW_SPC_INTTIME"][i] + dat["SW_SPC_SERVTIME"][i]
 
         # Make sure ST and IT are allowed values
-        if (math.log(ticks_per_meas, 2)) % 1 != 0:  # noqa: FURB163
+        if (math.log(ticks_per_meas, 2)) % 1 != 0:  # ruff:ignore[FURB163]
             # the SPC FPGA will default to IT=6, ST=2 (the power-on defaults) if a non-integer power of 2 IT+ST is requested
             ticks_per_meas = 8
 
@@ -487,7 +487,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
                 add_time[thisrtpix:] += tm_per_meas
 
         # If we're in an AllGain packet, then the beginning of the packet might not be the beginning of the NYS (which is the time noted in the header)
-        if apid == 0x351:  # noqa: PLR2004
+        if apid == 0x351:  # ruff:ignore[PLR2004]
             pktnum = dat["SW_SPC_PKTNUM"][i]
             # if pktnum==0: import pdb; pdb.set_trace()
             if pktnum != 0:
@@ -505,10 +505,10 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
         dat_exp["Epoch"].extend(dscet_extend)
 
         # Extend each of the data arrays
-        for key in dat.keys():  # noqa: SIM118
+        for key in dat.keys():  # ruff:ignore[SIM118]
             try:
                 dat_exp[key].extend(dat[key][i])
-            except TypeError:  # noqa: PERF203
+            except TypeError:  # ruff:ignore[PERF203]
                 expanded = np.ones(nmeas) * dat[key][i]
                 dat_exp[key].extend(expanded)
 
@@ -527,19 +527,19 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
         try:
             # insert data
             cdf[key] = dat_exp[key]
-        except:  # noqa: E722, PERF203
+        except:  # ruff:ignore[E722, PERF203]
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
                 verbose=verbose,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-            import pdb  # noqa: PLC0415, T100
+            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # noqa: T100
+            pdb.set_trace()  # ruff:ignore[T100]
 
 
-def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915
+def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
     try:
         # Calculate SCET from the variables in the L0 data
         dt = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
@@ -547,7 +547,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
         # Same keys as original data dictionary, but will hold one variable per key
         # instead of one for every NYS for every key
         dat_exp = {}
-        for key in dat.keys():  # noqa: SIM118
+        for key in dat.keys():  # ruff:ignore[SIM118]
             if key[-4:] == "_000":
                 continue
             dat_exp[key] = []
@@ -600,8 +600,8 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
 
             try:
                 if coll_used not in coll2var:
-                    raise ValueError(  # noqa: TRY003
-                        f"Value: {coll_used} not in coll2var.keys()"  # noqa: EM102
+                    raise ValueError(  # ruff:ignore[TRY003]
+                        f"Value: {coll_used} not in coll2var.keys()"  # ruff:ignore[EM102]
                     )  # probably a corrupt packet
 
                 dat_exp["VAR0_NAME"].extend(
@@ -622,7 +622,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
                 dat_exp["VAR2"].extend(dat["G2_000"][i])
                 dat_exp["VAR3"].extend(dat["G3_000"][i])
 
-            except:  # noqa: E722
+            except:  # ruff:ignore[E722]
                 statusmsg(
                     "***ERROR*** Could not process 0x352 packet (probably it was a false positive ID of a 0x352 packet?)"
                 )
@@ -634,7 +634,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
             dat_exp["Epoch"].extend(dt_extend)
 
             # Extend each of the data arrays
-            for key in dat.keys():  # noqa: SIM118
+            for key in dat.keys():  # ruff:ignore[SIM118]
                 if key[-4:] == "_000":
                     continue
                 try:
@@ -657,24 +657,24 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901,
             try:
                 # insert data
                 cdf[key] = dat_exp[key]
-            except:  # noqa: E722, PERF203
+            except:  # ruff:ignore[E722, PERF203]
                 statusmsg(
                     f"Failed : Key:{key} failed insert into CDF",
                     screen=True,
                     verbose=verbose,
                 )
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-    except:  # noqa: E722
-        print(sys.exc_info())  # noqa: T201
-        import pdb  # noqa: PLC0415, T100
+    except:  # ruff:ignore[E722]
+        print(sys.exc_info())  # ruff:ignore[T201]
+        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # noqa: T100
+        pdb.set_trace()  # ruff:ignore[T100]
 
     return ()
 
 
-def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
-    """Parse a fairly standard CCSDS time structure into decimal MET: first 4 bytes=MET seconds, second 2 bytes = MET subseconds"""  # noqa: D400
+def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """Parse a fairly standard CCSDS time structure into decimal MET: first 4 bytes=MET seconds, second 2 bytes = MET subseconds"""  # ruff:ignore[D400]
     sec_str = [f"{i:1.0f}" for i in sec]
     subsec_str_base50000 = [
         f"{int(i * 50000 / 65536):05.0f}" for i in subsec
@@ -690,21 +690,21 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # noqa: ANN00
     ]
     ephem_nanosec_j2000 = [np.round(1e9 * i) for i in ephem_sec_j2000]
 
-    return ephem_nanosec_j2000  # noqa: RET504
+    return ephem_nanosec_j2000  # ruff:ignore[RET504]
 
 
-def statusmsg(string, screen=False, file=True, verbose=False):  # noqa: ANN001, ANN201, FBT002
-    """Output status message to screen or logfile (default to file, but not screen)"""  # noqa: D400
-    nowdtstr = datetime.datetime.now().isoformat()  # noqa: DTZ005
+def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
+    """Output status message to screen or logfile (default to file, but not screen)"""  # ruff:ignore[D400]
+    nowdtstr = datetime.datetime.now().isoformat()  # ruff:ignore[DTZ005]
     if file:
         logfile.write(nowdtstr + ", " + string + "\n")
-    if screen:  # noqa: SIM102
+    if screen:  # ruff:ignore[SIM102]
         if verbose:
-            print(string)  # noqa: T201
+            print(string)  # ruff:ignore[T201]
 
 
-def get_newest_kernel(tls=False, sclk=False, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
-    """Find the path to the newest NAIF TLS (leap second) kernel file"""  # noqa: D400
+def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """Find the path to the newest NAIF TLS (leap second) kernel file"""  # ruff:ignore[D400]
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
         return False
@@ -719,7 +719,7 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # noqa: ANN001, AN
         globstr = globdir + "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
-    files = glob.glob(globstr)  # noqa: PTH207
+    files = glob.glob(globstr)  # ruff:ignore[PTH207]
 
     # isolate version numbers from the file path and find newest
     if tls or sclk:
@@ -728,20 +728,20 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # noqa: ANN001, AN
         maxind = np.argmax(versions)
     except ValueError:
         statusmsg("***ERROR*** Could not find kernel versions")
-        print(sys.exc_info())  # noqa: T201
-        import pdb  # noqa: PLC0415, T100
+        print(sys.exc_info())  # ruff:ignore[T201]
+        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # noqa: T100
+        pdb.set_trace()  # ruff:ignore[T100]
         return False
 
     # return path to newest file
     path = files[maxind]
-    return path  # noqa: RET504
+    return path  # ruff:ignore[RET504]
 
 
-def get_newest_skeleton(apid, verbose=False):  # noqa: ANN001, ANN201, ARG001, FBT002
-    """Find the path to the newest skeleton CDF file"""  # noqa: D400
-    return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # noqa: FURB116
+def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
+    return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
     # and we had to search for the most recent (highest) version
@@ -770,8 +770,8 @@ def get_newest_skeleton(apid, verbose=False):  # noqa: ANN001, ANN201, ARG001, F
 #####################################################
 ###
 #####################################################
-def setup():  # noqa: ANN201
-    """Get user command-line input and set things up"""  # noqa: D400
+def setup():  # ruff:ignore[ANN201]
+    """Get user command-line input and set things up"""  # ruff:ignore[D400]
     # defaults
     l0file_default = ""
     l0dir_default = ""
@@ -894,18 +894,18 @@ def setup():  # noqa: ANN201
             statusmsg(
                 "***ERROR*** You must provide --l0file, if not using -b or -r",
                 screen=True,
-                verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
+                verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
             )
     elif args.l0dir == "":
         statusmsg(
             "***ERROR*** You must provide --l0dir if using -b or -r",
             screen=True,
-            verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
+            verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         )
 
     # Convert APID to an integer (it is read as a string from the command line)
     try:
-        if args.apid[0:2] == "0x":  # noqa: SIM108
+        if args.apid[0:2] == "0x":  # ruff:ignore[SIM108]
             base = 16
         else:
             base = 10
@@ -914,22 +914,22 @@ def setup():  # noqa: ANN201
         statusmsg(
             "Trouble parsing desired APID....exiting.",
             screen=True,
-            verbose=verbose,  # noqa: F821  # ty:ignore[unresolved-reference]
+            verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         )
-        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # noqa: F821  # ty:ignore[unresolved-reference]
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
     try:
         datadir = os.environ["PSP_DATA_DIR"]
-    except:  # noqa: E722
-        raise KeyError(  # noqa: B904, TRY003
-            "Environmental variable PSP_DATA_DIR could not be found...you must specify path to data directory using that environmental variable"  # noqa: EM101
+    except:  # ruff:ignore[E722]
+        raise KeyError(  # ruff:ignore[B904, TRY003]
+            "Environmental variable PSP_DATA_DIR could not be found...you must specify path to data directory using that environmental variable"  # ruff:ignore[EM101]
         )
 
-    if not os.path.exists(datadir):  # noqa: PTH110
-        raise ValueError(  # noqa: TRY003
-            "Directory specified in env. variable PSP_DATA_DIR does not exist"  # noqa: EM101
+    if not os.path.exists(datadir):  # ruff:ignore[PTH110]
+        raise ValueError(  # ruff:ignore[TRY003]
+            "Directory specified in env. variable PSP_DATA_DIR does not exist"  # ruff:ignore[EM101]
         )
 
     # Return to main routine
