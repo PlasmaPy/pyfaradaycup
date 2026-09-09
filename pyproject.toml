@@ -22,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
   "argcomplete>=3.6.3",
@@ -247,35 +248,15 @@ lint.allowed-confusables = [
   "×",
   "–",
   "′",
-  "∨",
-  "∪",
   "∼",
-  "⊤",
   "α",
-  "ℂ",
-  "ℰ",
-  "ℱ",
   "γ",
-  "ℎ",
   "ι",
-  "ℐ",
-  "ℑ",
-  "ℒ",
-  "ℓ",
-  "ℳ",
   "ν",
-  "ℕ",
-  "ο",
-  "𝒪",
-  "ℚ",
   "ρ",
-  "ℜ",
-  "ℝ",
   "σ",
   "τ",
   "β",
-  "υ",
-  "ℤ",
 ]
 lint.flake8-import-conventions.aliases."astropy.constants" = "const"
 lint.flake8-import-conventions.aliases."astropy.units" = "u"
@@ -291,22 +272,6 @@ lint.flake8-import-conventions.banned-from = [
   "warnings",
 ]
 lint.flake8-tidy-imports.ban-relative-imports = "all"
-lint.flake8-tidy-imports.banned-api."typing.Callable".msg = "Deprecated alias. Change to collections.abc.Callable"
-lint.flake8-tidy-imports.banned-api."typing.Collection".msg = "Deprecated alias. Change to collections.abc.Collection"
-lint.flake8-tidy-imports.banned-api."typing.DefaultDict".msg = "Deprecated alias. Change to collections.defaultdict"
-lint.flake8-tidy-imports.banned-api."typing.Dict".msg = "Deprecated alias. Change to dict"
-lint.flake8-tidy-imports.banned-api."typing.Generator".msg = "Deprecated alias. Change to collections.abc.Generator"
-lint.flake8-tidy-imports.banned-api."typing.Iterable".msg = "Deprecated alias. Change to collections.abc.Iterable"
-lint.flake8-tidy-imports.banned-api."typing.Iterator".msg = "Deprecated alias. Change to collections.abc.Iterator"
-lint.flake8-tidy-imports.banned-api."typing.List".msg = "Deprecated alias. Change to list"
-lint.flake8-tidy-imports.banned-api."typing.Mapping".msg = "Deprecated alias. Change to collections.abc.mapping"
-lint.flake8-tidy-imports.banned-api."typing.MutableMapping".msg = """\
-  Deprecated alias. Change to collections.abc.MutableMapping\
-  """
-lint.flake8-tidy-imports.banned-api."typing.Sequence".msg = "Deprecated alias. Change to collections.abc.Sequence"
-lint.flake8-tidy-imports.banned-api."typing.Set".msg = "Deprecated alias. Change to set"
-lint.flake8-tidy-imports.banned-api."typing.Tuple".msg = "Deprecated alias. Change to tuple"
-lint.flake8-tidy-imports.banned-api."typing.Type".msg = "Deprecated alias. Change to type"
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 lint.pylint.max-positional-args = 6

@@ -139,13 +139,13 @@ repos:
     # - validate-pyproject[all,store]
 
 - repo: https://github.com/tox-dev/pyproject-fmt
-  rev: v2.29.3
+  rev: v2.29.4
   hooks:
   - id: pyproject-fmt
     name: format pyproject.toml
 
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.12.10
+  rev: 0.12.12
   hooks:
     # running uv lock requires network access or a warm cache, so it
     # cannot be run via pre-commit.ci, even with the `--offline`,
