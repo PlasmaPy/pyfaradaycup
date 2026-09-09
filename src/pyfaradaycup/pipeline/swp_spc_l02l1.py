@@ -29,7 +29,7 @@ import numpy as np
 try:
     from spacepy import pycdf
 except:  # noqa: E722
-    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)
+    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)  # noqa: FIX002, TD002, TD003
     # then we don't need this.
     print(sys.exc_info())  # noqa: T201
     print("***ERROR*** Could not import pycdf from spacepy")  # noqa: T201
@@ -316,7 +316,7 @@ def main(  # noqa: ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917
     logfile.close()
 
 
-def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, FBT002
+def cdf35e_35f(cdf, dat, verbose=False) -> None:  # noqa: ANN001, C901, FBT002
     """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # noqa: D400
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
@@ -539,7 +539,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN20
             pdb.set_trace()  # noqa: T100
 
 
-def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, FBT002
+def cdf352(cdf, dat, nocdf=False, verbose=False):  # noqa: ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915
     try:
         # Calculate SCET from the variables in the L0 data
         dt = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
