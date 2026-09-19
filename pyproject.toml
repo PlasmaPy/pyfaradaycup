@@ -59,6 +59,9 @@ dependencies = [
   "xlrd>=1.2",
 ]
 
+[project.scripts]
+levelup = "pyfaradaycup.pipeline.swp_spc_l02l1:main"
+
 [dependency-groups]
 dev = [
   { include-group = "lint" },
