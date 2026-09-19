@@ -1,0 +1,1996 @@
+# tlm_version: 1.8
+# generated at: 2018-04-24 13:57:58.062000
+# generated from: Instruments/SWEAP/SWEM/CTM/SWEAP_FSW_000_CTM.xls
+
+PKT_HDR 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+}
+
+APID_340 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	( SW_POWERREQ       ,,,	8; )
+	SW_POWERREQSPARE  ,,,	6;
+	SW_POWERREQUEST   ,,,	2;
+	SW_SCSPARE        ,,,	8;
+	( SW_SPCPROTON      ,,,	8; )
+	SW_SPCPROTONDLO   ,,,	6;
+	SW_SPANAQUAL      ,,,	1;
+	SW_SPCQUAL        ,,,	1;
+	SW_SPCPROTONDHI   ,,,	8;
+	SW_SPCPROTONV     ,,,	8;
+	SW_SPANAPROTOND0  ,,,	8;
+	SW_SPANAPROTOND1  ,,,	8;
+	SW_SPANAPROTOND2  ,,,	8;
+	SW_SPANAPROTOND3  ,,,	8;
+	SW_SPANAPROTOND4  ,,,	8;
+	SW_SPANAPROTOND5  ,,,	8;
+	SW_SPANAPROTOND6  ,,,	8;
+	SW_SPANAPROTOND7  ,,,	8;
+	SW_SPANAPROTONV   ,,,	8;
+	( SW_PWRCONFIG      ,,,	8; )
+	SW_OP_OVERCURDET  ,,,	1;
+	SW_ACTPWR         ,,,	1;
+	SW_SPANBHTR       ,,,	1;
+	SW_SPANAHTR       ,,,	1;
+	SW_SPANBPWR       ,,,	1;
+	SW_SPANAEPWR      ,,,	1;
+	SW_SPANAIPWR      ,,,	1;
+	SW_SPCPWR         ,,,	1;
+	( SW_SWEMCONFIG     ,,,	8; )
+	SW_EVENTCTR       ,,,	4;
+	SW_FLPLBPROG      ,,,	1;
+	SW_FIELDSCLK      ,,,	1;
+	SW_LINK_A_ACTIVE  ,,,	1;
+	SW_LINK_B_ACTIVE  ,,,	1;
+	( SW_FSWCONFIG      ,,,	8; )
+	SW_LASTFSWEVENT   ,,,	4;
+	SW_OP_OVERRUN     ,,,	1;
+	SW_FSWCSCI        ,,,	1;
+	SW_BOOTMODE       ,,,	1;
+	SW_WDRSTDET       ,,,	1;
+	SW_SWEM3P3V       ,,,	8;
+	( SW_SPANAICONFIG   ,,,	8; )
+	SW_SPANAIHKMONTRIP,,,	1;
+	SW_SPANAICOVOREOT1EOT2,,,	1;
+	SW_SPANAIATTORIN1IN2,,,	1;
+	SW_SPANAIHVENABLED,,,	1;
+	SW_SPANAIHVMODE   ,,,	4;
+	( SW_SPANAECONFIG   ,,,	8; )
+	SW_SPANAEHKMONTRIP,,,	1;
+	SW_SPANAECOVOREOT1EOT2,,,	1;
+	SW_SPANAEATTORIN1IN2,,,	1;
+	SW_SPANAEHVENABLED,,,	1;
+	SW_SPANAEHVMODE   ,,,	4;
+	( SW_SPANBCONFIG    ,,,	8; )
+	SW_SPANBHKMONTRIP ,,,	1;
+	SW_SPANBCOVOREOT1EOT2,,,	1;
+	SW_SPANBATTORIN1IN2,,,	1;
+	SW_SPANBHVENABLED ,,,	1;
+	SW_SPANBHVMODE    ,,,	4;
+	( SW_SPCCONFIG      ,,,	8; )
+	SW_SPCMODE        ,,,	1;
+	SW_SPCHVENABLED   ,,,	1;
+	SW_SPCORELECFACALON,,,	1;
+	SW_SPCRAILDACGTLIMIT,,,	1;
+	SW_SPCERRCTR      ,,,	4;
+}
+
+APID_341 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_FSWSTATE       ,,,	16;
+	SW_EVENTCTR       ,,,	32;
+	SW_LASTFSWEVENT   ,,,	32;
+	SW_CMDCOUNTER     ,,,	32;
+	SW_CMDSTATUS      ,,,	16;
+	( SW_GLOBALSTATUS   ,,,	32; )
+	SW_GLOBAL         ,,,	16;
+	SW_FPGAVER        ,,,	8;
+	SW_STATUS         ,,,	8;
+}
+
+APID_Op341 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	( SW_PWRCONFIG      ,,,	8; )
+	SW_PWRSPARE       ,,,	1;
+	SW_ACTPWR         ,,,	1;
+	SW_SPANBHTR       ,,,	1;
+	SW_SPANAHTR       ,,,	1;
+	SW_SPANBPWR       ,,,	1;
+	SW_SPANAEPWR      ,,,	1;
+	SW_SPANAIPWR      ,,,	1;
+	SW_SPCPWR         ,,,	1;
+	( SW_SWEMCONFIG     ,,,	8; )
+	SW_EVENTCTR       ,,,	4;
+	SW_FLPLBPROG      ,,,	1;
+	SW_FIELDSCLK      ,,,	1;
+	SW_LINK_A_ACTIVE  ,,,	1;
+	SW_LINK_B_ACTIVE  ,,,	1;
+	( SW_FSWCONFIG      ,,,	8; )
+	SW_LASTFSWEVENT   ,,,	4;
+	SW_FSWSPARE       ,,,	1;
+	SW_FSWCSCI        ,,,	1;
+	SW_BOOTMODE       ,,,	1;
+	SW_WDRSTDET       ,,,	1;
+	SW_SWEM3P3V       ,,,	8;
+	( SW_SPANAICONFIG   ,,,	8; )
+	SW_SPANAIHKMONTRIP,,,	1;
+	SW_SPANAICOVOREOT1EOT2,,,	1;
+	SW_SPANAIATTORIN1IN2,,,	1;
+	SW_SPANAIHVENABLED,,,	1;
+	SW_SPANAIHVMODE   ,,,	4;
+	( SW_SPANAECONFIG   ,,,	8; )
+	SW_SPANAEHKMONTRIP,,,	1;
+	SW_SPANAECOVOREOT1EOT2,,,	1;
+	SW_SPANAEATTORIN1IN2,,,	1;
+	SW_SPANAEHVENABLED,,,	1;
+	SW_SPANAEHVMODE   ,,,	4;
+	( SW_SPANBCONFIG    ,,,	8; )
+	SW_SPANBHKMONTRIP ,,,	1;
+	SW_SPANBCOVOREOT1EOT2,,,	1;
+	SW_SPANBATTORIN1IN2,,,	1;
+	SW_SPANBHVENABLED ,,,	1;
+	SW_SPANBHVMODE    ,,,	4;
+	( SW_SPCCONFIG      ,,,	8; )
+	SW_SPCMODE        ,,,	1;
+	SW_SPCHVENABLED   ,,,	1;
+	SW_SPCORELECFACALON,,,	1;
+	SW_SPCRAILDACGTLIMIT,,,	1;
+	SW_SPCERRCTR      ,,,	4;
+	SW_FSWSTATE       ,,,	8;
+	SW_EVENTCTR       ,,,	32;
+	SW_LASTFSWEVENT   ,,,	16;
+	SW_CMDCOUNTER     ,,,	32;
+	( SW_CMDSTATUS      ,,,	32; )
+	SW_CMD_STAT_RSV   ,,,	16;
+	LINK_A_ACTIVE     ,,,	1;
+	LINK_B_ACTIVE     ,,,	1;
+	MAX_INTERPPS_GAP_ERROR,,,	1;
+	MIN_INTERPPS_GAP_ERROR,,,	1;
+	FRAMING_ERROR     ,,,	1;
+	CHECKSUM_ERROR    ,,,	1;
+	MESSAGE_LENGTH_ERROR,,,	1;
+	PARITY_ERROR      ,,,	1;
+	SW_CMD_STAT_RSV_1 ,,,	8;
+	( SW_GLOBALSTATUS   ,,,	32; )
+	RESET_COUNT       ,,,	8;
+	SW_GLOBALSTAT_RSV ,,,	4;
+	BOARD_ID          ,,,	3;
+	SW_DIE            ,,,	1;
+	FPGA_VERSION      ,,,	8;
+	WD_RESET_DETECTED ,,,	1;
+	CPU_WP_ERROR      ,,,	1;
+	CPU__ADDRESS_ERROR,,,	1;
+	HARD_RESET_CMD_DETECTED,,,	1;
+	CLKSW_RST_DET     ,,,	1;
+	VPPS_DET          ,,,	1;
+	SMPL_TCK_DET      ,,,	1;
+	TIM_INT_DET       ,,,	1;
+	( SW_CDISTATUS      ,,,	32; )
+	APID_INSTR_ERROR  ,,,	1;
+	CDI_STATUS_RSV_   ,,,	3;
+	APID_ERROR_SPB    ,,,	1;
+	APID_ERROR_SPAE   ,,,	1;
+	APID_ERROR_SPAI   ,,,	1;
+	APID_ERROR_SPC    ,,,	1;
+	CDI_STATUS_RSV_1  ,,,	4;
+	FRAMING_ERROR_SPB ,,,	1;
+	FRAMING_ERROR_SPAE,,,	1;
+	FRAMING_ERROR_SPAI,,,	1;
+	FRAMING_ERROR_SPC ,,,	1;
+	CDI_STATUS_SPARE_2,,,	4;
+	LENGTH_ERROR_SPB  ,,,	1;
+	LENGTH_ERROR_SPAE ,,,	1;
+	LENGTH_ERROR_SPAI ,,,	1;
+	LENGTH_ERROR_SPAE ,,,	1;
+	CDI_STATUS_SPARE_3,,,	4;
+	TIMEOUT_ERROR_SPB ,,,	1;
+	TIMEOUT_ERROR_SPAE,,,	1;
+	TIMEOUT_ERROR_SPAI,,,	1;
+	TIMEOUT_ERROR_SPC ,,,	1;
+	SW_SRVRDPTR       ,,,	32;
+	SW_SRVWRPTR       ,,,	32;
+	SW_ARCRDPTR       ,,,	32;
+	SW_SSRWRADDR      ,,,	32;
+	SW_SSRRDADDR      ,,,	32;
+	( SW_SPANAECTL      ,,,	8; )
+	SW_SPAE_CTL_HV_STATE,,,	4;
+	SW_SPAE_CTL_STATE ,,,	4;
+	( SW_SPANBCTL       ,,,	8; )
+	SW_SPB_CTL_HV_STATE,,,	4;
+	SW_SPB_CTL_STATE  ,,,	4;
+	( SW_SPANAICTL      ,,,	8; )
+	SW_SPAI_CTL_HV_STATE,,,	4;
+	SW_SPIE_CTL_STATE ,,,	4;
+	( SW_SPCCTL         ,,,	8; )
+	SW_SPC_CTL_HV_STATE,,,	4;
+	SW_SPC_CTL_STATE  ,,,	4;
+	SW_SPANAHTRCTL    ,,,	8;
+	SW_SPANBHTRCTL    ,,,	8;
+	SW_SPANAECVRCTL   ,,,	8;
+	SW_SPANBCVRCTL    ,,,	8;
+	SW_SPANAICVRCTL   ,,,	8;
+	SW_SPANAEATNCTL   ,,,	8;
+	SW_SPANBATNCTL    ,,,	8;
+	SW_SPANAIATNCTL   ,,,	8;
+	( SW_DCBOVERCUR     ,,,	8; )
+	SW_DCBOVERCUR_RSV ,,,	4;
+	SPB_OVERCUR_DET   ,,,	1;
+	SPAE_OVERCUR_DET  ,,,	1;
+	SPAI_OVERCUR_DET  ,,,	1;
+	SPC_OVERCUR_DET   ,,,	1;
+	SW_SEQSTATUSIDX   ,,,	8;
+	( SW_SEQSTATUS      ,,,	16; )
+	SW_SEQENA         ,,,	1;
+	SW_SEQEXEC        ,,,	1;
+	SW_SEQSEQCNT      ,,,	14;
+	( SW_MONSTATUS      ,,,	8; )
+	SW_MONITORIDX     ,,,	6;
+	SW_MONITORTRIP    ,,,	1;
+	SW_MONITORENA     ,,,	1;
+	( SW_PWRDOWNWARN    ,,,	8; )
+	SW_SPAREPWRWARN   ,,,	5;
+	SW_FIELDS1PWRWARN ,,,	1;
+	SW_FIELDS2PWRWARN ,,,	1;
+	SW_SWEAPPWRWARN   ,,,	1;
+	SW_SSRBADBLKCNT   ,,,	8;
+	SW_FSWVERSION     ,,,	16;
+	SW_OSCPUUSAGE     ,,,	8;
+	SW_OSERRCOUNT     ,,,	16;
+}
+
+APID_342 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_DUMPADR        ,,,	32;
+	SW_DATA[4082]     ,,,	8;
+}
+
+APID_343 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	( SW_DCBTEMP        ,,,	16; )
+	SW_DCBTEMPVALID   ,,,	1;
+	SW_ADC0SPARE      ,,,	5;
+	SW_DCBT           ,,,	10;
+	( SW_LVPSTEMP       ,,,	16; )
+	SW_LVPSTEMPVALID  ,,,	1;
+	SW_ADC1SPARE      ,,,	5;
+	SW_LVPST          ,,,	10;
+	( SW_SWEMP22VOLT    ,,,	16; )
+	SW_SWEMP22VALID   ,,,	1;
+	SW_ADC2SPARE      ,,,	5;
+	SW_SWEMP22V       ,,,	10;
+	( SW_SWEMP3P6DVOLT  ,,,	16; )
+	SW_SWEMP3P6VALID  ,,,	1;
+	SW_ADC3SPARE      ,,,	5;
+	SW_SWEMP3P6DV     ,,,	10;
+	( SW_SWEMP3P3DVOLT  ,,,	16; )
+	SW_SWEMP3P3VALID  ,,,	1;
+	SW_ADC4SPARE      ,,,	5;
+	SW_SWEMP3P3DV     ,,,	10;
+	( SW_SWEMP1P5DVOLT  ,,,	16; )
+	SW_SWEMP1P5VALID  ,,,	1;
+	SW_ADC5SPARE      ,,,	5;
+	SW_SWEMP1P5DV     ,,,	10;
+	( SW_DCB1P5CURR     ,,,	16; )
+	SW_DCB1P5IVALID   ,,,	1;
+	SW_ADC6SPARE      ,,,	5;
+	SW_DCB1P5I        ,,,	10;
+	( SW_DCB3P3CURR     ,,,	16; )
+	SW_DCB1P5IVALID   ,,,	1;
+	SW_ADC7SPARE      ,,,	5;
+	SW_DCB3P3I        ,,,	10;
+	( SW_SPC22CURR      ,,,	16; )
+	SW_SPC22IVALID    ,,,	1;
+	SW_ADC8SPARE      ,,,	5;
+	SW_SPC22I         ,,,	10;
+	( SW_SPANB22CURR    ,,,	16; )
+	SW_SPANB22IVALID  ,,,	1;
+	SW_ADC9SPARE      ,,,	5;
+	SW_SPANB22I       ,,,	10;
+	( SW_SPANAE22CURR   ,,,	16; )
+	SW_SPANAE22IVALID ,,,	1;
+	SW_ADC10SPARE     ,,,	5;
+	SW_SPANAE22I      ,,,	10;
+	( SW_SPANAI22CURR   ,,,	16; )
+	SW_SPANAI22IVALID ,,,	1;
+	SW_ADC11SPARE     ,,,	5;
+	SW_SPANAI22I      ,,,	10;
+	( SW_SPANBTEMP      ,,,	16; )
+	SW_SPANBTEMPVALID ,,,	1;
+	SW_ADC12SPARE     ,,,	5;
+	SW_SPANBT         ,,,	10;
+	( SW_SPANAETEMP     ,,,	16; )
+	SW_SPANAETEMPVALID,,,	1;
+	SW_ADC13SPARE     ,,,	5;
+	SW_SPANAET        ,,,	10;
+	( SW_SPANAITEMP     ,,,	16; )
+	SW_SPANAITEMPVALID,,,	1;
+	SW_ADC14SPARE     ,,,	5;
+	SW_SPANAIT        ,,,	10;
+}
+
+APID_344 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_EVNTTIME[16]   ,,,	32;
+	SW_EVNTCODE[16]   ,,,	16;
+	SW_EVNTDTA0[16]   ,,,	8;
+	SW_EVNTDTA1[16]   ,,,	8;
+	SW_EVNTDTA2[16]   ,,,	8;
+	SW_EVNTDTA3[16]   ,,,	8;
+}
+
+APID_345 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_ECHOAPID       ,,,	16;
+	SW_ECHOSEQCNT     ,,,	16;
+	SW_ECHOPKTLEN     ,,,	16;
+	SW_ECHOTYPE       ,,,	8;
+	SW_ECHOSUBTYPE    ,,,	8;
+	SW_DATA[512]      ,,,	8;
+}
+
+APID_346 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SAMPLECLKPER   ,,,	16;
+	SW_SCPPSMETTIME   ,,,	32;
+	SW_SAMPLEMETSUBSECS,,,	32;
+	SW_SAMPLEMETSECS  ,,,	32;
+	( SW_FIELDS         ,,,	32; )
+	SW_FIELDSCLKCYCLES,,,	31;
+	SW_FIELDSCLKACT   ,,,	1;
+	SW_FIELDSF1F2     ,,,	32;
+	SW_FIELDSF3       ,,,	16;
+	SW_FIELDSMETSECS  ,,,	32;
+	SW_FIELDSMETSUBSECS,,,	16;
+	SW_METJITTER      ,,,	32;
+	SW_SCTIMESECS     ,,,	32;
+	SW_SCTIMESUBSECS  ,,,	16;
+	SW_FIELDSF0       ,,,	32;
+	SW_SCSUBSECSATPPS ,,,	32;
+	SW_FIELDSSMPLTIMERR,,,	32;
+	SW_TICKSBTWN1PPS  ,,,	32;
+}
+
+APID_347 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_DWELLADR       ,,,	32;
+	SW_DWELL_DATA[4082],,,	8;
+}
+
+APID_351 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPCSUBSEC      ,,,	16;
+	( SW_SPCITST        ,,,	16; )
+	SW_SPC_SERVTIME   ,,,	6;
+	SW_SPC_INTTIME    ,,,	10;
+	( SPC_SCICONFIG1    ,,,	8; )
+	SW_SPC_PKTNUM     ,,,	2;
+	SW_SPC_CALFLAG    ,,,	1;
+	SPC_ELECMODE      ,,,	1;
+	SPC_ASAT          ,,,	1;
+	SPC_BSAT          ,,,	1;
+	SPC_CSAT          ,,,	1;
+	SPC_DSAT          ,,,	1;
+	( SPC_SCICONFIG2    ,,,	8; )
+	SPC_WINWIDTH      ,,,	4;
+	SPC_FSWBITS       ,,,	4;
+	( SW_DATA           ,,,	8; )
+	WINDOW            ,,,	8;
+	GAIN_SEL          ,,,	8;
+	A0S               ,,,	12;
+	A1S               ,,,	12;
+	A2S               ,,,	12;
+	A3S               ,,,	12;
+	B0S               ,,,	12;
+	B1S               ,,,	12;
+	B2S               ,,,	12;
+	B3S               ,,,	12;
+	C0S               ,,,	12;
+	C1S               ,,,	12;
+	C2S               ,,,	12;
+	C3S               ,,,	12;
+	D0S               ,,,	12;
+	D1S               ,,,	12;
+	D2S               ,,,	12;
+	D3S               ,,,	12;
+	A0C               ,,,	12;
+	A1C               ,,,	12;
+	A2C               ,,,	12;
+	A3C               ,,,	12;
+	B0C               ,,,	12;
+	B1C               ,,,	12;
+	B2C               ,,,	12;
+	B3C               ,,,	12;
+	C0C               ,,,	12;
+	C1C               ,,,	12;
+	C2C               ,,,	12;
+	C3C               ,,,	12;
+	D0C               ,,,	12;
+	D1C               ,,,	12;
+	D2C               ,,,	12;
+	D3C               ,,,	12;
+}
+
+APID_352 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPCSUBSEC      ,,,	16;
+	( SW_SPCITST        ,,,	16; )
+	SW_SPC_SERVTIME   ,,,	6;
+	SW_SPC_INTTIME    ,,,	10;
+	( SPC_SCICONFIG1    ,,,	8; )
+	SW_SPC_CALFLAG    ,,,	1;
+	SPC_ELECMODE      ,,,	1;
+	SPC_TIMESERCOLL   ,,,	6;
+	( SPC_SCICONFIG2    ,,,	8; )
+	SPC_WINWIDTH      ,,,	4;
+	SPC_FSWBITS       ,,,	4;
+	( SPC_SCICONFIG3    ,,,	16; )
+	SPC_TICKSPARE     ,,,	6;
+	SPC_TIMESERTICK   ,,,	10;
+	SPC_TIMESPARE2    ,,,	8;
+	SPC_TIMESPARE1    ,,,	8;
+	WIN_0             ,,,	8;
+	WIN_1             ,,,	8;
+	WIN_2             ,,,	8;
+	WIN_3             ,,,	8;
+	( SW_DATA           ,,,	8; )
+	G0_000            ,,,	12;
+	G1_000            ,,,	12;
+	G2_000            ,,,	12;
+	G3_000            ,,,	12;
+}
+
+APID_353 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPCSUBSEC      ,,,	16;
+	( SW_SPCITST        ,,,	16; )
+	SW_SPC_SERVTIME   ,,,	6;
+	SW_SPC_INTTIME    ,,,	10;
+	( SPC_SCICONFIG1    ,,,	8; )
+	SW_SPC_BITS       ,,,	2;
+	SW_SPC_CALFLAG    ,,,	1;
+	SPC_ELECMODE      ,,,	1;
+	SPC_ASAT          ,,,	1;
+	SPC_BSAT          ,,,	1;
+	SPC_CSAT          ,,,	1;
+	SPC_DSAT          ,,,	1;
+	( SPC_SCICONFIG2    ,,,	8; )
+	SPC_WINWIDTH      ,,,	4;
+	SPC_FSWBITS       ,,,	4;
+	( SW_DATA           ,,,	8; )
+	WINDOW            ,,,	8;
+	AGAIN             ,,,	2;
+	ASIN              ,,,	12;
+	ACOS              ,,,	12;
+	BGAIN             ,,,	2;
+	BSIN              ,,,	12;
+	BCOS              ,,,	12;
+	CGAIN             ,,,	2;
+	CSIN              ,,,	12;
+	CCOS              ,,,	12;
+	DGAIN             ,,,	2;
+	DSIN              ,,,	12;
+	DCOS              ,,,	12;
+}
+
+APID_354 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPCSUBSEC      ,,,	16;
+	( SW_SPCITST        ,,,	16; )
+	SW_SPC_SERVTIME   ,,,	6;
+	SW_SPC_INTTIME    ,,,	10;
+	( SPC_SCICONFIG1    ,,,	8; )
+	SW_SPC_BITS       ,,,	2;
+	SW_SPC_CALFLAG    ,,,	1;
+	SPC_ELECMODE      ,,,	1;
+	SPC_ASAT          ,,,	1;
+	SPC_BSAT          ,,,	1;
+	SPC_CSAT          ,,,	1;
+	SPC_DSAT          ,,,	1;
+	( SPC_SCICONFIG2    ,,,	8; )
+	SPC_WINWIDTH      ,,,	4;
+	SPC_FSWBITS       ,,,	4;
+	( SW_SPC_SCI_DATA   ,,,	8; )
+	WINDOW            ,,,	8;
+	AGAIN             ,,,	2;
+	ARSS              ,,,	12;
+	BGAIN             ,,,	2;
+	BRSS              ,,,	12;
+	CGAIN             ,,,	2;
+	CRSS              ,,,	12;
+	DGAIN             ,,,	2;
+	DRSS              ,,,	12;
+}
+
+APID_35E 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPC_SUBSEC     ,,,	16;
+	SW_SPC_CAL        ,,,	16;
+	SW_SPC_PEAKOFFLOW ,,,	8;
+	SW_SPC_PEAKOFFHI  ,,,	8;
+	SW_SPC_PEAKRPTCNT ,,,	16;
+	( SW_SPC_PCM        ,,,	16; )
+	SW_SPC_PEAKCURRMIN0,,,	12;
+	SW_SPC_PEAKCURRMIN1,,,	12;
+	SW_SPC_PEAKCURRMIN2,,,	12;
+	SW_SPC_PEAKCURRMIN3,,,	12;
+	( SW_SPC_PHASECOLL  ,,,	16; )
+	SW_SPC_RETRACE    ,,,	4;
+	SW_SPC_CALPHASE   ,,,	8;
+	SW_SPC_CALCOLLD   ,,,	1;
+	SW_SPC_CALCOLLC   ,,,	1;
+	SW_SPC_CALCOLLB   ,,,	1;
+	SW_SPC_CALCOLLA   ,,,	1;
+	SW_SPC_VOLTMAX    ,,,	8;
+	( SW_SPC_WIDTHS     ,,,	8; )
+	SPC_WINWIDTH      ,,,	4;
+	SPC_FAWINWIDTH    ,,,	4;
+	( SW_SPC_THRESH_SAT ,,,	8; )
+	SW_SPC_THRESHSAT0 ,,,	12;
+	SW_SPC_THRESHSAT1 ,,,	12;
+	SW_SPC_THRESHSAT2 ,,,	12;
+	SW_SPC_THRESHSAT3 ,,,	12;
+	( SW_SPC_DEMOD_SAT  ,,,	8; )
+	SW_SPC_DEMODSATA1 ,,,	12;
+	SW_SPC_DEMODSATA2 ,,,	12;
+	SW_SPC_DEMODSATA3 ,,,	12;
+	SW_SPC_DEMODSATB1 ,,,	12;
+	SW_SPC_DEMODSATB2 ,,,	12;
+	SW_SPC_DEMODSATB3 ,,,	12;
+	SW_SPC_DEMODSATC1 ,,,	12;
+	SW_SPC_DEMODSATC2 ,,,	12;
+	SW_SPC_DEMODSATC3 ,,,	12;
+	SW_SPC_DEMODSATD1 ,,,	12;
+	SW_SPC_DEMODSATD2 ,,,	12;
+	SW_SPC_DEMODSATD3 ,,,	12;
+	SW_SPC_DOUBLEWIDTH,,,	8;
+	SW_SPC_FA_OFFSET  ,,,	8;
+	( SW_SPC_SETPTR     ,,,	16; )
+	SW_SPC_SETPTR_SPARE,,,	5;
+	SW_SPC_SETPTR_TAB ,,,	3;
+	SW_SPC_SETPTR_PTR ,,,	8;
+}
+
+APID_35F 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SW_SPC_SUBSEC     ,,,	16;
+	SW_SPC_CMDCTR     ,,,	8;
+	SW_SPC_ERRCTR     ,,,	8;
+	SW_SPC_LASTCMD    ,,,	8;
+	SW_SPC_LASTVAL    ,,,	16;
+	( SW_SPC_STATUS     ,,,	8; )
+	SW_SPC_MODE       ,,,	1;
+	SW_SPC_HVENA      ,,,	1;
+	SW_SPC_ELEC       ,,,	1;
+	SW_SPC_FA         ,,,	1;
+	SW_SPC_CALON      ,,,	1;
+	SW_SPCHKRES2      ,,,	1;
+	SW_SPCHKRES1      ,,,	1;
+	SW_SPCHKRES0      ,,,	1;
+	( SW_SPC_FEU_HK     ,,,	8; )
+	SW_SPC_HVDAC_IN   ,,,	12;
+	SW_SPC_3P3V       ,,,	12;
+	SW_SPC_12V        ,,,	12;
+	SW_SPC_N12V       ,,,	12;
+	SW_SPC_HVOUT      ,,,	12;
+	SW_SPC_RAILCTL    ,,,	12;
+	SW_SPC_5V         ,,,	12;
+	SW_SPC_N5V        ,,,	12;
+	( SW_SPC_RIO_HK     ,,,	8; )
+	SW_SPC_LVTEMP     ,,,	10;
+	SW_SPC_3P3V_RIO   ,,,	10;
+	SW_SPC_1P5V       ,,,	10;
+	SW_SPC_22V_SW     ,,,	10;
+	SW_SPC_12V_RIO    ,,,	10;
+	SW_SPC_5V_RIO     ,,,	10;
+	SW_SPC_N12V_RIO   ,,,	10;
+	SW_SPC_N5V_RIO    ,,,	10;
+	SW_SPC_3P3I       ,,,	10;
+	SW_SPC_1P5I       ,,,	10;
+	SW_SPC_5I         ,,,	10;
+	SW_SPC_12I        ,,,	10;
+	SW_SPC_N12I       ,,,	10;
+	SW_SPC_N55V       ,,,	10;
+	SW_SPC_8KV        ,,,	10;
+	SW_SPC_HVCURR     ,,,	10;
+	SW_SPC_VEL        ,,,	8;
+	( SW_SPC_DEN        ,,,	16; )
+	SW_SPC_DENGAIN    ,,,	4;
+	SW_SPC_DENAMP     ,,,	12;
+	SW_SPC_ECHO1      ,,,	16;
+	SW_SPC_ECHO2      ,,,	16;
+	( SW_SPC_ID         ,,,	8; )
+	SW_SPC_FPGAID     ,,,	6;
+	SW_SPC_FEUID      ,,,	2;
+	( SW_SPC_TABLERAIL  ,,,	16; )
+	SW_SPC_TABLEID    ,,,	4;
+	SW_SPC_RAILDAC    ,,,	12;
+	SW_SPC_CFGTIME    ,,,	8;
+	SW_SPC_F0CTR      ,,,	16;
+	SW_SPC_MINVOLT    ,,,	8;
+	SW_SPC_MAXVOLT    ,,,	8;
+	SW_SPC_35F_SPARE  ,,,	8;
+	SW_SPC_CHECKSUM   ,,,	16;
+}
+
+APID_36E 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	( SPAE_CYCLE        ,,,	16; )
+	SPAE_SUBSEC       ,,,	14;
+	SPAE_SUBNYS       ,,,	2;
+	( SPAE_CONFIG       ,,,	16; )
+	SPAE_LOGCMP       ,,,	1;
+	SPAE_COMP         ,,,	2;
+	SPAE_SUM          ,,,	1;
+	SPAE_SPERIOD      ,,,	4;
+	SPAE_ARCSUM       ,,,	8;
+	SPAE_MODEID       ,,,	16;
+	SPAE_F0           ,,,	16;
+	( SPAE_STATE        ,,,	16; )
+	MECHATTEN         ,,,	2;
+	TPULSER           ,,,	1;
+	HV                ,,,	1;
+	HVMODE            ,,,	4;
+	PKIND             ,,,	8;
+	( SPAE_RIO0         ,,,	16; )
+	SPAE_CH0_OFFSET   ,,,	6;
+	SPAE_P8I          ,,,	10;
+	( SPAE_RIO1         ,,,	16; )
+	SPAE_CH1_OFFSET   ,,,	6;
+	SPAE_N8I          ,,,	10;
+	( SPAE_RIO2         ,,,	16; )
+	SPAE_CH2_OFFSET   ,,,	6;
+	SPAE_LVPST        ,,,	10;
+	( SPAE_RIO3         ,,,	16; )
+	SPAE_CH3_OFFSET   ,,,	6;
+	SPAE_22V          ,,,	10;
+	( SPAE_RIO4         ,,,	16; )
+	SPAE_CH4_OFFSET   ,,,	6;
+	SPAE_1P5V         ,,,	10;
+	( SPAE_RIO5         ,,,	16; )
+	SPAE_CH5_OFFSET   ,,,	6;
+	SPAE_3P3VA        ,,,	10;
+	( SPAE_RIO6         ,,,	16; )
+	SPAE_CH6_OFFSET   ,,,	6;
+	SPAE_3P3V         ,,,	10;
+	( SPAE_RIO7         ,,,	16; )
+	SPAE_CH7_OFFSET   ,,,	6;
+	SPAE_N8V          ,,,	10;
+	( SPAE_RIO8         ,,,	16; )
+	SPAE_CH8_OFFSET   ,,,	6;
+	SPAE_N5V          ,,,	10;
+	( SPAE_RIO9         ,,,	16; )
+	SPAE_CH9_OFFSET   ,,,	6;
+	SPAE_P8V          ,,,	10;
+	( SPAE_RIO10        ,,,	16; )
+	SPAE_CH10_OFFSET  ,,,	6;
+	SPAE_P5V          ,,,	10;
+	( SPAE_RIO11        ,,,	16; )
+	SPAE_CH11_OFFSET  ,,,	6;
+	SPAE_ANALT        ,,,	10;
+	( SPAE_RIO12        ,,,	16; )
+	SPAE_CH12_OFFSET  ,,,	6;
+	SPAE_3P3I         ,,,	10;
+	( SPAE_RIO13        ,,,	16; )
+	SPAE_CH13_OFFSET  ,,,	6;
+	SPAE_1P5I         ,,,	10;
+	( SPAE_RIO14        ,,,	16; )
+	SPAE_CH14_OFFSET  ,,,	6;
+	SPAE_P5I          ,,,	10;
+	( SPAE_RIO15        ,,,	16; )
+	SPAE_CH15_OFFSET  ,,,	6;
+	SPAE_N5I          ,,,	10;
+	( SPAE_ADC1CH1      ,,,	16; )
+	SPAE_ADC1CH1_OFF  ,,,	4;
+	SPAE_MCPHV        ,,,	12;
+	( SPAE_ADC2CH1      ,,,	16; )
+	SPAE_ADC2CH1_OFF  ,,,	4;
+	SPAE_DEF1V        ,,,	12;
+	( SPAE_ADC1CH2      ,,,	16; )
+	SPAE_ADC1CH2_OFF  ,,,	4;
+	SPAE_MCPHVI       ,,,	12;
+	( SPAE_ADC2CH2      ,,,	16; )
+	SPAE_ADC2CH2_OFF  ,,,	4;
+	SPAE_DEF2V        ,,,	12;
+	( SPAE_ADC1CH3      ,,,	16; )
+	SPAE_ADC1CH3_OFF  ,,,	4;
+	SPAE_RAWHV        ,,,	12;
+	( SPAE_ADC2CH3      ,,,	16; )
+	SPAE_ADC2CH3_OFF  ,,,	4;
+	SPAE_SPOILV       ,,,	12;
+	( SPAE_ADC1CH4      ,,,	16; )
+	SPAE_ADC1CH4_OFF  ,,,	4;
+	SPAE_RAWHVI       ,,,	12;
+	( SPAE_ADC2CH4      ,,,	16; )
+	SPAE_ADC2CH4_OFF  ,,,	4;
+	SPAE_SPARECH4     ,,,	12;
+	( SPAE_ADC1CH5      ,,,	16; )
+	SPAE_ADC1CH5_OFF  ,,,	4;
+	SPAE_HEMIV        ,,,	12;
+	( SPAE_ADC2CH5      ,,,	16; )
+	SPAE_ADC2CH5_OFF  ,,,	4;
+	SPAE_FPGAT        ,,,	12;
+	( SPAE_ADC1CH6      ,,,	16; )
+	SPAE_ADC1CH6_OFF  ,,,	4;
+	SPAE_GND1         ,,,	12;
+	( SPAE_ADC2CH6      ,,,	16; )
+	SPAE_ADC2CH6_OFF  ,,,	4;
+	SPAE_ASICT        ,,,	12;
+	( SPAE_ADC1CH7      ,,,	16; )
+	SPAE_ADC1CH7_OFF  ,,,	4;
+	SPAE_GND2         ,,,	12;
+	( SPAE_ADC2CH7      ,,,	16; )
+	SPAE_ADC2CH7_OFF  ,,,	4;
+	SPAE_GND3         ,,,	12;
+	( SPAE_ADC1CH8      ,,,	16; )
+	SPAE_ADC1CH8_OFF  ,,,	4;
+	SPAE_GND4         ,,,	12;
+	( SPAE_ADC2CH8      ,,,	16; )
+	SPAE_ADC2CH8_OFF  ,,,	4;
+	SPAE_GND5         ,,,	12;
+	SPAE_CMDS_IGND    ,,,	8;
+	SPAE_RST_CNT      ,,,	8;
+	SPAE_BOARDID      ,,,	8;
+	SPAE_FPGAREV      ,,,	8;
+	SPAE_CMDERRCNT    ,,,	8;
+	SPAE_CMDSUKN      ,,,	8;
+	SPAE_CMDSRCVD     ,,,	16;
+	SPAE_RAWHVDAC     ,,,	16;
+	( SPAE_HVCONF       ,,,	8; )
+	SPAE_HV_UNUSED    ,,,	2;
+	SPAE_HV_KEY_ENA   ,,,	1;
+	SPAE_HV_ENA       ,,,	1;
+	SPAE_SWEEP_MODE   ,,,	4;
+	( SPAE_ACTSTATUS    ,,,	8; )
+	SPAE_ACTRLX       ,,,	1;
+	SPAE_ACTCURR      ,,,	1;
+	SPAE_ACTEOTIN2    ,,,	1;
+	SPAE_ACTEOTOUT2   ,,,	1;
+	SPAE_ACTEOTIN1    ,,,	1;
+	SPAE_ACTEOTOUT1   ,,,	1;
+	SPAE_ACTEOTCOVER2 ,,,	1;
+	SPAE_ACTEOTCOVER1 ,,,	1;
+	SPAE_MCPDAC       ,,,	16;
+	SPAE_MDUMP_ADDR   ,,,	16;
+	SPAE_PKCMDD       ,,,	8;
+	SPAE_PKMEAS       ,,,	8;
+	SPAE_CYCCNT       ,,,	16;
+	SPAE_PKCHMASK     ,,,	16;
+	( SPAE_LUT_PEAKSEL  ,,,	8; )
+	SPAE_LUT_UNUSED   ,,,	2;
+	SPAE_RIOACK_ERR   ,,,	1;
+	SPAE_TARGTOFULL   ,,,	1;
+	SPAE_PILUTSRAM    ,,,	1;
+	SPAE_HVLUTSRAM    ,,,	1;
+	SPAE_CMDPEAK      ,,,	1;
+	SPAE_PEAKSEL      ,,,	1;
+	SPAE_PKSTEP       ,,,	8;
+	SPAE_FASTHK       ,,,	8;
+	( SPAE_PPULSE       ,,,	8; )
+	SPAE_PPULSE0      ,,,	2;
+	SPAE_PULSERENA    ,,,	1;
+	SPAE_SYNC         ,,,	1;
+	SPAE_PPULSE00     ,,,	4;
+	SPAE_STIMSTEP     ,,,	8;
+	SPAE_STIMMODE     ,,,	8;
+	SPAE_TOCVR        ,,,	8;
+	SPAE_TOATN        ,,,	8;
+	SPAE_TORLX        ,,,	16;
+	SPAE_CSUMSLUT     ,,,	8;
+	SPAE_CSUMFSLUT    ,,,	8;
+	SPAE_CSUMTSLUT    ,,,	8;
+	SPAE_CSUMPILUT    ,,,	8;
+	SPAE_EASICDAT     ,,,	16;
+	SPAE_TCMDSRCVD    ,,,	8;
+	( SPAE_ACTOVRD      ,,,	8; )
+	SPAE_RLXOVRD      ,,,	1;
+	SPAE_UNUSED       ,,,	1;
+	SPAE_EOTIN2OVRD   ,,,	1;
+	SPAE_EOTOUT2OVRD  ,,,	1;
+	SPAE_EOTIN1OVRD   ,,,	1;
+	SPAE_EOTOUT1OVRD  ,,,	1;
+	SPAE_EOTCOVER2OVRD,,,	1;
+	SPAE_EOTCOVER1OVRD,,,	1;
+	SPAE_ATNRLXT      ,,,	16;
+	SPAE_ACTCVRT      ,,,	16;
+	SPAE_ACTATIT      ,,,	16;
+	SPAE_ACTATOT      ,,,	16;
+	SPAE_PPULSEMASK   ,,,	16;
+	( SPAE_ACTERR       ,,,	8; )
+	SPAE_ATTENERR     ,,,	6;
+	SPAE_CVRERR       ,,,	2;
+	SPAE_CSUMTBLLD    ,,,	8;
+	SPAE_MAXCNT       ,,,	16;
+	SPAE_PEAKCNT      ,,,	16;
+	( SPAE_ARCSUMCNT    ,,,	16; )
+	SPAE_ARCTSP2      ,,,	4;
+	SPAE_ARCTSP1      ,,,	4;
+	SPAE_ARCFSP2      ,,,	4;
+	SPAE_ARCFSP1      ,,,	4;
+	SPAE_SRVYSUMCNT   ,,,	16;
+	SPAE_SRVYTSP2     ,,,	4;
+	SPAE_SRVYTSP1     ,,,	4;
+	SPAE_SRVYFSP2     ,,,	4;
+	SPAE_SRVYFSP1     ,,,	4;
+	( SPAE_PKPERACTCOOL ,,,	16; )
+	SPAE_PEAK_UDCNT   ,,,	4;
+	SPAE_COOLUNUSED   ,,,	3;
+	SPAE_COOLTIME     ,,,	9;
+	( SPAE_SAMPLESUM    ,,,	8; )
+	SPAE_SSFSP1ARC    ,,,	1;
+	SPAE_SSFSP2ARC    ,,,	1;
+	SPAE_SSTSP1ARC    ,,,	1;
+	SPAE_SSTSP2ARC    ,,,	1;
+	SPAE_SSFSP1SVY    ,,,	1;
+	SPAE_SSFSP2SVY    ,,,	1;
+	SPAE_SSTSP1SVY    ,,,	1;
+	SPAE_SSTSP2SVY    ,,,	1;
+	SPAE_WARMRST      ,,,	8;
+	SPAE_MRAMWRADDR   ,,,	24;
+	SPAE_CLKPERNYS    ,,,	8;
+	SPAE_CSUM         ,,,	16;
+	SPAE_EDBA         ,,,	16;
+}
+
+APID_37E 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	( SPB_CYCLE         ,,,	16; )
+	SPB_SUBSEC        ,,,	14;
+	SPB_SUBNYS        ,,,	2;
+	( SPB_CONFIG        ,,,	16; )
+	SPB_LOGCMP        ,,,	1;
+	SPB_COMP          ,,,	2;
+	SPB_SUM           ,,,	1;
+	SPB_SPERIOD       ,,,	4;
+	SPB_ARCSUM        ,,,	8;
+	SPB_MODEID        ,,,	16;
+	SPB_F0            ,,,	16;
+	( SPB_STATE         ,,,	16; )
+	MECHATTEN         ,,,	2;
+	TPULSER           ,,,	1;
+	HV                ,,,	1;
+	HVMODE            ,,,	4;
+	PKIND             ,,,	8;
+	( SPB_RIO0          ,,,	16; )
+	SPB_CH0_OFFSET    ,,,	6;
+	SPB_P8I           ,,,	10;
+	( SPB_RIO1          ,,,	16; )
+	SPB_CH1_OFFSET    ,,,	6;
+	SPB_N8I           ,,,	10;
+	( SPB_RIO2          ,,,	16; )
+	SPB_CH2_OFFSET    ,,,	6;
+	SPB_LVPST         ,,,	10;
+	( SPB_RIO3          ,,,	16; )
+	SPB_CH3_OFFSET    ,,,	6;
+	SPB_22V           ,,,	10;
+	( SPB_RIO4          ,,,	16; )
+	SPB_CH4_OFFSET    ,,,	6;
+	SPB_1P5V          ,,,	10;
+	( SPB_RIO5          ,,,	16; )
+	SPB_CH5_OFFSET    ,,,	6;
+	SPB_3P3VA         ,,,	10;
+	( SPB_RIO6          ,,,	16; )
+	SPB_CH6_OFFSET    ,,,	6;
+	SPB_3P3V          ,,,	10;
+	( SPB_RIO7          ,,,	16; )
+	SPB_CH7_OFFSET    ,,,	6;
+	SPB_N8V           ,,,	10;
+	( SPB_RIO8          ,,,	16; )
+	SPB_CH8_OFFSET    ,,,	6;
+	SPB_N5V           ,,,	10;
+	( SPB_RIO9          ,,,	16; )
+	SPB_CH9_OFFSET    ,,,	6;
+	SPB_P8V           ,,,	10;
+	( SPB_RIO10         ,,,	16; )
+	SPB_CH10_OFFSET   ,,,	6;
+	SPB_P5V           ,,,	10;
+	( SPB_RIO11         ,,,	16; )
+	SPB_CH11_OFFSET   ,,,	6;
+	SPB_ANALT         ,,,	10;
+	( SPB_RIO12         ,,,	16; )
+	SPB_CH12_OFFSET   ,,,	6;
+	SPB_3P3I          ,,,	10;
+	( SPB_RIO13         ,,,	16; )
+	SPB_CH13_OFFSET   ,,,	6;
+	SPB_1P5I          ,,,	10;
+	( SPB_RIO14         ,,,	16; )
+	SPB_CH14_OFFSET   ,,,	6;
+	SPB_P5I           ,,,	10;
+	( SPB_RIO15         ,,,	16; )
+	SPB_CH15_OFFSET   ,,,	6;
+	SPB_N5I           ,,,	10;
+	( SPB_ADC1CH1       ,,,	16; )
+	SPB_ADC1CH1_OFF   ,,,	4;
+	SPB_MCPHV         ,,,	12;
+	( SPB_ADC2CH1       ,,,	16; )
+	SPB_ADC2CH1_OFF   ,,,	4;
+	SPB_DEF1V         ,,,	12;
+	( SPB_ADC1CH2       ,,,	16; )
+	SPB_ADC1CH2_OFF   ,,,	4;
+	SPB_MCPHVI        ,,,	12;
+	( SPB_ADC2CH2       ,,,	16; )
+	SPB_ADC2CH2_OFF   ,,,	4;
+	SPB_DEF2V         ,,,	12;
+	( SPB_ADC1CH3       ,,,	16; )
+	SPB_ADC1CH3_OFF   ,,,	4;
+	SPB_RAWHV         ,,,	12;
+	( SPB_ADC2CH3       ,,,	16; )
+	SPB_ADC2CH3_OFF   ,,,	4;
+	SPB_SPOILV        ,,,	12;
+	( SPB_ADC1CH4       ,,,	16; )
+	SPB_ADC1CH4_OFF   ,,,	4;
+	SPB_RAWHVI        ,,,	12;
+	( SPB_ADC2CH4       ,,,	16; )
+	SPB_ADC2CH4_OFF   ,,,	4;
+	SPB_SPARECH4      ,,,	12;
+	( SPB_ADC1CH5       ,,,	16; )
+	SPB_ADC1CH5_OFF   ,,,	4;
+	SPB_HEMIV         ,,,	12;
+	( SPB_ADC2CH5       ,,,	16; )
+	SPB_ADC2CH5_OFF   ,,,	4;
+	SPB_FPGAT         ,,,	12;
+	( SPB_ADC1CH6       ,,,	16; )
+	SPB_ADC1CH6_OFF   ,,,	4;
+	SPB_GND1          ,,,	12;
+	( SPB_ADC2CH6       ,,,	16; )
+	SPB_ADC2CH6_OFF   ,,,	4;
+	SPB_ASICT         ,,,	12;
+	( SPB_ADC1CH7       ,,,	16; )
+	SPB_ADC1CH7_OFF   ,,,	4;
+	SPB_GND2          ,,,	12;
+	( SPB_ADC2CH7       ,,,	16; )
+	SPB_ADC2CH7_OFF   ,,,	4;
+	SPB_GND3          ,,,	12;
+	( SPB_ADC1CH8       ,,,	16; )
+	SPB_ADC1CH8_OFF   ,,,	4;
+	SPB_GND4          ,,,	12;
+	( SPB_ADC2CH8       ,,,	16; )
+	SPB_ADC2CH8_OFF   ,,,	4;
+	SPB_GND5          ,,,	12;
+	SPB_CMDS_IGND     ,,,	8;
+	SPB_RST_CNT       ,,,	8;
+	SPB_BOARDID       ,,,	8;
+	SPB_FPGAREV       ,,,	8;
+	SPB_CMDERRCNT     ,,,	8;
+	SPB_CMDSUKN       ,,,	8;
+	SPB_CMDSRCVD      ,,,	16;
+	SPB_RAWHVDAC      ,,,	16;
+	( SPB_HVCONF        ,,,	8; )
+	SPB_HV_UNUSED     ,,,	2;
+	SPB_HV_KEY_ENA    ,,,	1;
+	SPB_HV_ENA        ,,,	1;
+	SPB_SWEEP_MODE    ,,,	4;
+	( SPB_ACTSTATUS     ,,,	8; )
+	SPB_ACTRLX        ,,,	1;
+	SPB_ACTCURR       ,,,	1;
+	SPB_ACTEOTIN2     ,,,	1;
+	SPB_ACTEOTOUT2    ,,,	1;
+	SPB_ACTEOTIN1     ,,,	1;
+	SPB_ACTEOTOUT1    ,,,	1;
+	SPB_ACTEOTCOVER2  ,,,	1;
+	SPB_ACTEOTCOVER1  ,,,	1;
+	SPB_MCPDAC        ,,,	16;
+	SPB_MDUMP_ADDR    ,,,	16;
+	SPB_PKCMDD        ,,,	8;
+	SPB_PKMEAS        ,,,	8;
+	SPB_CYCCNT        ,,,	16;
+	SPB_PKCHMASK      ,,,	16;
+	( SPB_LUT_PEAKSEL   ,,,	8; )
+	SPB_LUT_UNUSED    ,,,	2;
+	SPB_RIOACK_ERR    ,,,	1;
+	SPB_TARGTOFULL    ,,,	1;
+	SPB_PILUTSRAM     ,,,	1;
+	SPB_HVLUTSRAM     ,,,	1;
+	SPB_CMDPEAK       ,,,	1;
+	SPB_PEAKSEL       ,,,	1;
+	SPB_PKSTEP        ,,,	8;
+	SPB_FASTHK        ,,,	8;
+	( SPB_PPULSE        ,,,	8; )
+	SPB_PPULSE0       ,,,	2;
+	SPB_PULSERENA     ,,,	1;
+	SPB_SYNC          ,,,	1;
+	SPB_PPULSE00      ,,,	4;
+	SPB_STIMSTEP      ,,,	8;
+	SPB_STIMMODE      ,,,	8;
+	SPB_TOCVR         ,,,	8;
+	SPB_TOATN         ,,,	8;
+	SPB_TORLX         ,,,	16;
+	SPB_CSUMSLUT      ,,,	8;
+	SPB_CSUMFSLUT     ,,,	8;
+	SPB_CSUMTSLUT     ,,,	8;
+	SPB_CSUMPILUT     ,,,	8;
+	SPB_EASICDAT      ,,,	16;
+	SPB_TCMDSRCVD     ,,,	8;
+	( SPB_ACTOVRD       ,,,	8; )
+	SPB_RLXOVRD       ,,,	1;
+	SPB_UNUSED        ,,,	1;
+	SPB_EOTIN2OVRD    ,,,	1;
+	SPB_EOTOUT2OVRD   ,,,	1;
+	SPB_EOTIN1OVRD    ,,,	1;
+	SPB_EOTOUT1OVRD   ,,,	1;
+	SPB_EOTCOVER2OVRD ,,,	1;
+	SPB_EOTCOVER1OVRD ,,,	1;
+	SPB_ATNRLXT       ,,,	16;
+	SPB_ACTCVRT       ,,,	16;
+	SPB_ACTATIT       ,,,	16;
+	SPB_ACTATOT       ,,,	16;
+	SPB_PPULSEMASK    ,,,	16;
+	( SPB_ACTERR        ,,,	8; )
+	SPB_ATTENERR      ,,,	6;
+	SPB_CVRERR        ,,,	2;
+	SPB_CSUMTBLLD     ,,,	8;
+	SPB_MAXCNT        ,,,	16;
+	SPB_PEAKCNT       ,,,	16;
+	( SPB_ARCSUMCNT     ,,,	16; )
+	SPB_ARCTSP2       ,,,	4;
+	SPB_ARCTSP1       ,,,	4;
+	SPB_ARCFSP2       ,,,	4;
+	SPB_ARCFSP1       ,,,	4;
+	SPB_SRVYSUMCNT    ,,,	16;
+	SPB_SRVYTSP2      ,,,	4;
+	SPB_SRVYTSP1      ,,,	4;
+	SPB_SRVYFSP2      ,,,	4;
+	SPB_SRVYFSP1      ,,,	4;
+	( SPB_PKPERACTCOOL  ,,,	16; )
+	SPB_PEAK_UDCNT    ,,,	4;
+	SPB_COOLUNUSED    ,,,	3;
+	SPB_COOLTIME      ,,,	9;
+	( SPB_SAMPLESUM     ,,,	8; )
+	SPB_SSFSP1ARC     ,,,	1;
+	SPB_SSFSP2ARC     ,,,	1;
+	SPB_SSTSP1ARC     ,,,	1;
+	SPB_SSTSP2ARC     ,,,	1;
+	SPB_SSFSP1SVY     ,,,	1;
+	SPB_SSFSP2SVY     ,,,	1;
+	SPB_SSTSP1SVY     ,,,	1;
+	SPB_SSTSP2SVY     ,,,	1;
+	SPB_WARMRST       ,,,	8;
+	SPB_MRAMWRADDR    ,,,	24;
+	SPB_CLKPERNYS     ,,,	8;
+	SPB_CSUM          ,,,	16;
+	SPB_EDBA          ,,,	16;
+}
+
+APID_3BE 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SPAI_HEADER       ,,,	16;
+	SPAI_REV          ,,,	8;
+	SPAI_CMDSREC      ,,,	16;
+	( SPAI_CMD          ,,,	8; )
+	SPAI_UNKCMDS      ,,,	4;
+	SPAI_CMDERRS      ,,,	4;
+	( SPAI_RIO0         ,,,	16; )
+	SPAI_CH0_OFFSET   ,,,	6;
+	SPAI_GND0         ,,,	10;
+	( SPAI_RIO1         ,,,	16; )
+	SPAI_CH1_OFFSET   ,,,	6;
+	SPAI_GND1         ,,,	10;
+	( SPAI_RIO2         ,,,	16; )
+	SPAI_CH2_OFFSET   ,,,	6;
+	SPAI_LVPST        ,,,	10;
+	( SPAI_RIO3         ,,,	16; )
+	SPAI_CH3_OFFSET   ,,,	6;
+	SPAI_22VA         ,,,	10;
+	( SPAI_RIO4         ,,,	16; )
+	SPAI_CH4_OFFSET   ,,,	6;
+	SPAI_1P5V         ,,,	10;
+	( SPAI_RIO5         ,,,	16; )
+	SPAI_CH5_OFFSET   ,,,	6;
+	SPAI_3P3VA        ,,,	10;
+	( SPAI_RIO6         ,,,	16; )
+	SPAI_CH6_OFFSET   ,,,	6;
+	SPAI_3P3VD        ,,,	10;
+	( SPAI_RIO7         ,,,	16; )
+	SPAI_CH7_OFFSET   ,,,	6;
+	SPAI_N8VA         ,,,	10;
+	( SPAI_RIO8         ,,,	16; )
+	SPAI_CH8_OFFSET   ,,,	6;
+	SPAI_N5VA         ,,,	10;
+	( SPAI_RIO9         ,,,	16; )
+	SPAI_CH9_OFFSET   ,,,	6;
+	SPAI_P8VA         ,,,	10;
+	( SPAI_RIO10        ,,,	16; )
+	SPAI_CH10_OFFSET  ,,,	6;
+	SPAI_P5VA         ,,,	10;
+	( SPAI_RIO11        ,,,	16; )
+	SPAI_CH11_OFFSET  ,,,	6;
+	SPAI_ANALT        ,,,	10;
+	( SPAI_RIO12        ,,,	16; )
+	SPAI_CH12_OFFSET  ,,,	6;
+	SPAI_3P3I         ,,,	10;
+	( SPAI_RIO13        ,,,	16; )
+	SPAI_CH13_OFFSET  ,,,	6;
+	SPAI_1P5I         ,,,	10;
+	( SPAI_RIO14        ,,,	16; )
+	SPAI_CH14_OFFSET  ,,,	6;
+	SPAI_P5I          ,,,	10;
+	( SPAI_RIO15        ,,,	16; )
+	SPAI_CH15_OFFSET  ,,,	6;
+	SPAI_N5I          ,,,	10;
+	( SPAI_TI0          ,,,	16; )
+	SPAI_ACC_ERRCNT   ,,,	2;
+	SPAI_CDI_ERRCNT   ,,,	2;
+	SPAI_15KV         ,,,	12;
+	( SPAI_TI1          ,,,	16; )
+	SPAI_SRAM_ERRCNT  ,,,	2;
+	SPAI_TLM_ERRCNT   ,,,	2;
+	SPAI_DEF1V        ,,,	12;
+	( SPAI_TI2          ,,,	16; )
+	SPAI_TOF_ERRCNT   ,,,	2;
+	SPAI_HV_ERRCNT    ,,,	2;
+	SPAI_15KVI        ,,,	12;
+	( SPAI_TI3          ,,,	16; )
+	SPAI_PROD_ERRCNT  ,,,	2;
+	SPAI_SP_ERRCNT    ,,,	2;
+	SPAI_DEF2V        ,,,	12;
+	( SPAI_TI4          ,,,	16; )
+	SPAI_FSMERR_CNT   ,,,	4;
+	SPAI_MCPV         ,,,	12;
+	( SPAI_TI5          ,,,	16; )
+	SPAI_MEMERR_CNT   ,,,	4;
+	SPAI_SPOILV       ,,,	12;
+	( SPAI_TI6          ,,,	16; )
+	PROD_LUT_MSB      ,,,	1;
+	HV_LUT_MSB        ,,,	1;
+	SPAI_READ_NONVE   ,,,	1;
+	SPAI_CAL_RESET    ,,,	1;
+	SPAI_MCPI         ,,,	12;
+	( SPAI_TI7          ,,,	16; )
+	SPAI_HKP_SIZE     ,,,	1;
+	SPAI_TOF_COMPRESS ,,,	1;
+	SPAI_TP_ENA       ,,,	1;
+	SPAI_ALL_FULL_SWP ,,,	1;
+	SPAI_TDCT         ,,,	12;
+	( SPAI_TI8          ,,,	16; )
+	SPAI_RESETCNT     ,,,	4;
+	SPAI_RAWHV        ,,,	12;
+	( SPAI_TI9          ,,,	16; )
+	SPAI_PROD_SVY     ,,,	1;
+	SPAI_PROD_AP      ,,,	1;
+	SPAI_TOF_HIST     ,,,	1;
+	SPAI_RAW_EVENTS   ,,,	1;
+	SPAI_FPGAT        ,,,	12;
+	( SPAI_TI10         ,,,	16; )
+	SPAI_BOARD_ID     ,,,	2;
+	HV_KEY_ENA        ,,,	1;
+	HV_ENABLED        ,,,	1;
+	SPAI_RAWI         ,,,	12;
+	( SPAI_TI11         ,,,	16; )
+	HV_MODE           ,,,	4;
+	SPAI_HEMV         ,,,	12;
+	SPAI_MAXCNT       ,,,	16;
+	SPAI_MODE_ID      ,,,	16;
+	SPAI_PPULSE_MASK  ,,,	16;
+	SPAI_PEAK_STEP    ,,,	8;
+	( SPAI_ACTSTATUS    ,,,	8; )
+	SPAI_ACTRLX       ,,,	1;
+	SPAI_ACTCURR      ,,,	1;
+	SPAI_ACTEOTIN2    ,,,	1;
+	SPAI_ACTEOTOUT2   ,,,	1;
+	SPAI_ACTEOTIN1    ,,,	1;
+	SPAI_ACTEOTOUT1   ,,,	1;
+	SPAI_ACTEOTCOVER2 ,,,	1;
+	SPAI_ACTEOTCOVER1 ,,,	1;
+	SPAI_PEAK_CNT     ,,,	16;
+	( SPAI_CMDS_PRDCNT  ,,,	24; )
+	SPAI_TIME_CMDS    ,,,	4;
+	SPAI_PPULSE_SEL   ,,,	2;
+	SPAI_F0_COUNT     ,,,	10;
+	( SPAI_ACT_ERR      ,,,	8; )
+	SPAI_ATTENERR     ,,,	6;
+	SPAI_CVRERR       ,,,	2;
+	SPAI_CHKSUM_PILUT ,,,	8;
+	SPAI_CHKSUM_TSLUT ,,,	8;
+	SPAI_CHKSUM_SLUT  ,,,	8;
+	SPAI_CHKSUM_MLUT  ,,,	8;
+	SPAI_CHKSUM_MRANGE,,,	8;
+	SPAI_CHKSUM_PSUM  ,,,	8;
+	SPAI_CHKSUM_PADDR ,,,	8;
+	SPAI_CHKSUM_FSLUT ,,,	8;
+	SPAI_CHKSUM_PEADL ,,,	8;
+	SPAI_CHKSUM_PMBINS,,,	8;
+	( SPAI_PEAKPULSER   ,,,	8; )
+	SPAI_PEAK_CYCLE   ,,,	4;
+	SPAI_PEAK_OVERRIDE,,,	1;
+	SPAI_EXT_PULSER   ,,,	1;
+	SPAI_DLL_PULSER   ,,,	1;
+	SPAI_MEMTEST      ,,,	1;
+	SPAI_ATNRLXT      ,,,	16;
+	SPAI_ACTCVRT      ,,,	16;
+	SPAI_ACTATIT      ,,,	16;
+	SPAI_ACTATOT      ,,,	16;
+	SPAI_MCPDAC       ,,,	16;
+	SPAI_ACCDAC       ,,,	16;
+	SPAI_RAWDAC       ,,,	16;
+	SPAI_PEAK_MASK    ,,,	16;
+	SPAI_ACTOVRD      ,,,	8;
+	SPAI_TOCVR        ,,,	8;
+	SPAI_TOATN        ,,,	8;
+	SPAI_TORLX        ,,,	8;
+	SPAI_TABLE_CHKSUM ,,,	8;
+	( SPAI_MRAM_ADDR_M  ,,,	24; )
+	SPAI_RATES_CYCLES ,,,	3;
+	SPAI_MRAM_ADDR    ,,,	21;
+	SPAI_HEMI_CDI     ,,,	16;
+	SPAI_SPOILER_CDI  ,,,	16;
+	SPAI_DEF1_CDI     ,,,	16;
+	SPAI_DEF2_CDI     ,,,	16;
+	( SPAI_VARIOUS      ,,,	32; )
+	SPAI_ACT_COOLTIME ,,,	9;
+	SNAPSHOT_FULL_AP  ,,,	1;
+	SNAPSHOT_TARG_AP  ,,,	1;
+	SNAPSHOT_FULL_SP  ,,,	1;
+	SNAPSHOT_TARG_SP  ,,,	1;
+	SRAM_CDI_ADDR     ,,,	19;
+	( SPAI_MEMERRS      ,,,	24; )
+	SUMMEM_ERR        ,,,	2;
+	PALMEM_ERR        ,,,	2;
+	EDLMEM_ERR        ,,,	2;
+	MRMEM_ERR         ,,,	2;
+	PMBMEM_ERR        ,,,	2;
+	APFIFO_ERR        ,,,	4;
+	TOFMEM_ERR        ,,,	2;
+	ACCMEM_ERR        ,,,	2;
+	MLUTMEM_ERR       ,,,	2;
+	SP_MEM_ERR        ,,,	4;
+	( SPAI_GLITCHCHECK  ,,,	8; )
+	SPAI_RIO_NO_ACK   ,,,	1;
+	SPAI_CLKS_PER_NYS ,,,	7;
+}
+
+APID_3BF 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	SPAI_HEADER       ,,,	16;
+	SPAI_REV          ,,,	8;
+	SPAI_CMDSREC      ,,,	16;
+	SPAI_UNKCMDS      ,,,	4;
+	SPAI_CMDERRS      ,,,	4;
+	SPAI_FHKVAL1      ,,,	16;
+	SPAI_FHKVAL2      ,,,	16;
+	SPAI_FHKVAL3      ,,,	16;
+	SPAI_FHKVAL4      ,,,	16;
+	SPAI_FHKVAL5      ,,,	16;
+	SPAI_FHKVAL6      ,,,	16;
+	SPAI_FHKVAL7      ,,,	16;
+	SPAI_FHKVAL8      ,,,	16;
+	SPAI_FHKVAL9      ,,,	16;
+	SPAI_FHKVAL10     ,,,	16;
+	SPAI_FHKVAL11     ,,,	16;
+	SPAI_FHKVAL12     ,,,	16;
+	SPAI_FHKVAL13     ,,,	16;
+	SPAI_FHKVAL14     ,,,	16;
+	SPAI_FHKVAL15     ,,,	16;
+	SPAI_FHKVAL16     ,,,	16;
+	SPAI_FHKVAL17     ,,,	16;
+	SPAI_FHKVAL18     ,,,	16;
+	SPAI_FHKVAL19     ,,,	16;
+	SPAI_FHKVAL20     ,,,	16;
+	SPAI_FHKVAL21     ,,,	16;
+	SPAI_FHKVAL22     ,,,	16;
+	SPAI_FHKVAL23     ,,,	16;
+	SPAI_FHKVAL24     ,,,	16;
+	SPAI_FHKVAL25     ,,,	16;
+	SPAI_FHKVAL26     ,,,	16;
+	SPAI_FHKVAL27     ,,,	16;
+	SPAI_FHKVAL28     ,,,	16;
+	SPAI_FHKVAL29     ,,,	16;
+	SPAI_FHKVAL30     ,,,	16;
+	SPAI_FHKVAL31     ,,,	16;
+	SPAI_FHKVAL32     ,,,	16;
+	SPAI_FHKVAL33     ,,,	16;
+	SPAI_FHKVAL34     ,,,	16;
+	SPAI_FHKVAL35     ,,,	16;
+	SPAI_FHKVAL36     ,,,	16;
+	SPAI_FHKVAL37     ,,,	16;
+	SPAI_FHKVAL38     ,,,	16;
+	SPAI_FHKVAL39     ,,,	16;
+	SPAI_FHKVAL40     ,,,	16;
+	SPAI_FHKVAL41     ,,,	16;
+	SPAI_FHKVAL42     ,,,	16;
+	SPAI_FHKVAL43     ,,,	16;
+	SPAI_FHKVAL44     ,,,	16;
+	SPAI_FHKVAL45     ,,,	16;
+	SPAI_FHKVAL46     ,,,	16;
+	SPAI_FHKVAL47     ,,,	16;
+	SPAI_FHKVAL48     ,,,	16;
+	SPAI_FHKVAL49     ,,,	16;
+	SPAI_FHKVAL50     ,,,	16;
+	SPAI_FHKVAL51     ,,,	16;
+	SPAI_FHKVAL52     ,,,	16;
+	SPAI_FHKVAL53     ,,,	16;
+	SPAI_FHKVAL54     ,,,	16;
+	SPAI_FHKVAL55     ,,,	16;
+	SPAI_FHKVAL56     ,,,	16;
+	SPAI_FHKVAL57     ,,,	16;
+	SPAI_FHKVAL58     ,,,	16;
+	SPAI_FHKVAL59     ,,,	16;
+	SPAI_FHKVAL60     ,,,	16;
+	SPAI_FHKVAL61     ,,,	16;
+	SPAI_FHKVAL62     ,,,	16;
+	SPAI_FHKVAL63     ,,,	16;
+	SPAI_FHKVAL64     ,,,	16;
+	SPAI_FHKVAL65     ,,,	16;
+	SPAI_FHKVAL66     ,,,	16;
+	SPAI_FHKVAL67     ,,,	16;
+	SPAI_FHKVAL68     ,,,	16;
+	SPAI_FHKVAL69     ,,,	16;
+	SPAI_FHKVAL70     ,,,	16;
+	SPAI_FHKVAL71     ,,,	16;
+	SPAI_FHKVAL72     ,,,	16;
+	SPAI_FHKVAL73     ,,,	16;
+	SPAI_FHKVAL74     ,,,	16;
+	SPAI_FHKVAL75     ,,,	16;
+	SPAI_FHKVAL76     ,,,	16;
+	SPAI_FHKVAL77     ,,,	16;
+	SPAI_FHKVAL78     ,,,	16;
+	SPAI_FHKVAL79     ,,,	16;
+	SPAI_FHKVAL80     ,,,	16;
+	SPAI_FHKVAL81     ,,,	16;
+	SPAI_FHKVAL82     ,,,	16;
+	SPAI_FHKVAL83     ,,,	16;
+	SPAI_FHKVAL84     ,,,	16;
+	SPAI_FHKVAL85     ,,,	16;
+	SPAI_FHKVAL86     ,,,	16;
+	SPAI_FHKVAL87     ,,,	16;
+	SPAI_FHKVAL88     ,,,	16;
+	SPAI_FHKVAL89     ,,,	16;
+	SPAI_FHKVAL90     ,,,	16;
+	SPAI_FHKVAL91     ,,,	16;
+	SPAI_FHKVAL92     ,,,	16;
+	SPAI_FHKVAL93     ,,,	16;
+	SPAI_FHKVAL94     ,,,	16;
+	SPAI_FHKVAL95     ,,,	16;
+	SPAI_FHKVAL96     ,,,	16;
+	SPAI_FHKVAL97     ,,,	16;
+	SPAI_FHKVAL98     ,,,	16;
+	SPAI_FHKVAL99     ,,,	16;
+	SPAI_FHKVAL100    ,,,	16;
+	SPAI_FHKVAL101    ,,,	16;
+	SPAI_FHKVAL102    ,,,	16;
+	SPAI_FHKVAL103    ,,,	16;
+	SPAI_FHKVAL104    ,,,	16;
+	SPAI_FHKVAL105    ,,,	16;
+	SPAI_FHKVAL106    ,,,	16;
+	SPAI_FHKVAL107    ,,,	16;
+	SPAI_FHKVAL108    ,,,	16;
+	SPAI_FHKVAL109    ,,,	16;
+	SPAI_FHKVAL110    ,,,	16;
+	SPAI_FHKVAL111    ,,,	16;
+	SPAI_FHKVAL112    ,,,	16;
+	SPAI_FHKVAL113    ,,,	16;
+	SPAI_FHKVAL114    ,,,	16;
+	SPAI_FHKVAL115    ,,,	16;
+	SPAI_FHKVAL116    ,,,	16;
+	SPAI_FHKVAL117    ,,,	16;
+	SPAI_FHKVAL118    ,,,	16;
+	SPAI_FHKVAL119    ,,,	16;
+	SPAI_FHKVAL120    ,,,	16;
+	SPAI_FHKVAL121    ,,,	16;
+	SPAI_FHKVAL122    ,,,	16;
+	SPAI_FHKVAL123    ,,,	16;
+	SPAI_FHKVAL124    ,,,	16;
+	SPAI_FHKVAL125    ,,,	16;
+	SPAI_FHKVAL126    ,,,	16;
+	SPAI_FHKVAL127    ,,,	16;
+	SPAI_FHKVAL128    ,,,	16;
+	SPAI_FHKVAL129    ,,,	16;
+	SPAI_FHKVAL130    ,,,	16;
+	SPAI_FHKVAL131    ,,,	16;
+	SPAI_FHKVAL132    ,,,	16;
+	SPAI_FHKVAL133    ,,,	16;
+	SPAI_FHKVAL134    ,,,	16;
+	SPAI_FHKVAL135    ,,,	16;
+	SPAI_FHKVAL136    ,,,	16;
+	SPAI_FHKVAL137    ,,,	16;
+	SPAI_FHKVAL138    ,,,	16;
+	SPAI_FHKVAL139    ,,,	16;
+	SPAI_FHKVAL140    ,,,	16;
+	SPAI_FHKVAL141    ,,,	16;
+	SPAI_FHKVAL142    ,,,	16;
+	SPAI_FHKVAL143    ,,,	16;
+	SPAI_FHKVAL144    ,,,	16;
+	SPAI_FHKVAL145    ,,,	16;
+	SPAI_FHKVAL146    ,,,	16;
+	SPAI_FHKVAL147    ,,,	16;
+	SPAI_FHKVAL148    ,,,	16;
+	SPAI_FHKVAL149    ,,,	16;
+	SPAI_FHKVAL150    ,,,	16;
+	SPAI_FHKVAL151    ,,,	16;
+	SPAI_FHKVAL152    ,,,	16;
+	SPAI_FHKVAL153    ,,,	16;
+	SPAI_FHKVAL154    ,,,	16;
+	SPAI_FHKVAL155    ,,,	16;
+	SPAI_FHKVAL156    ,,,	16;
+	SPAI_FHKVAL157    ,,,	16;
+	SPAI_FHKVAL158    ,,,	16;
+	SPAI_FHKVAL159    ,,,	16;
+	SPAI_FHKVAL160    ,,,	16;
+	SPAI_FHKVAL161    ,,,	16;
+	SPAI_FHKVAL162    ,,,	16;
+	SPAI_FHKVAL163    ,,,	16;
+	SPAI_FHKVAL164    ,,,	16;
+	SPAI_FHKVAL165    ,,,	16;
+	SPAI_FHKVAL166    ,,,	16;
+	SPAI_FHKVAL167    ,,,	16;
+	SPAI_FHKVAL168    ,,,	16;
+	SPAI_FHKVAL169    ,,,	16;
+	SPAI_FHKVAL170    ,,,	16;
+	SPAI_FHKVAL171    ,,,	16;
+	SPAI_FHKVAL172    ,,,	16;
+	SPAI_FHKVAL173    ,,,	16;
+	SPAI_FHKVAL174    ,,,	16;
+	SPAI_FHKVAL175    ,,,	16;
+	SPAI_FHKVAL176    ,,,	16;
+	SPAI_FHKVAL177    ,,,	16;
+	SPAI_FHKVAL178    ,,,	16;
+	SPAI_FHKVAL179    ,,,	16;
+	SPAI_FHKVAL180    ,,,	16;
+	SPAI_FHKVAL181    ,,,	16;
+	SPAI_FHKVAL182    ,,,	16;
+	SPAI_FHKVAL183    ,,,	16;
+	SPAI_FHKVAL184    ,,,	16;
+	SPAI_FHKVAL185    ,,,	16;
+	SPAI_FHKVAL186    ,,,	16;
+	SPAI_FHKVAL187    ,,,	16;
+	SPAI_FHKVAL188    ,,,	16;
+	SPAI_FHKVAL189    ,,,	16;
+	SPAI_FHKVAL190    ,,,	16;
+	SPAI_FHKVAL191    ,,,	16;
+	SPAI_FHKVAL192    ,,,	16;
+	SPAI_FHKVAL193    ,,,	16;
+	SPAI_FHKVAL194    ,,,	16;
+	SPAI_FHKVAL195    ,,,	16;
+	SPAI_FHKVAL196    ,,,	16;
+	SPAI_FHKVAL197    ,,,	16;
+	SPAI_FHKVAL198    ,,,	16;
+	SPAI_FHKVAL199    ,,,	16;
+	SPAI_FHKVAL200    ,,,	16;
+	SPAI_FHKVAL201    ,,,	16;
+	SPAI_FHKVAL202    ,,,	16;
+	SPAI_FHKVAL203    ,,,	16;
+	SPAI_FHKVAL204    ,,,	16;
+	SPAI_FHKVAL205    ,,,	16;
+	SPAI_FHKVAL206    ,,,	16;
+	SPAI_FHKVAL207    ,,,	16;
+	SPAI_FHKVAL208    ,,,	16;
+	SPAI_FHKVAL209    ,,,	16;
+	SPAI_FHKVAL210    ,,,	16;
+	SPAI_FHKVAL211    ,,,	16;
+	SPAI_FHKVAL212    ,,,	16;
+	SPAI_FHKVAL213    ,,,	16;
+	SPAI_FHKVAL214    ,,,	16;
+	SPAI_FHKVAL215    ,,,	16;
+	SPAI_FHKVAL216    ,,,	16;
+	SPAI_FHKVAL217    ,,,	16;
+	SPAI_FHKVAL218    ,,,	16;
+	SPAI_FHKVAL219    ,,,	16;
+	SPAI_FHKVAL220    ,,,	16;
+	SPAI_FHKVAL221    ,,,	16;
+	SPAI_FHKVAL222    ,,,	16;
+	SPAI_FHKVAL223    ,,,	16;
+	SPAI_FHKVAL224    ,,,	16;
+	SPAI_FHKVAL225    ,,,	16;
+	SPAI_FHKVAL226    ,,,	16;
+	SPAI_FHKVAL227    ,,,	16;
+	SPAI_FHKVAL228    ,,,	16;
+	SPAI_FHKVAL229    ,,,	16;
+	SPAI_FHKVAL230    ,,,	16;
+	SPAI_FHKVAL231    ,,,	16;
+	SPAI_FHKVAL232    ,,,	16;
+	SPAI_FHKVAL233    ,,,	16;
+	SPAI_FHKVAL234    ,,,	16;
+	SPAI_FHKVAL235    ,,,	16;
+	SPAI_FHKVAL236    ,,,	16;
+	SPAI_FHKVAL237    ,,,	16;
+	SPAI_FHKVAL238    ,,,	16;
+	SPAI_FHKVAL239    ,,,	16;
+	SPAI_FHKVAL240    ,,,	16;
+	SPAI_FHKVAL241    ,,,	16;
+	SPAI_FHKVAL242    ,,,	16;
+	SPAI_FHKVAL243    ,,,	16;
+	SPAI_FHKVAL244    ,,,	16;
+	SPAI_FHKVAL245    ,,,	16;
+	SPAI_FHKVAL246    ,,,	16;
+	SPAI_FHKVAL247    ,,,	16;
+	SPAI_FHKVAL248    ,,,	16;
+	SPAI_FHKVAL249    ,,,	16;
+	SPAI_FHKVAL250    ,,,	16;
+	SPAI_FHKVAL251    ,,,	16;
+	SPAI_FHKVAL252    ,,,	16;
+	SPAI_FHKVAL253    ,,,	16;
+	SPAI_FHKVAL254    ,,,	16;
+	SPAI_FHKVAL255    ,,,	16;
+	SPAI_FHKVAL256    ,,,	16;
+	SPAI_FHKVAL257    ,,,	16;
+	SPAI_FHKVAL258    ,,,	16;
+	SPAI_FHKVAL259    ,,,	16;
+	SPAI_FHKVAL260    ,,,	16;
+	SPAI_FHKVAL261    ,,,	16;
+	SPAI_FHKVAL262    ,,,	16;
+	SPAI_FHKVAL263    ,,,	16;
+	SPAI_FHKVAL264    ,,,	16;
+	SPAI_FHKVAL265    ,,,	16;
+	SPAI_FHKVAL266    ,,,	16;
+	SPAI_FHKVAL267    ,,,	16;
+	SPAI_FHKVAL268    ,,,	16;
+	SPAI_FHKVAL269    ,,,	16;
+	SPAI_FHKVAL270    ,,,	16;
+	SPAI_FHKVAL271    ,,,	16;
+	SPAI_FHKVAL272    ,,,	16;
+	SPAI_FHKVAL273    ,,,	16;
+	SPAI_FHKVAL274    ,,,	16;
+	SPAI_FHKVAL275    ,,,	16;
+	SPAI_FHKVAL276    ,,,	16;
+	SPAI_FHKVAL277    ,,,	16;
+	SPAI_FHKVAL278    ,,,	16;
+	SPAI_FHKVAL279    ,,,	16;
+	SPAI_FHKVAL280    ,,,	16;
+	SPAI_FHKVAL281    ,,,	16;
+	SPAI_FHKVAL282    ,,,	16;
+	SPAI_FHKVAL283    ,,,	16;
+	SPAI_FHKVAL284    ,,,	16;
+	SPAI_FHKVAL285    ,,,	16;
+	SPAI_FHKVAL286    ,,,	16;
+	SPAI_FHKVAL287    ,,,	16;
+	SPAI_FHKVAL288    ,,,	16;
+	SPAI_FHKVAL289    ,,,	16;
+	SPAI_FHKVAL290    ,,,	16;
+	SPAI_FHKVAL291    ,,,	16;
+	SPAI_FHKVAL292    ,,,	16;
+	SPAI_FHKVAL293    ,,,	16;
+	SPAI_FHKVAL294    ,,,	16;
+	SPAI_FHKVAL295    ,,,	16;
+	SPAI_FHKVAL296    ,,,	16;
+	SPAI_FHKVAL297    ,,,	16;
+	SPAI_FHKVAL298    ,,,	16;
+	SPAI_FHKVAL299    ,,,	16;
+	SPAI_FHKVAL300    ,,,	16;
+	SPAI_FHKVAL301    ,,,	16;
+	SPAI_FHKVAL302    ,,,	16;
+	SPAI_FHKVAL303    ,,,	16;
+	SPAI_FHKVAL304    ,,,	16;
+	SPAI_FHKVAL305    ,,,	16;
+	SPAI_FHKVAL306    ,,,	16;
+	SPAI_FHKVAL307    ,,,	16;
+	SPAI_FHKVAL308    ,,,	16;
+	SPAI_FHKVAL309    ,,,	16;
+	SPAI_FHKVAL310    ,,,	16;
+	SPAI_FHKVAL311    ,,,	16;
+	SPAI_FHKVAL312    ,,,	16;
+	SPAI_FHKVAL313    ,,,	16;
+	SPAI_FHKVAL314    ,,,	16;
+	SPAI_FHKVAL315    ,,,	16;
+	SPAI_FHKVAL316    ,,,	16;
+	SPAI_FHKVAL317    ,,,	16;
+	SPAI_FHKVAL318    ,,,	16;
+	SPAI_FHKVAL319    ,,,	16;
+	SPAI_FHKVAL320    ,,,	16;
+	SPAI_FHKVAL321    ,,,	16;
+	SPAI_FHKVAL322    ,,,	16;
+	SPAI_FHKVAL323    ,,,	16;
+	SPAI_FHKVAL324    ,,,	16;
+	SPAI_FHKVAL325    ,,,	16;
+	SPAI_FHKVAL326    ,,,	16;
+	SPAI_FHKVAL327    ,,,	16;
+	SPAI_FHKVAL328    ,,,	16;
+	SPAI_FHKVAL329    ,,,	16;
+	SPAI_FHKVAL330    ,,,	16;
+	SPAI_FHKVAL331    ,,,	16;
+	SPAI_FHKVAL332    ,,,	16;
+	SPAI_FHKVAL333    ,,,	16;
+	SPAI_FHKVAL334    ,,,	16;
+	SPAI_FHKVAL335    ,,,	16;
+	SPAI_FHKVAL336    ,,,	16;
+	SPAI_FHKVAL337    ,,,	16;
+	SPAI_FHKVAL338    ,,,	16;
+	SPAI_FHKVAL339    ,,,	16;
+	SPAI_FHKVAL340    ,,,	16;
+	SPAI_FHKVAL341    ,,,	16;
+	SPAI_FHKVAL342    ,,,	16;
+	SPAI_FHKVAL343    ,,,	16;
+	SPAI_FHKVAL344    ,,,	16;
+	SPAI_FHKVAL345    ,,,	16;
+	SPAI_FHKVAL346    ,,,	16;
+	SPAI_FHKVAL347    ,,,	16;
+	SPAI_FHKVAL348    ,,,	16;
+	SPAI_FHKVAL349    ,,,	16;
+	SPAI_FHKVAL350    ,,,	16;
+	SPAI_FHKVAL351    ,,,	16;
+	SPAI_FHKVAL352    ,,,	16;
+	SPAI_FHKVAL353    ,,,	16;
+	SPAI_FHKVAL354    ,,,	16;
+	SPAI_FHKVAL355    ,,,	16;
+	SPAI_FHKVAL356    ,,,	16;
+	SPAI_FHKVAL357    ,,,	16;
+	SPAI_FHKVAL358    ,,,	16;
+	SPAI_FHKVAL359    ,,,	16;
+	SPAI_FHKVAL360    ,,,	16;
+	SPAI_FHKVAL361    ,,,	16;
+	SPAI_FHKVAL362    ,,,	16;
+	SPAI_FHKVAL363    ,,,	16;
+	SPAI_FHKVAL364    ,,,	16;
+	SPAI_FHKVAL365    ,,,	16;
+	SPAI_FHKVAL366    ,,,	16;
+	SPAI_FHKVAL367    ,,,	16;
+	SPAI_FHKVAL368    ,,,	16;
+	SPAI_FHKVAL369    ,,,	16;
+	SPAI_FHKVAL370    ,,,	16;
+	SPAI_FHKVAL371    ,,,	16;
+	SPAI_FHKVAL372    ,,,	16;
+	SPAI_FHKVAL373    ,,,	16;
+	SPAI_FHKVAL374    ,,,	16;
+	SPAI_FHKVAL375    ,,,	16;
+	SPAI_FHKVAL376    ,,,	16;
+	SPAI_FHKVAL377    ,,,	16;
+	SPAI_FHKVAL378    ,,,	16;
+	SPAI_FHKVAL379    ,,,	16;
+	SPAI_FHKVAL380    ,,,	16;
+	SPAI_FHKVAL381    ,,,	16;
+	SPAI_FHKVAL382    ,,,	16;
+	SPAI_FHKVAL383    ,,,	16;
+	SPAI_FHKVAL384    ,,,	16;
+	SPAI_FHKVAL385    ,,,	16;
+	SPAI_FHKVAL386    ,,,	16;
+	SPAI_FHKVAL387    ,,,	16;
+	SPAI_FHKVAL388    ,,,	16;
+	SPAI_FHKVAL389    ,,,	16;
+	SPAI_FHKVAL390    ,,,	16;
+	SPAI_FHKVAL391    ,,,	16;
+	SPAI_FHKVAL392    ,,,	16;
+	SPAI_FHKVAL393    ,,,	16;
+	SPAI_FHKVAL394    ,,,	16;
+	SPAI_FHKVAL395    ,,,	16;
+	SPAI_FHKVAL396    ,,,	16;
+	SPAI_FHKVAL397    ,,,	16;
+	SPAI_FHKVAL398    ,,,	16;
+	SPAI_FHKVAL399    ,,,	16;
+	SPAI_FHKVAL400    ,,,	16;
+	SPAI_FHKVAL401    ,,,	16;
+	SPAI_FHKVAL402    ,,,	16;
+	SPAI_FHKVAL403    ,,,	16;
+	SPAI_FHKVAL404    ,,,	16;
+	SPAI_FHKVAL405    ,,,	16;
+	SPAI_FHKVAL406    ,,,	16;
+	SPAI_FHKVAL407    ,,,	16;
+	SPAI_FHKVAL408    ,,,	16;
+	SPAI_FHKVAL409    ,,,	16;
+	SPAI_FHKVAL410    ,,,	16;
+	SPAI_FHKVAL411    ,,,	16;
+	SPAI_FHKVAL412    ,,,	16;
+	SPAI_FHKVAL413    ,,,	16;
+	SPAI_FHKVAL414    ,,,	16;
+	SPAI_FHKVAL415    ,,,	16;
+	SPAI_FHKVAL416    ,,,	16;
+	SPAI_FHKVAL417    ,,,	16;
+	SPAI_FHKVAL418    ,,,	16;
+	SPAI_FHKVAL419    ,,,	16;
+	SPAI_FHKVAL420    ,,,	16;
+	SPAI_FHKVAL421    ,,,	16;
+	SPAI_FHKVAL422    ,,,	16;
+	SPAI_FHKVAL423    ,,,	16;
+	SPAI_FHKVAL424    ,,,	16;
+	SPAI_FHKVAL425    ,,,	16;
+	SPAI_FHKVAL426    ,,,	16;
+	SPAI_FHKVAL427    ,,,	16;
+	SPAI_FHKVAL428    ,,,	16;
+	SPAI_FHKVAL429    ,,,	16;
+	SPAI_FHKVAL430    ,,,	16;
+	SPAI_FHKVAL431    ,,,	16;
+	SPAI_FHKVAL432    ,,,	16;
+	SPAI_FHKVAL433    ,,,	16;
+	SPAI_FHKVAL434    ,,,	16;
+	SPAI_FHKVAL435    ,,,	16;
+	SPAI_FHKVAL436    ,,,	16;
+	SPAI_FHKVAL437    ,,,	16;
+	SPAI_FHKVAL438    ,,,	16;
+	SPAI_FHKVAL439    ,,,	16;
+	SPAI_FHKVAL440    ,,,	16;
+	SPAI_FHKVAL441    ,,,	16;
+	SPAI_FHKVAL442    ,,,	16;
+	SPAI_FHKVAL443    ,,,	16;
+	SPAI_FHKVAL444    ,,,	16;
+	SPAI_FHKVAL445    ,,,	16;
+	SPAI_FHKVAL446    ,,,	16;
+	SPAI_FHKVAL447    ,,,	16;
+	SPAI_FHKVAL448    ,,,	16;
+	SPAI_FHKVAL449    ,,,	16;
+	SPAI_FHKVAL450    ,,,	16;
+	SPAI_FHKVAL451    ,,,	16;
+	SPAI_FHKVAL452    ,,,	16;
+	SPAI_FHKVAL453    ,,,	16;
+	SPAI_FHKVAL454    ,,,	16;
+	SPAI_FHKVAL455    ,,,	16;
+	SPAI_FHKVAL456    ,,,	16;
+	SPAI_FHKVAL457    ,,,	16;
+	SPAI_FHKVAL458    ,,,	16;
+	SPAI_FHKVAL459    ,,,	16;
+	SPAI_FHKVAL460    ,,,	16;
+	SPAI_FHKVAL461    ,,,	16;
+	SPAI_FHKVAL462    ,,,	16;
+	SPAI_FHKVAL463    ,,,	16;
+	SPAI_FHKVAL464    ,,,	16;
+	SPAI_FHKVAL465    ,,,	16;
+	SPAI_FHKVAL466    ,,,	16;
+	SPAI_FHKVAL467    ,,,	16;
+	SPAI_FHKVAL468    ,,,	16;
+	SPAI_FHKVAL469    ,,,	16;
+	SPAI_FHKVAL470    ,,,	16;
+	SPAI_FHKVAL471    ,,,	16;
+	SPAI_FHKVAL472    ,,,	16;
+	SPAI_FHKVAL473    ,,,	16;
+	SPAI_FHKVAL474    ,,,	16;
+	SPAI_FHKVAL475    ,,,	16;
+	SPAI_FHKVAL476    ,,,	16;
+	SPAI_FHKVAL477    ,,,	16;
+	SPAI_FHKVAL478    ,,,	16;
+	SPAI_FHKVAL479    ,,,	16;
+	SPAI_FHKVAL480    ,,,	16;
+	SPAI_FHKVAL481    ,,,	16;
+	SPAI_FHKVAL482    ,,,	16;
+	SPAI_FHKVAL483    ,,,	16;
+	SPAI_FHKVAL484    ,,,	16;
+	SPAI_FHKVAL485    ,,,	16;
+	SPAI_FHKVAL486    ,,,	16;
+	SPAI_FHKVAL487    ,,,	16;
+	SPAI_FHKVAL488    ,,,	16;
+	SPAI_FHKVAL489    ,,,	16;
+	SPAI_FHKVAL490    ,,,	16;
+	SPAI_FHKVAL491    ,,,	16;
+	SPAI_FHKVAL492    ,,,	16;
+	SPAI_FHKVAL493    ,,,	16;
+	SPAI_FHKVAL494    ,,,	16;
+	SPAI_FHKVAL495    ,,,	16;
+	SPAI_FHKVAL496    ,,,	16;
+	SPAI_FHKVAL497    ,,,	16;
+	SPAI_FHKVAL498    ,,,	16;
+	SPAI_FHKVAL499    ,,,	16;
+	SPAI_FHKVAL500    ,,,	16;
+	SPAI_FHKVAL501    ,,,	16;
+	SPAI_FHKVAL502    ,,,	16;
+	SPAI_FHKVAL503    ,,,	16;
+	SPAI_FHKVAL504    ,,,	16;
+	SPAI_FHKVAL505    ,,,	16;
+	SPAI_FHKVAL506    ,,,	16;
+	SPAI_FHKVAL507    ,,,	16;
+	SPAI_FHKVAL508    ,,,	16;
+	SPAI_FHKVAL509    ,,,	16;
+	SPAI_FHKVAL510    ,,,	16;
+	SPAI_FHKVAL511    ,,,	16;
+	SPAI_FHKVAL512    ,,,	16;
+}
+
+APID_3B9 
+{
+	( Block[16384]      ,,,	8; )
+	( CCSDS_Header[10]  ,,,	8; )
+	CCSDS_Version     ,,,	3;
+	CCSDS_PacketType  ,,,	1;
+	CCSDS_SecHdrFlag  ,,,	1;
+	CCSDS_ApID        ,,,	11;
+	CCSDS_GroupFlags  ,,,	2;
+	CCSDS_SeqCnt      ,,,	14;
+	CCSDS_PacketLen   ,,,	16;
+	CCSDS_MET         ,,,	32;
+	( CCSDS_Data[502]   ,,,	8; )
+	DATA[195]         ,,,	32;
+}
+
