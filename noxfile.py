@@ -48,6 +48,10 @@ RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
 DOCPYTHON = "3.14"
 
+REPO_ROOT = pathlib.Path(__file__).parent
+DATA_DIR = REPO_ROOT / "tests" / "data"
+SSR_DIR = DATA_DIR / "sci" / "sweap" / "raw" / "ssr"
+
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
 def tests(session: nox.Session) -> None:
@@ -290,6 +294,37 @@ def zizmor(session: nox.Session) -> None:
     options.extend(session.posargs or ["--fix=safe"])
     session.run("zizmor", ".github", *options)
 
+
+@nox.session(python=MAXPYTHON)
+def try_cli(session: nox.Session) -> None:
+
+    session.install(".")
+
+    tempdir = session.create_tmp()
+    l0file = str(SSR_DIR / "2026" / "215" / "0523462910_4_EA")
+
+    # session.log(str(l0file))
+
+    # session.run(
+    #     "levelup",
+    #     f"--l0file",
+    #     f"{str(l0file)}",
+    #
+    #     f"--{l1dir=}",
+    # )
+    session.run(
+        "python",
+        "src/pyfaradaycup/pipeline/swp_spc_l02l1.py",
+        f"--l0file={l0file}",
+        f"--l1dir={tempdir}",
+        f"--logdir={tempdir}",
+        "-v",
+        env = {"PSP_DATA_DIR": str(DATA_DIR)},
+    )
+
+
+
+    session.run("ls", "-R", tempdir)
 
 if __name__ == "__main__":
     nox.main()
