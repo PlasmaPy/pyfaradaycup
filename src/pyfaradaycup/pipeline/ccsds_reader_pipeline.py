@@ -22,6 +22,7 @@ __all__ = [
 
 import datetime
 import os
+import pathlib
 import re
 import struct
 import sys
@@ -34,12 +35,10 @@ import numpy as np
 # import tkFileDialog
 
 
-#########################################
 def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-#########################################
 def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     try:
         if gzip:
@@ -61,7 +60,6 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
         sys.exit()
 
 
-#########################################
 def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     # make sure file exists
     try:
@@ -81,7 +79,6 @@ def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN20
     return path
 
 
-#########################################
 def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
     # get a filename if not specified
@@ -145,7 +142,6 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
     return data
 
 
-#########################################
 def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
@@ -237,7 +233,6 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
     return data
 
 
-#########################################
 def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
@@ -433,7 +428,6 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     return data
 
 
-#########################################
 def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
@@ -489,12 +483,11 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     return ()
 
     # we shouldn't make it here
-    import pdb  # ruff:ignore[PLC0415, T100]
+    # import pdb  # ruff:ignore[PLC0415, T100]
 
-    pdb.set_trace()  # ruff:ignore[T100]
+    # pdb.set_trace()  # ruff:ignore[T100]
 
 
-#########################################
 def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
@@ -518,7 +511,6 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     return head
 
 
-#########################################
 def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
     """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
@@ -581,9 +573,10 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
         try:
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
-            import pdb  # ruff:ignore[PLC0415, T100]
+            raise RuntimeError("Undocumented error 581")
+            # import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # ruff:ignore[T100]
+            # pdb.set_trace()  # ruff:ignore[T100]
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -610,9 +603,10 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
                 try:
                     thisval = int(thisbin, 2)
                 except ValueError:
-                    import pdb  # ruff:ignore[PLC0415, T100]
-
-                    pdb.set_trace()  # ruff:ignore[T100]
+                    raise ValueError("Undocumented error 611")
+                    # import pdb  # ruff:ignore[PLC0415, T100]
+                    #
+                    # pdb.set_trace()  # ruff:ignore[T100]
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -623,7 +617,6 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisdat[key].append(newdat[key])
 
 
-#########################################
 class apid_obj:  # ruff:ignore[D101, N801]
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
@@ -637,7 +630,6 @@ class apid_obj:  # ruff:ignore[D101, N801]
         self.startbit = []
 
 
-#########################################
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
@@ -647,14 +639,19 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                 "***INFO*** No local 'sweap_tlm.blk' found...using the one near ccsds_reader_pipeline.py"
             )
         try:
-            thisdir = os.path.realpath(__file__)
-            thisdir = "\\".join(thisdir.split("\\")[0:-1])
-            file = open(thisdir + "\\sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+            #here = os.path.dirname(__file__)
+            #thisdir = os.path.realpath(__file__)
+            #thisdir = "\\".join(thisdir.split("\\")[0:-1])
+            HERE = pathlib.Path(__file__).parent
+            #print(f"{thisdir = }")
+            file = open(HERE / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
         except:  # ruff:ignore[E722]
+            #print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
-            import pdb  # ruff:ignore[PLC0415, T100]
-
-            pdb.set_trace()  # ruff:ignore[T100]
+            raise RuntimeError(f"Unable to open sweap_tlm.blk from {file}")
+            # import pdb  # ruff:ignore[PLC0415, T100]
+            #
+            # pdb.set_trace()  # ruff:ignore[T100]
     lines = file.readlines()
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
@@ -684,9 +681,10 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    import pdb  # ruff:ignore[PLC0415, T100]
-
-                    pdb.set_trace()  # ruff:ignore[T100]
+                    raise RuntimeError("Undocumented error 686")
+                    # import pdb  # ruff:ignore[PLC0415, T100]
+                    #
+                    # pdb.set_trace()  # ruff:ignore[T100]
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -707,7 +705,6 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
     return None
 
 
-#########################################
 def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         file = open(filename)  # ruff:ignore[PTH123, SIM115]
@@ -715,9 +712,10 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
     except:  # ruff:ignore[E722]
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
-
-        pdb.set_trace()  # ruff:ignore[T100]
+        raise RuntimeError("Undocumented error 718")
+        # import pdb  # ruff:ignore[PLC0415, T100]
+        #
+        # pdb.set_trace()  # ruff:ignore[T100]
 
     lines = file.readlines()
     for i, line in enumerate(lines):
@@ -749,9 +747,10 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    import pdb  # ruff:ignore[PLC0415, T100]
-
-                    pdb.set_trace()  # ruff:ignore[T100]
+                    # import pdb  # ruff:ignore[PLC0415, T100]
+                    #
+                    # pdb.set_trace()  # ruff:ignore[T100]
+                    raise RuntimeError("Undocumented error 756")
             return (thisapid, length)
     # if we didn't find that APID
     print(  # ruff:ignore[T201]

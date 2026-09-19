@@ -75,6 +75,14 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
     overwrite=False,  # ruff:ignore[ANN001, FBT002]
     verbose=False,  # ruff:ignore[ANN001, FBT002]
 ):
+
+    if not l0file:
+        raise ValueError("Please supply l0file")
+    if not l1dir:
+        raise ValueError("Please supply l1dir")
+    if not logdir:
+        raise ValueError("Please supply logdir")
+
     """Convert a single L0 file to L1"""  # ruff:ignore[D400]
     # Try to create a filename for the new CDF that we're going to create
     l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
@@ -129,9 +137,10 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
             screen=True,
             verbose=verbose,
         )
-        import pdb  # ruff:ignore[PLC0415, T100]
+        # import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # ruff:ignore[T100]
+        # pdb.set_trace()  # ruff:ignore[T100]
+        raise RuntimeError("Undocumented error 135")
         sys.exit()
 
     # Load in Leap Second Kernel
@@ -370,7 +379,9 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
         except:  # ruff:ignore[E722]
             import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # ruff:ignore[T100]
+            raise RuntimeError("Unidentified error 382")
+
+            # pdb.set_trace()  # ruff:ignore[T100]
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
@@ -534,9 +545,11 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
                 verbose=verbose,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # ruff:ignore[T100]
+            raise RuntimeError("Unidentified error 549")
+            # import pdb  # ruff:ignore[PLC0415, T100]
+
+            # pdb.set_trace()  # ruff:ignore[T100]
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
@@ -666,9 +679,11 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
+        # import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # ruff:ignore[T100]
+        # pdb.set_trace()  # ruff:ignore[T100]
+
+        raise RuntimeError("Unidentified error 686")
 
     return ()
 
@@ -707,15 +722,20 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     """Find the path to the newest NAIF TLS (leap second) kernel file"""  # ruff:ignore[D400]
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
+        raise RuntimeError("Need exactly one of tls or sclk")
         return False
+
+    # TODO: make this less hardcoded to the directory
+    # Kristoff said that there's a spacepy(.pycdf?) command that regenerates
+    # these files; we'll need to look into this.  This should be automated.
 
     # Search in the MOC data product directory for newest file
     if tls:
-        globdir = "/psp/data/moc_data_products/leap_second_kernel/"
+        globdir = "/home/namurphy/Projects/pyfaradaycup/tests/data/moc_data_products/leap_second_kernel/"
         globstr = globdir + "naif00[0-9][0-9].tls"
         ndigits = 2
-    elif sclk:
-        globdir = "/psp/data/moc_data_products/operations_sclk_kernel/"
+    elif sclk:  # probably only the most recent one is needed?
+        globdir = "/home/namurphy/Projects/pyfaradaycup/tests/data/moc_data_products/operations_sclk_kernel/"
         globstr = globdir + "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
@@ -731,7 +751,9 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
         print(sys.exc_info())  # ruff:ignore[T201]
         import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # ruff:ignore[T100]
+        raise RuntimeError("Unidentified error 749")
+
+        # pdb.set_trace()  # ruff:ignore[T100]
         return False
 
     # return path to newest file
@@ -767,9 +789,6 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     # return(path)
 
 
-#####################################################
-###
-#####################################################
 def setup():  # ruff:ignore[ANN201]
     """Get user command-line input and set things up"""  # ruff:ignore[D400]
     # defaults
@@ -936,9 +955,6 @@ def setup():  # ruff:ignore[ANN201]
     return args
 
 
-############################################
-####
-############################################
 if __name__ == "__main__":
     args = setup()
     main(
