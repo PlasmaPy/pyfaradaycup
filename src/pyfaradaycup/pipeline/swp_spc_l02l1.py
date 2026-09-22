@@ -763,7 +763,10 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
 
 def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
-    return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+
+    # skeleton ≈ metadata schema in the form of an empty CDF file
+
+    return f"/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
     # and we had to search for the most recent (highest) version
