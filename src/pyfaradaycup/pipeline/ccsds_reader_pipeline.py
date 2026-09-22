@@ -632,7 +632,8 @@ class apid_obj:  # ruff:ignore[D101, N801]
 
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
-        file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+        # It appears that there is a unique sweap_tlm.blk
+        file = open("/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
