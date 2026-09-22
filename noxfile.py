@@ -40,8 +40,8 @@ SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
 )
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
-MAXPYTHON = max(SUPPORTED_PYTHON_VERSIONS)
-MINPYTHON = min(SUPPORTED_PYTHON_VERSIONS)
+MAXPYTHON = SUPPORTED_PYTHON_VERSIONS[-1]
+MINPYTHON = SUPPORTED_PYTHON_VERSIONS[0]
 
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
@@ -295,7 +295,7 @@ def zizmor(session: nox.Session) -> None:
     session.run("zizmor", ".github", *options)
 
 
-@nox.session(python=MAXPYTHON)
+@nox.session(python=MINPYTHON)
 def try_cli(session: nox.Session) -> None:
 
     session.install(".")
@@ -303,15 +303,6 @@ def try_cli(session: nox.Session) -> None:
     tempdir = session.create_tmp()
     l0file = str(SSR_DIR / "2026" / "215" / "0523462910_4_EA")
 
-    # session.log(str(l0file))
-
-    # session.run(
-    #     "levelup",
-    #     f"--l0file",
-    #     f"{str(l0file)}",
-    #
-    #     f"--{l1dir=}",
-    # )
     session.run(
         "python",
         "src/pyfaradaycup/pipeline/swp_spc_l02l1.py",
@@ -322,9 +313,13 @@ def try_cli(session: nox.Session) -> None:
         env = {"PSP_DATA_DIR": str(DATA_DIR)},
     )
 
-
-
-    session.run("ls", "-R", tempdir)
+    session.run("ls", "-R", "-l", tempdir, external=True)
+    session.run(
+        "diff",
+        f"{tempdir}/0523462910_4_EA_APID351_L1.cdf",
+        "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf",
+        external=True,
+    )
 
 if __name__ == "__main__":
     nox.main()
