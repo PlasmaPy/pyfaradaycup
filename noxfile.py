@@ -21,8 +21,12 @@ installed.
 Nox documentation: https://nox.thea.codes
 """
 
+from datetime import datetime
+
 import os
 import pathlib
+
+import numpy as np
 
 import nox  # ty:ignore[unresolved-import]
 import nox.command  # ty:ignore[unresolved-import]
@@ -289,6 +293,58 @@ def zizmor(session: nox.Session) -> None:
     options = ["--quiet"] if not RUNNING_ON_CI and not session.posargs else []
     options.extend(session.posargs or ["--fix=safe"])
     session.run("zizmor", ".github", *options)
+
+
+@nox_uv.session(python=MAXPYTHON, uv_groups=["dev"])
+def create_cdf_samples(session: nox.Session) -> None:
+    import cdflib
+
+    path = pathlib.Path("./tests/cdf_samples/")
+
+    times = [
+        datetime(2026, 1, 1, 12, 0),
+        datetime(2026, 1, 1, 12, 1),
+        datetime(2026, 1, 1, 12, 2),
+    ]
+    times_tt2000 = cdflib.cdfepoch.compute_tt2000(times)
+
+    time_spec = {
+        "Variable": "Epoch",
+        "Data_Type": cdflib.CDF_TIME_TT2000,
+        "Num_Elements": 1,
+        "Rec_Vary": True,
+    }
+
+    temperatures = {"base": np.array([21.5, 22.0, 21.8], dtype=np.float32)}
+    temperatures["similar"] = temperatures["base"].copy()
+    temperatures["similar"][1] *= 1.00008
+    temperatures["different"] = np.array([13, 20, 21.8], dtype=np.float32)
+
+    for tag, temperature in temperatures.items():
+        file = path / f"{tag}.cdf"
+        cdf = cdflib.cdfwrite.CDF(file)
+
+        cdf.write_var({
+            "Variable": "Epoch",
+            "Data_Type": cdflib.CDF_TIME_TT2000,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            },
+            var_data = times_tt2000,
+        )
+
+        cdf.write_var(
+            {
+                "Variable": "Temperature",
+                "Data_Type": cdflib.CDF_FLOAT,
+                "Num_Elements": 1,
+                "Rec_Vary": True,
+            },
+            var_data = temperature,
+        )
+
+        cdf.close()
+
 
 
 if __name__ == "__main__":
