@@ -22,7 +22,7 @@ def compare_cdf_variables(cdf1: pycdf.CDF, cdf2: pycdf.CDF) -> dict[str, set[str
         comparison["only_in_cdf1"] = only_in_cdf1
 
     if only_in_cdf2 := vars2 - vars1:
-        comparson["only_in_cdf2"] = only_in_cdf2
+        comparison["only_in_cdf2"] = only_in_cdf2
 
     return comparison
 
