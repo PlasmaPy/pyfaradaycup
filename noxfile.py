@@ -313,7 +313,7 @@ def try_cli(session: nox.Session) -> None:
         env = {"PSP_DATA_DIR": str(DATA_DIR)},
     )
 
-    session.run("ls", "-R", "-l", tempdir, external=True)
+    session.run("eza", "-R", "-l", tempdir, external=True)
     session.run(
         "diff",
         f"{tempdir}/0523462910_4_EA_APID351_L1.cdf",
