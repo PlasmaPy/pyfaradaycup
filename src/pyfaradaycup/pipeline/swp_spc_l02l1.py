@@ -1018,11 +1018,24 @@ def get_newest_skeleton(
     # return(path)
 
 
-#####################################################
-###
-#####################################################
 def setup():  # ruff:ignore[ANN201]
-    """Get user command-line input and set things up"""  # ruff:ignore[D400]
+    """
+    Read the command-line arguments for running this module as a script.
+
+    Returns
+    -------
+    argparse.Namespace
+        The parsed arguments. ``apid`` is converted to an integer, and
+        a ``version`` attribute (the data product version) is added.
+
+    Raises
+    ------
+    KeyError
+        If the ``PSP_DATA_DIR`` environment variable is not set.
+
+    ValueError
+        If the directory in ``PSP_DATA_DIR`` does not exist.
+    """  # ruff:ignore[D400]
     # defaults
     l0file_default = ""
     l0dir_default = ""
@@ -1187,7 +1200,6 @@ def setup():  # ruff:ignore[ANN201]
 
     # Return to main routine
     return args
-
 
 
 if __name__ == "__main__":
