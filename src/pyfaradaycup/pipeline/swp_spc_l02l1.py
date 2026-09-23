@@ -419,7 +419,48 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
 def cdf351_353_354(
     cdf, dat, nocdf=False, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
-    """Fill up a CDF with SCI, ALL, or RSS data."""
+    """
+    Expand SPC science packets (APIDs 0x351, 0x353, 0x354) and write them to a CDF.
+
+    Each packet holds all the measurements from one NY second. This
+    function gives every measurement its own timestamp and puts each
+    variable into a flat array. APID 0x351 holds AllGain (ALL) data,
+    0x353 holds SCI data, and 0x354 holds RSS data.
+
+    Parameters
+    ----------
+    cdf : spacepy.pycdf.CDF
+        The L1 CDF file to write the data into. Not used if ``nocdf``
+        is `True`.
+
+    dat : dict of str to list
+        Decoded L0 data for one of these APIDs, with one entry per
+        packet for each mnemonic. Must include ``"CCSDS_ApID"``,
+        ``"CCSDS_MET"``, ``"SW_SPCSUBSEC"``, ``"SW_SPC_INTTIME"``,
+        ``"SW_SPC_SERVTIME"``, ``"WINDOW"``, and the variable that
+        sets the number of measurements (``"A1S"``, ``"ASIN"``, or
+        ``"ARSS"``). APID 0x351 also needs ``"SW_SPC_PKTNUM"``.
+
+    nocdf : bool, optional
+        If `True`, return the expanded data instead of writing it to
+        ``cdf``.
+
+    verbose : bool, optional
+        If `True`, print warnings and errors to the screen as well as
+        to the log file.
+
+    Returns
+    -------
+    dict of str to list or None
+        If ``nocdf`` is `True`, the expanded data, with one value per
+        measurement for each key. Otherwise, `None`.
+
+    Notes
+    -----
+    ``"Epoch"`` is in nanoseconds past J2000. Measurements are spaced
+    by the integration time plus the settling time (IT + ST), in ticks
+    of 1/1171.875 seconds (1024 ticks per NY second).
+    """
     # Take data sorted by NYS, and produce one long variable with all data
 
     # APID of this packet
