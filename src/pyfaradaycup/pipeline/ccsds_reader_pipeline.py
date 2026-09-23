@@ -36,11 +36,13 @@ import numpy as np
 
 #########################################
 
+
 def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
 #########################################
+
 
 def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
@@ -90,6 +92,7 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
 
 #########################################
 
+
 def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     # make sure file exists
     """
@@ -137,6 +140,7 @@ def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN20
 
 #########################################
 
+
 def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Read CCSDS headers from SWEM wrapper packets and the packets inside them.
@@ -172,7 +176,6 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
     header (APIDs 0x348-0x350) followed by an instrument header. Only
     the headers are decoded, not the packet data.
     """
-
     # get a filename if not specified
     path = choose_file(path)
 
@@ -235,6 +238,7 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
 
 
 #########################################
+
 
 def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
@@ -326,7 +330,9 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
 
     return data
 
+
 #########################################
+
 
 def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
@@ -523,8 +529,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     return data
 
 
-
 #########################################
+
 
 def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
@@ -585,6 +591,7 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
     pdb.set_trace()  # ruff:ignore[T100]
 
+
 #########################################
 
 
@@ -619,7 +626,6 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     4 bytes are read as the mission elapsed time (MET), in seconds, from
     the secondary header.
     """
-
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
@@ -786,9 +792,8 @@ class apid_obj:  # ruff:ignore[ N801]
     attribute (a list of mnemonics in the science data block) for
     packets that have one.
     """
-    
 
-#########################################
+    #########################################
 
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
@@ -803,6 +808,7 @@ class apid_obj:  # ruff:ignore[ N801]
 
 
 #########################################
+
 
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """
@@ -896,7 +902,6 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
         f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None
-
 
 
 #########################################

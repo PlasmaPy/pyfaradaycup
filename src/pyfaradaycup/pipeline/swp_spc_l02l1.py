@@ -393,7 +393,6 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
     variable's ``FILLVAL``. If an unexpected error occurs, a ``pdb``
     debugging session is started.
     """
-
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
     if "CCSDS_MET" in dat.keys():  # ruff:ignore[SIM118]
@@ -658,7 +657,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             pdb.set_trace()  # ruff:ignore[T100]
 
 
-def cdf352( cdf, dat, nocdf=False, verbose=False ):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
+def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """
     Expand SPC time series (APID 0x352) packets into L1 data and write them to a CDF.
 
@@ -878,7 +877,6 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore
     ``spiceypy.scs2e`` using NAIF ID -96 (PSP). The PSP clock (SCLK)
     and leap second kernels must already be loaded.
     """
-    # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     sec_str = [f"{i:1.0f}" for i in sec]
     subsec_str_base50000 = [
         f"{int(i * 50000 / 65536):05.0f}" for i in subsec
@@ -931,7 +929,7 @@ def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[AN
             print(string)  # ruff:ignore[T201]
 
 
-def get_newest_kernel(tls=False, sclk=False, verbose=False ):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Find the newest NAIF leap second or PSP clock (SCLK) kernel file.
 
@@ -964,7 +962,6 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False ):  # ruff:ignore[ANN
     digits at the end of the file name. If no matching files are
     found, a ``pdb`` debugging session is started.
     """
-
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
         return False
@@ -1072,7 +1069,7 @@ def setup():  # ruff:ignore[ANN201]
 
     ValueError
         If the directory in ``PSP_DATA_DIR`` does not exist.
-    """  
+    """
     # defaults
     l0file_default = ""
     l0dir_default = ""
@@ -1217,7 +1214,7 @@ def setup():  # ruff:ignore[ANN201]
             screen=True,
             verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         )
-        statusmsg( sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
@@ -1235,7 +1232,6 @@ def setup():  # ruff:ignore[ANN201]
 
     # Return to main routine
     return args
-
 
 
 ############################################
