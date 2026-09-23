@@ -725,9 +725,7 @@ def cdf352(
     return ()
 
 
-def secsubsec2scet(
-    sec, subsec, spacecraft=False, verbose=False
-):  
+def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):
     """
     Convert MET seconds and subseconds to ephemeris time in nanoseconds.
 
@@ -892,7 +890,31 @@ def get_newest_kernel(
 def get_newest_skeleton(
     apid, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
-    """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
+    """
+    Return the path to the skeleton CDF file for an APID.
+
+    Parameters
+    ----------
+    apid : int
+        The APID of the skeleton file, such as ``0x352``.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    str
+        The path ``cdf_skeletons/psp_swp_spc_l1_<apid>_skeleton.cdf``,
+        with the APID as three lowercase hexadecimal digits.
+
+    Notes
+    -----
+    The path is relative to the current working directory. The
+    function does not check that the file exists. Earlier versions
+    searched for the newest versioned skeleton file; that code is
+    kept below as comments.
+    """
+    # ruff:ignore[D400]
     return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
