@@ -40,7 +40,9 @@ def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
 
 
 #########################################
-def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+def file2bytestr(
+    path="", verbose=False, gzip=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     """
     Read the entire contents of a file into a bytes object.
 
@@ -78,7 +80,9 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
         return bytestr  # ruff:ignore[RET504, TRY300]
 
     except:  # ruff:ignore[E722]
-        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # ruff:ignore[T201]
+        print(
+            "***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting"
+        )  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
         import pdb  # ruff:ignore[PLC0415, T100]
 
@@ -87,12 +91,42 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
 
 
 #########################################
-def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+def choose_file(
+    path="", ptp=False, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     # make sure file exists
+    """
+    Check that a file can be opened and return its path.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the file to check.
+
+    ptp : bool, optional
+        Not currently used.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    str
+        The input ``path`` if the file can be opened, or an empty string
+        if it cannot be opened or no path was given.
+
+    Notes
+    -----
+    If the file cannot be opened, an error message is printed instead of
+    raising an exception. An interactive file dialog was used here
+    previously but is currently disabled.
+    """
     try:
         open(path).close()  # ruff:ignore[PTH123]
     except:  # ruff:ignore[E722]
-        print("***ERROR*** File can not be read...will give option to choose file")  # ruff:ignore[T201]
+        print(
+            "***ERROR*** File can not be read...will give option to choose file"
+        )  # ruff:ignore[T201]
         path = ""
 
     # pop up a dialog to choose a file if path==''
@@ -107,7 +141,9 @@ def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN20
 
 
 #########################################
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+def wrapper_status(
+    path="", verbose=False, gzip=False, spconly=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
     # get a filename if not specified
     path = choose_file(path)
@@ -171,7 +207,9 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
 
 
 #########################################
-def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+def read_file(
+    path="", verbose=False, gzip=False
+):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
     path = choose_file(path)
@@ -263,7 +301,9 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
 
 
 #########################################
-def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
+def read_file_sc(
+    path="", verbose=False, ptp=False, gzip=False
+):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
     path = choose_file(path)
@@ -303,8 +343,12 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
             | (cchead["CCSDS_PacketType"] != 0)
             | (cchead["CCSDS_SecHdrFlag"] != 1)
         ):
-            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003]
-        file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # ruff:ignore[DTZ001]
+            raise ValueError(
+                "CCSDS header values not as expected"
+            )  # ruff:ignore[EM101, TRY003]
+        file_dt = datetime.datetime(
+            2010, 1, 1
+        ) + datetime.timedelta(  # ruff:ignore[DTZ001]
             seconds=cchead["CCSDS_MET"]
         )
         try:
@@ -314,8 +358,12 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        print("Could not find which SC_HK file to use based on packet header")  # ruff:ignore[T201]
-        print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
+        print(
+            "Could not find which SC_HK file to use based on packet header"
+        )  # ruff:ignore[T201]
+        print(
+            "Attempting to find correct date based on filename/path"
+        )  # ruff:ignore[T201]
         try:
             match = re.search(
                 os.path.sep
@@ -325,12 +373,9 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
                 + os.path.sep,
                 path,
             ).span()  # ty: ignore[unresolved-attribute]
-            file_dt = (
-                datetime.datetime(  # ruff:ignore[DTZ001]
-                    int(path[match[0] + 1 : match[0] + 5]), 1, 1
-                )
-                + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
-            )
+            file_dt = datetime.datetime(  # ruff:ignore[DTZ001]
+                int(path[match[0] + 1 : match[0] + 5]), 1, 1
+            ) + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
             try:
                 good_time = np.where(vers_dt < file_dt)[0][-1]
             except IndexError:
@@ -459,7 +504,9 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
 
 
 #########################################
-def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
+def read_bytestr(
+    bytestr, pointer, data, apidformat, pktcnt, verbose=False
+):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
     try:
@@ -490,7 +537,9 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     # Make sure the full packet is here
     if pointer + pkt_len + 7 > len(bytestr):
         if verbose:
-            print("Full CCSDS packet not available at end of bytestr")  # ruff:ignore[T201]
+            print(
+                "Full CCSDS packet not available at end of bytestr"
+            )  # ruff:ignore[T201]
         return ()
 
     # This packet only (no PTP header and no wrapper header (if they existed))
@@ -520,12 +569,16 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
 
 #########################################
-def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+def parse_ccsds_head(
+    bytestr, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
     if len(bytearr) < exp_length:
-        raise ValueError("CCSDS header is not as long as expected")  # ruff:ignore[EM101, TRY003]
+        raise ValueError(
+            "CCSDS header is not as long as expected"
+        )  # ruff:ignore[EM101, TRY003]
 
     head = {}
     head["CCSDS_Version"] = bytearr[0] >> 5
@@ -544,7 +597,9 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
 
 
 #########################################
-def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
+def parse_pkt(
+    bytestr, data, apidformat, apid, ccsds_head, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
     """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
     form = apidformat[apid]
@@ -682,9 +737,13 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
             pdb.set_trace()  # ruff:ignore[T100]
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
+        if (
+            line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper()
+        ):  # ruff:ignore[FURB116]
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
+                print(
+                    f"APID {hex(apid)[2:]} Format Found".upper()
+                )  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
             line = (
@@ -700,7 +759,9 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                         thisapid.bits.append(int(pieces[3].strip()))
                         thisapid.data[pieces[0].strip()] = []
                         if hasattr(thisapid, "sw_data_vars"):
-                            thisapid.sw_data_vars.append(thisapid.names[-1])  # ty: ignore[unresolved-attribute]
+                            thisapid.sw_data_vars.append(
+                                thisapid.names[-1]
+                            )  # ty: ignore[unresolved-attribute]
                     elif (line.strip()[0:9] == "( SW_DATA") | (
                         line.strip()[0:12] == "( SW_SPC_SCI"
                     ):
@@ -733,7 +794,9 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
 
 
 #########################################
-def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
+def get_layout_sc(
+    apid, verbose=False, filename=""
+):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         file = open(filename)  # ruff:ignore[PTH123, SIM115]
         print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
@@ -746,10 +809,13 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
 
     lines = file.readlines()
     for i, line in enumerate(lines):
-        if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
+        if (
+            line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}"
+        ):  # ruff:ignore[FURB116]
             if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
-            thisapid = apid_obj()
+                print(
+                    f"APID {hex(apid)[2:]} Format Found".upper()
+                )  # ruff:ignore[FURB116, T201]
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
 
             line = ""  # ruff:ignore[PLW2901]
