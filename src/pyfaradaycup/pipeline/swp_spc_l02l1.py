@@ -380,9 +380,6 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             statusmsg(sys.exc_info())
 
 
-#####################################################
-##
-#####################################################
 def cdf351_353_354(
     cdf, dat, nocdf=False, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
@@ -730,8 +727,44 @@ def cdf352(
 
 def secsubsec2scet(
     sec, subsec, spacecraft=False, verbose=False
-):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
-    """Parse a fairly standard CCSDS time structure into decimal MET: first 4 bytes=MET seconds, second 2 bytes = MET subseconds"""  # ruff:ignore[D400]
+):  
+    """
+    Convert MET seconds and subseconds to ephemeris time in nanoseconds.
+
+    The conversion uses the PSP spacecraft clock through SPICE.
+
+    Parameters
+    ----------
+    sec : list of int
+        MET whole seconds, from the first 4 bytes of the CCSDS time
+        field.
+
+    subsec : list of int
+        MET subseconds, from the next 2 bytes of the CCSDS time field.
+
+    spacecraft : bool, optional
+        If `True`, ``subsec`` is in units of 1/256 second, as used in
+        spacecraft packets. If `False`, ``subsec`` is in units of
+        1/65536 second, as used in SWEAP packets.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    list of float
+        Ephemeris time for each input, in nanoseconds past J2000,
+        rounded to the nearest nanosecond.
+
+    Notes
+    -----
+    The subseconds are rescaled to the 1/50000 second ticks used by
+    the PSP clock kernel, and each time is converted with
+    ``spiceypy.scs2e`` using NAIF ID -96 (PSP). The PSP clock (SCLK)
+    and leap second kernels must already be loaded.
+    """
+    # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    # ruff:ignore[D400]
     sec_str = [f"{i:1.0f}" for i in sec]
     subsec_str_base50000 = [
         f"{int(i * 50000 / 65536):05.0f}" for i in subsec
@@ -753,7 +786,31 @@ def secsubsec2scet(
 def statusmsg(
     string, screen=False, file=True, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, FBT002]
-    """Output status message to screen or logfile (default to file, but not screen)"""  # ruff:ignore[D400]
+    """
+    Write a timestamped status message to the log file and/or the screen.
+
+    Parameters
+    ----------
+    string : str
+        The message to write.
+
+    screen : bool, optional
+        If `True`, also print the message to the screen, but only when
+        ``verbose`` is also `True`.
+
+    file : bool, optional
+        If `True`, write the message to the log file.
+
+    verbose : bool, optional
+        Must be `True` for ``screen`` to have any effect.
+
+    Notes
+    -----
+    Messages written to the log file start with the current local time
+    in ISO format, followed by a comma. The log file is the global
+    ``logfile`` opened by `main`, so this function only works after
+    `main` has opened it.
+    """  # ruff:ignore[D400]
     nowdtstr = datetime.datetime.now().isoformat()  # ruff:ignore[DTZ005]
     if file:
         logfile.write(nowdtstr + ", " + string + "\n")
