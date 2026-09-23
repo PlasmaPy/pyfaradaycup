@@ -75,7 +75,47 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
     overwrite=False,  # ruff:ignore[ANN001, FBT002]
     verbose=False,  # ruff:ignore[ANN001, FBT002]
 ):
-    """Convert a single L0 file to L1"""  # ruff:ignore[D400]
+    """
+    Convert one SPC L0 file into L1 CDF files, one per APID.
+
+    Parameters
+    ----------
+    l0file : str, optional
+        Path to the L0 file to convert.
+
+    l1dir : str, optional
+        Directory for the L1 CDF files. If empty, the directory of
+        ``l0file`` is used.
+
+    logdir : str, optional
+        Directory for the log file. If empty, ``l1dir`` is used. It is
+        created if it does not exist.
+
+    spacecraft : bool, optional
+        If `True`, read spacecraft housekeeping packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
+        If `False`, read SWEAP instrument packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file`.
+
+    ptp : bool, optional
+        If `True`, the L0 file is a PTP file. Only used when
+        ``spacecraft`` is `True`.
+
+    gzip : bool, optional
+        If `True`, read the L0 file as gzip-compressed.
+
+    apidreq : int, optional
+        Only create a CDF for this APID. If ``0``, create a CDF for
+        every supported APID found in the file.
+
+    overwrite : bool, optional
+        If `True`, replace L1 CDF files that already exist. If `False`
+        and a file already exists, the program exits.
+
+    verbose : bool, optional
+        If `True`, print messages to the screen as well as to the log
+        file.
+    """
     # Try to create a filename for the new CDF that we're going to create
     l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
     l0basename = os.path.basename(l0file)  # ruff:ignore[PTH119]
@@ -200,8 +240,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
         # Filename for the L1 file we're about to write for this apid
         l1path = os.path.join(  # ruff:ignore[PTH118]
             l1dir,
-            l0file_noext
-            + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
+            l0file_noext + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
         )
         statusmsg("About to write: " + l1path)
 
@@ -354,7 +393,7 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
     variable's ``FILLVAL``. If an unexpected error occurs, a ``pdb``
     debugging session is started.
     """
-    # ruff:ignore[D400]
+
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
     if "CCSDS_MET" in dat.keys():  # ruff:ignore[SIM118]
@@ -416,9 +455,12 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             statusmsg(sys.exc_info())
 
 
-def cdf351_353_354(
-    cdf, dat, nocdf=False, verbose=False
-):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
+#####################################################
+##
+#####################################################
+
+
+def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
     """
     Expand SPC science packets (APIDs 0x351, 0x353, 0x354) and write them to a CDF.
 
@@ -616,9 +658,7 @@ def cdf351_353_354(
             pdb.set_trace()  # ruff:ignore[T100]
 
 
-def cdf352(
-    cdf, dat, nocdf=False, verbose=False
-):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
+def cdf352( cdf, dat, nocdf=False, verbose=False ):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
     """
     Expand SPC time series (APID 0x352) packets into L1 data and write them to a CDF.
 
@@ -802,7 +842,7 @@ def cdf352(
     return ()
 
 
-def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):
+def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Convert MET seconds and subseconds to ephemeris time in nanoseconds.
 
@@ -839,7 +879,6 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):
     and leap second kernels must already be loaded.
     """
     # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
-    # ruff:ignore[D400]
     sec_str = [f"{i:1.0f}" for i in sec]
     subsec_str_base50000 = [
         f"{int(i * 50000 / 65536):05.0f}" for i in subsec
@@ -858,9 +897,7 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):
     return ephem_nanosec_j2000  # ruff:ignore[RET504]
 
 
-def statusmsg(
-    string, screen=False, file=True, verbose=False
-):  # ruff:ignore[ANN001, ANN201, FBT002]
+def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """
     Write a timestamped status message to the log file and/or the screen.
 
@@ -885,7 +922,7 @@ def statusmsg(
     in ISO format, followed by a comma. The log file is the global
     ``logfile`` opened by `main`, so this function only works after
     `main` has opened it.
-    """  # ruff:ignore[D400]
+    """
     nowdtstr = datetime.datetime.now().isoformat()  # ruff:ignore[DTZ005]
     if file:
         logfile.write(nowdtstr + ", " + string + "\n")
@@ -894,9 +931,7 @@ def statusmsg(
             print(string)  # ruff:ignore[T201]
 
 
-def get_newest_kernel(
-    tls=False, sclk=False, verbose=False
-):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_kernel(tls=False, sclk=False, verbose=False ):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Find the newest NAIF leap second or PSP clock (SCLK) kernel file.
 
@@ -929,7 +964,7 @@ def get_newest_kernel(
     digits at the end of the file name. If no matching files are
     found, a ``pdb`` debugging session is started.
     """
-    # ruff:ignore[D400]
+
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
         return False
@@ -964,9 +999,7 @@ def get_newest_kernel(
     return path  # ruff:ignore[RET504]
 
 
-def get_newest_skeleton(
-    apid, verbose=False
-):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Return the path to the skeleton CDF file for an APID.
 
@@ -991,7 +1024,6 @@ def get_newest_skeleton(
     searched for the newest versioned skeleton file; that code is
     kept below as comments.
     """
-    # ruff:ignore[D400]
     return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
@@ -1018,6 +1050,11 @@ def get_newest_skeleton(
     # return(path)
 
 
+#####################################################
+###
+#####################################################
+
+
 def setup():  # ruff:ignore[ANN201]
     """
     Read the command-line arguments for running this module as a script.
@@ -1035,7 +1072,7 @@ def setup():  # ruff:ignore[ANN201]
 
     ValueError
         If the directory in ``PSP_DATA_DIR`` does not exist.
-    """  # ruff:ignore[D400]
+    """  
     # defaults
     l0file_default = ""
     l0dir_default = ""
@@ -1180,9 +1217,7 @@ def setup():  # ruff:ignore[ANN201]
             screen=True,
             verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         )
-        statusmsg(
-            sys.exc_info(), screen=True, verbose=verbose
-        )  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
+        statusmsg( sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
@@ -1202,7 +1237,25 @@ def setup():  # ruff:ignore[ANN201]
     return args
 
 
+
+############################################
+####
+############################################
+
+
 if __name__ == "__main__":
+    args = setup()
+    main(
+        l0file=args.l0file,
+        l1dir=args.l1dir,
+        logdir=args.logdir,
+        spacecraft=args.spacecraft,
+        ptp=args.ptp,
+        gzip=args.gzip,
+        apidreq=args.apid,
+        overwrite=args.overwrite,
+        verbose=args.verbose,
+    )
     """
     Convert one SPC L0 file into L1 CDF files, one per APID.
 
@@ -1244,15 +1297,3 @@ if __name__ == "__main__":
         If `True`, print messages to the screen as well as to the log
         file.
     """
-    args = setup()
-    main(
-        l0file=args.l0file,
-        l1dir=args.l1dir,
-        logdir=args.logdir,
-        spacecraft=args.spacecraft,
-        ptp=args.ptp,
-        gzip=args.gzip,
-        apidreq=args.apid,
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
