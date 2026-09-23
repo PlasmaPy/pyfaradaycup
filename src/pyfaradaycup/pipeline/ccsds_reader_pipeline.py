@@ -766,6 +766,42 @@ def parse_pkt(
 
 
 class apid_obj:  # ruff:ignore[D101, N801]
+    """
+    Store the bit layout of one packet type (APID).
+
+    An empty instance is created by `get_layout` or `get_layout_sc`,
+    which then fill in the attributes from a telemetry definition file.
+
+    Attributes
+    ----------
+    names : list of str
+        Mnemonic (field name) of each field in the packet.
+
+    bits : list of int
+        Length of each field, in bits.
+
+    bytestart, bitstart : list or numpy.ndarray of int
+        Byte and bit position where each field starts. Set by
+        `get_layout`.
+
+    byteend, bitend : list or numpy.ndarray of int
+        Byte and bit position where each field ends. Set by
+        `get_layout`.
+
+    startbyte, startbit : list of int
+        Byte and bit position where each field starts, as listed in the
+        spacecraft housekeeping definition file. Set by `get_layout_sc`.
+
+    data : dict of str to list
+        An empty list for each mnemonic. Set by `get_layout`.
+
+    Notes
+    -----
+    `get_layout` and `get_layout_sc` also add an ``apid`` attribute
+    (the APID as an int). `get_layout` adds a ``sw_data_vars``
+    attribute (a list of mnemonics in the science data block) for
+    packets that have one.
+    """
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
         self.bits = []
@@ -780,6 +816,31 @@ class apid_obj:  # ruff:ignore[D101, N801]
 
 
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
+    """
+    Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
+
+    Parameters
+    ----------
+    apid : int
+        The APID to look up, such as ``0x352``.
+
+    verbose : bool, optional
+        If `True`, print status messages.
+
+    Returns
+    -------
+    apid_obj or None
+        The layout of each field in the packet, or `None` if the APID
+        is not found in the file.
+
+    Notes
+    -----
+    The file ``sweap_tlm.blk`` is looked for first in the current
+    working directory and then in the directory containing this module.
+    The second lookup builds the path with Windows-style backslashes,
+    so it only works on Windows. If neither file can be opened, a
+    ``pdb`` debugging session is started.
+    """
     try:
         file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
     except:  # ruff:ignore[E722]
