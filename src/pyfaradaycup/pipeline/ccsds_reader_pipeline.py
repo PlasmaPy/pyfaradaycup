@@ -34,11 +34,15 @@ import numpy as np
 # import tkFileDialog
 
 
+#########################################
+
 def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+#########################################
+
+def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Read the entire contents of a file into a bytes object.
 
@@ -84,7 +88,9 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
         sys.exit()
 
 
-def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+#########################################
+
+def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     # make sure file exists
     """
     Check that a file can be opened and return its path.
@@ -129,7 +135,9 @@ def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN20
     return path
 
 
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
+#########################################
+
+def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Read CCSDS headers from SWEM wrapper packets and the packets inside them.
 
@@ -164,7 +172,6 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
     header (APIDs 0x348-0x350) followed by an instrument header. Only
     the headers are decoded, not the packet data.
     """
-    # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
     # get a filename if not specified
     path = choose_file(path)
@@ -226,6 +233,8 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):
 
     return data
 
+
+#########################################
 
 def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
@@ -317,6 +326,7 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
 
     return data
 
+#########################################
 
 def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
@@ -513,6 +523,9 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     return data
 
 
+
+#########################################
+
 def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
@@ -572,8 +585,10 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
     pdb.set_trace()  # ruff:ignore[T100]
 
+#########################################
 
-def parse_ccsds_head(bytestr, verbose=False):
+
+def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Decode a 10-byte CCSDS packet header into its fields.
 
@@ -604,7 +619,7 @@ def parse_ccsds_head(bytestr, verbose=False):
     4 bytes are read as the mission elapsed time (MET), in seconds, from
     the secondary header.
     """
-    # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
@@ -625,6 +640,9 @@ def parse_ccsds_head(bytestr, verbose=False):
 
     # return the dictionary
     return head
+
+
+#########################################
 
 
 def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
@@ -731,7 +749,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisdat[key].append(newdat[key])
 
 
-class apid_obj:  # ruff:ignore[D101, N801]
+class apid_obj:  # ruff:ignore[ N801]
     """
     Store the bit layout of one packet type (APID).
 
@@ -768,6 +786,9 @@ class apid_obj:  # ruff:ignore[D101, N801]
     attribute (a list of mnemonics in the science data block) for
     packets that have one.
     """
+    
+
+#########################################
 
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
@@ -781,7 +802,9 @@ class apid_obj:  # ruff:ignore[D101, N801]
         self.startbit = []
 
 
-def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
+#########################################
+
+def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -875,7 +898,9 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
     return None
 
 
-def get_layout_sc(apid, verbose=False, filename=""):
+
+#########################################
+def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """
     Read the bit layout for one spacecraft housekeeping APID.
 
@@ -905,7 +930,6 @@ def get_layout_sc(apid, verbose=False, filename=""):
     as ``N`` bytes long (``8 * N`` bits). If the file cannot be opened,
     a ``pdb`` debugging session is started.
     """
-    # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         file = open(filename)  # ruff:ignore[PTH123, SIM115]
         print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
@@ -921,6 +945,7 @@ def get_layout_sc(apid, verbose=False, filename=""):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
+            thisapid = apid_obj()
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
 
             line = ""  # ruff:ignore[PLW2901]
