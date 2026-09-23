@@ -318,7 +318,43 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
 
 def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FBT002]
-    """Fill up a CDF with data from an SPC HSK (0x35E or 0x35F) packet or S/C HSK packet"""  # ruff:ignore[D400]
+    """
+    Fill a CDF with housekeeping data, one row per packet.
+
+    This handles SPC housekeeping packets (APIDs 0x35E and 0x35F) and
+    the spacecraft housekeeping packets that `main` sends here
+    (APIDs 0x081, 0x1DE, 0x254, 0x256, 0x257, and 0x262).
+
+    Parameters
+    ----------
+    cdf : spacepy.pycdf.CDF
+        The L1 CDF file to write the data into.
+
+    dat : dict of str to list
+        Decoded L0 data for one APID, with one entry per packet for
+        each mnemonic.
+
+    verbose : bool, optional
+        If `True`, print error messages to the screen as well as to the
+        log file.
+
+    Notes
+    -----
+    Unlike `cdf352` and `cdf351_353_354`, the data is not expanded:
+    each packet becomes one row in the CDF.
+
+    ``"Epoch"`` (nanoseconds past J2000) is calculated from whichever
+    MET fields ``dat`` contains: ``"CCSDS_MET"`` for SPC packets, or
+    one of several ``*_TPSH_MET_SEC`` fields for spacecraft packets.
+    If none are found, an error is logged and nothing is written.
+    ``"Epoch"`` is also added to ``dat``.
+
+    Each variable in the CDF is filled from the matching key in
+    ``dat``. Variables with no matching key are filled with the
+    variable's ``FILLVAL``. If an unexpected error occurs, a ``pdb``
+    debugging session is started.
+    """
+    # ruff:ignore[D400]
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
     if "CCSDS_MET" in dat.keys():  # ruff:ignore[SIM118]
