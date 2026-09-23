@@ -1189,10 +1189,49 @@ def setup():  # ruff:ignore[ANN201]
     return args
 
 
-############################################
-####
-############################################
+
 if __name__ == "__main__":
+    """
+    Convert one SPC L0 file into L1 CDF files, one per APID.
+
+    Parameters
+    ----------
+    l0file : str, optional
+        Path to the L0 file to convert.
+
+    l1dir : str, optional
+        Directory for the L1 CDF files. If empty, the directory of
+        ``l0file`` is used.
+
+    logdir : str, optional
+        Directory for the log file. If empty, ``l1dir`` is used. It is
+        created if it does not exist.
+
+    spacecraft : bool, optional
+        If `True`, read spacecraft housekeeping packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
+        If `False`, read SWEAP instrument packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file`.
+
+    ptp : bool, optional
+        If `True`, the L0 file is a PTP file. Only used when
+        ``spacecraft`` is `True`.
+
+    gzip : bool, optional
+        If `True`, read the L0 file as gzip-compressed.
+
+    apidreq : int, optional
+        Only create a CDF for this APID. If ``0``, create a CDF for
+        every supported APID found in the file.
+
+    overwrite : bool, optional
+        If `True`, replace L1 CDF files that already exist. If `False`
+        and a file already exists, the program exits.
+
+    verbose : bool, optional
+        If `True`, print messages to the screen as well as to the log
+        file.
+    """
     args = setup()
     main(
         l0file=args.l0file,
