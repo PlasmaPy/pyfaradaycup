@@ -34,12 +34,10 @@ import numpy as np
 # import tkFileDialog
 
 
-#########################################
 def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-#########################################
 def file2bytestr(
     path="", verbose=False, gzip=False
 ):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
@@ -90,7 +88,7 @@ def file2bytestr(
         sys.exit()
 
 
-#########################################
+
 def choose_file(
     path="", ptp=False, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
@@ -140,10 +138,45 @@ def choose_file(
     return path
 
 
-#########################################
+
 def wrapper_status(
     path="", verbose=False, gzip=False, spconly=False
-):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+):  
+    """
+    Read CCSDS headers from SWEM wrapper packets and the packets inside them.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the CCSDS file to read.
+
+    verbose : bool, optional
+        Not currently used.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    spconly : bool, optional
+        If `True`, only match SPC instrument APIDs (0x351-0x354, 0x35E,
+        0x35F). If `False`, match any instrument APID from 0x351 to 0x39F.
+
+    Returns
+    -------
+    dict of str to list
+        Header values for each matched packet pair. The keys are
+        ``"wrap_met"``, ``"wrap_apid"``, and ``"wrap_seq"`` for the
+        wrapper packet, and ``"data_met"``, ``"data_apid"``, and
+        ``"data_seq"`` for the instrument packet inside it. MET is the
+        mission elapsed time and seq is the CCSDS sequence count. If no
+        packets are found, each list is empty.
+
+    Notes
+    -----
+    Packets are found by searching the raw bytes for a SWEM wrapper
+    header (APIDs 0x348-0x350) followed by an instrument header. Only
+    the headers are decoded, not the packet data.
+    """
+    # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
     # get a filename if not specified
     path = choose_file(path)
@@ -206,7 +239,6 @@ def wrapper_status(
     return data
 
 
-#########################################
 def read_file(
     path="", verbose=False, gzip=False
 ):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
@@ -300,7 +332,7 @@ def read_file(
     return data
 
 
-#########################################
+
 def read_file_sc(
     path="", verbose=False, ptp=False, gzip=False
 ):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
@@ -503,7 +535,7 @@ def read_file_sc(
     return data
 
 
-#########################################
+
 def read_bytestr(
     bytestr, pointer, data, apidformat, pktcnt, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
@@ -568,10 +600,39 @@ def read_bytestr(
     pdb.set_trace()  # ruff:ignore[T100]
 
 
-#########################################
-def parse_ccsds_head(
-    bytestr, verbose=False
-):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+
+def parse_ccsds_head(bytestr, verbose=False):
+    """
+    Decode a 10-byte CCSDS packet header into its fields.
+
+    Parameters
+    ----------
+    bytestr : bytes
+        The header bytes. Only the first 10 bytes are used.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    dict of str to int
+        The header fields, with keys ``"CCSDS_Version"``,
+        ``"CCSDS_PacketType"``, ``"CCSDS_SecHdrFlag"``, ``"CCSDS_ApID"``,
+        ``"CCSDS_GroupFlags"``, ``"CCSDS_SeqCnt"``, ``"CCSDS_PacketLen"``,
+        and ``"CCSDS_MET"``.
+
+    Raises
+    ------
+    ValueError
+        If ``bytestr`` is shorter than 10 bytes.
+
+    Notes
+    -----
+    The first 6 bytes are the standard CCSDS primary header. The next
+    4 bytes are read as the mission elapsed time (MET), in seconds, from
+    the secondary header.
+    """
+    # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
@@ -596,7 +657,7 @@ def parse_ccsds_head(
     return head
 
 
-#########################################
+
 def parse_pkt(
     bytestr, data, apidformat, apid, ccsds_head, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
@@ -703,7 +764,7 @@ def parse_pkt(
             thisdat[key].append(newdat[key])
 
 
-#########################################
+
 class apid_obj:  # ruff:ignore[D101, N801]
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
@@ -717,7 +778,7 @@ class apid_obj:  # ruff:ignore[D101, N801]
         self.startbit = []
 
 
-#########################################
+
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
@@ -793,7 +854,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
     return None
 
 
-#########################################
+
 def get_layout_sc(
     apid, verbose=False, filename=""
 ):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
