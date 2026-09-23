@@ -200,7 +200,8 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
         # Filename for the L1 file we're about to write for this apid
         l1path = os.path.join(  # ruff:ignore[PTH118]
             l1dir,
-            l0file_noext + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
+            l0file_noext
+            + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
         )
         statusmsg("About to write: " + l1path)
 
@@ -382,7 +383,9 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
 #####################################################
 ##
 #####################################################
-def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
+def cdf351_353_354(
+    cdf, dat, nocdf=False, verbose=False
+):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
     """Fill up a CDF with SCI, ALL, or RSS data."""
     # Take data sorted by NYS, and produce one long variable with all data
 
@@ -539,7 +542,59 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             pdb.set_trace()  # ruff:ignore[T100]
 
 
-def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
+def cdf352(
+    cdf, dat, nocdf=False, verbose=False
+):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
+    """
+    Expand SPC time series (APID 0x352) packets into L1 data and write them to a CDF.
+
+    Each 0x352 packet holds many fast measurements from one NY second,
+    for four channels at a time. This function gives every measurement
+    its own timestamp and puts each channel into a flat array.
+
+    Parameters
+    ----------
+    cdf : spacepy.pycdf.CDF
+        The L1 CDF file to write the data into. Not used if ``nocdf``
+        is `True`.
+
+    dat : dict of str to list
+        Decoded L0 data for APID 0x352, with one entry per packet for
+        each mnemonic. Must include ``"CCSDS_MET"``, ``"SW_SPCSUBSEC"``,
+        ``"SPC_TIMESERCOLL"``, ``"SPC_TIMESERTICK"``, and the
+        measurement arrays ``"G0_000"`` through ``"G3_000"``.
+
+    nocdf : bool, optional
+        If `True`, return the expanded data instead of writing it to
+        ``cdf``.
+
+    verbose : bool, optional
+        If `True`, print error messages to the screen as well as to the
+        log file.
+
+    Returns
+    -------
+    dict of str to list or tuple
+        If ``nocdf`` is `True`, the expanded data, with one value per
+        measurement for each key. Otherwise, an empty tuple.
+
+    Notes
+    -----
+    ``"SPC_TIMESERCOLL"`` sets which four channels a packet contains:
+    ``1``, ``2``, ``4``, and ``8`` for the A, B, C, and D collectors
+    (channels 0-3), and ``16`` and ``32`` for two sets of housekeeping
+    voltages. The values go into ``"VAR0"`` through ``"VAR3"``, and the
+    channel names go into ``"VAR0_NAME"`` through ``"VAR3_NAME"``.
+    Packets with any other value are logged as errors and skipped.
+
+    ``"Epoch"`` is in nanoseconds past J2000. Each measurement is
+    spaced ``1 / (32 * 1171.875)`` seconds apart, starting at the
+    packet's start tick. Values that appear once per packet are
+    repeated for every measurement in that packet.
+
+    If an unexpected error occurs, a ``pdb`` debugging session is
+    started.
+    """
     try:
         # Calculate SCET from the variables in the L0 data
         dt = secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
@@ -673,7 +728,9 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
     return ()
 
 
-def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def secsubsec2scet(
+    sec, subsec, spacecraft=False, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """Parse a fairly standard CCSDS time structure into decimal MET: first 4 bytes=MET seconds, second 2 bytes = MET subseconds"""  # ruff:ignore[D400]
     sec_str = [f"{i:1.0f}" for i in sec]
     subsec_str_base50000 = [
@@ -693,7 +750,9 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore
     return ephem_nanosec_j2000  # ruff:ignore[RET504]
 
 
-def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
+def statusmsg(
+    string, screen=False, file=True, verbose=False
+):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Output status message to screen or logfile (default to file, but not screen)"""  # ruff:ignore[D400]
     nowdtstr = datetime.datetime.now().isoformat()  # ruff:ignore[DTZ005]
     if file:
@@ -703,7 +762,9 @@ def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[AN
             print(string)  # ruff:ignore[T201]
 
 
-def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_kernel(
+    tls=False, sclk=False, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """Find the path to the newest NAIF TLS (leap second) kernel file"""  # ruff:ignore[D400]
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
@@ -739,7 +800,9 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     return path  # ruff:ignore[RET504]
 
 
-def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_skeleton(
+    apid, verbose=False
+):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
     return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
 
@@ -916,7 +979,9 @@ def setup():  # ruff:ignore[ANN201]
             screen=True,
             verbose=verbose,  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         )
-        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
+        statusmsg(
+            sys.exc_info(), screen=True, verbose=verbose
+        )  # ruff:ignore[F821]  # ty:ignore[unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
