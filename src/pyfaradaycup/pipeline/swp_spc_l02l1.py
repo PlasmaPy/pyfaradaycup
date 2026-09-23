@@ -822,7 +822,39 @@ def statusmsg(
 def get_newest_kernel(
     tls=False, sclk=False, verbose=False
 ):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
-    """Find the path to the newest NAIF TLS (leap second) kernel file"""  # ruff:ignore[D400]
+    """
+    Find the newest NAIF leap second or PSP clock (SCLK) kernel file.
+
+    Exactly one of ``tls`` or ``sclk`` must be `True`.
+
+    Parameters
+    ----------
+    tls : bool, optional
+        If `True`, find the newest leap second kernel
+        (``naif00NN.tls``).
+
+    sclk : bool, optional
+        If `True`, find the newest PSP clock kernel
+        (``spp_sclk_NNNN.tsc``).
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    str or bool
+        Path to the kernel file with the highest version number, or
+        `False` if both or neither of ``tls`` and ``sclk`` are `True`.
+
+    Notes
+    -----
+    The kernels are searched for in fixed directories under
+    ``/psp/data/moc_data_products/``, so this only works on a system
+    with that directory layout. The version number is read from the
+    digits at the end of the file name. If no matching files are
+    found, a ``pdb`` debugging session is started.
+    """
+    # ruff:ignore[D400]
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
         return False
