@@ -41,6 +41,31 @@ def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
 
 #########################################
 def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+    """
+    Read the entire contents of a file into a bytes object.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the file to read.
+
+    verbose : bool, optional
+        Not currently used.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    bytes
+        The raw contents of the file.
+
+    Notes
+    -----
+    If the file cannot be read, this function prints the error, opens a
+    ``pdb`` debugging session, and then exits the program.
+    @namurphy - should we start to replace these ``pdb`` so we don't heavy over use ``ruff:ignore``
+    """
     try:
         if gzip:
             import gzip  # ruff:ignore[PLC0415]
