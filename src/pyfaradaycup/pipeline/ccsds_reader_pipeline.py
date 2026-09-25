@@ -662,8 +662,8 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
             thisapid.apid = apid  # ty: ignore[unresolved-attribute]
-            line = (
-                ""  # so that the while loop will start out ok  # ruff:ignore[PLW2901]
+            line = (  #  ruff:ignore[PLW2901]
+                ""  # so that the while loop will start out ok
             )
             while line[0:4] != "APID":
                 i += 1  # ruff:ignore[PLW2901]
