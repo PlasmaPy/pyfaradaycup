@@ -35,12 +35,41 @@ import numpy as np
 
 
 #########################################
+
+
 def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
 #########################################
-def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+
+
+def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """
+    Read the entire contents of a file into a bytes object.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the file to read.
+
+    verbose : bool, optional
+        Not currently used.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    bytes
+        The raw contents of the file.
+
+    Notes
+    -----
+    If the file cannot be read, this function prints the error, opens a
+    ``pdb`` debugging session, and then exits the program.
+    @namurphy - should we start to replace these ``pdb`` so we don't heavy over use ``ruff:ignore``
+    """
     try:
         if gzip:
             import gzip  # ruff:ignore[PLC0415]
@@ -62,8 +91,36 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
 
 
 #########################################
-def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+
+
+def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     # make sure file exists
+    """
+    Check that a file can be opened and return its path.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the file to check.
+
+    ptp : bool, optional
+        Not currently used.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    str
+        The input ``path`` if the file can be opened, or an empty string
+        if it cannot be opened or no path was given.
+
+    Notes
+    -----
+    If the file cannot be opened, an error message is printed instead of
+    raising an exception. An interactive file dialog was used here
+    previously but is currently disabled.
+    """
     try:
         open(path).close()  # ruff:ignore[PTH123]
     except:  # ruff:ignore[E722]
@@ -82,8 +139,43 @@ def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN20
 
 
 #########################################
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
 
+
+def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """
+    Read CCSDS headers from SWEM wrapper packets and the packets inside them.
+
+    Parameters
+    ----------
+    path : str, optional
+        Path to the CCSDS file to read.
+
+    verbose : bool, optional
+        Not currently used.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    spconly : bool, optional
+        If `True`, only match SPC instrument APIDs (0x351-0x354, 0x35E,
+        0x35F). If `False`, match any instrument APID from 0x351 to 0x39F.
+
+    Returns
+    -------
+    dict of str to list
+        Header values for each matched packet pair. The keys are
+        ``"wrap_met"``, ``"wrap_apid"``, and ``"wrap_seq"`` for the
+        wrapper packet, and ``"data_met"``, ``"data_apid"``, and
+        ``"data_seq"`` for the instrument packet inside it. MET is the
+        mission elapsed time and seq is the CCSDS sequence count. If no
+        packets are found, each list is empty.
+
+    Notes
+    -----
+    Packets are found by searching the raw bytes for a SWEM wrapper
+    header (APIDs 0x348-0x350) followed by an instrument header. Only
+    the headers are decoded, not the packet data.
+    """
     # get a filename if not specified
     path = choose_file(path)
 
@@ -146,6 +238,8 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
 
 
 #########################################
+
+
 def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
@@ -238,6 +332,8 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
 
 
 #########################################
+
+
 def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # get a filename if not specified
@@ -434,6 +530,8 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
 
 
 #########################################
+
+
 def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
@@ -495,7 +593,39 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
 
 #########################################
-def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+
+
+def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+    """
+    Decode a 10-byte CCSDS packet header into its fields.
+
+    Parameters
+    ----------
+    bytestr : bytes
+        The header bytes. Only the first 10 bytes are used.
+
+    verbose : bool, optional
+        Not currently used.
+
+    Returns
+    -------
+    dict of str to int
+        The header fields, with keys ``"CCSDS_Version"``,
+        ``"CCSDS_PacketType"``, ``"CCSDS_SecHdrFlag"``, ``"CCSDS_ApID"``,
+        ``"CCSDS_GroupFlags"``, ``"CCSDS_SeqCnt"``, ``"CCSDS_PacketLen"``,
+        and ``"CCSDS_MET"``.
+
+    Raises
+    ------
+    ValueError
+        If ``bytestr`` is shorter than 10 bytes.
+
+    Notes
+    -----
+    The first 6 bytes are the standard CCSDS primary header. The next
+    4 bytes are read as the mission elapsed time (MET), in seconds, from
+    the secondary header.
+    """
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
     exp_length = 10
@@ -519,6 +649,8 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
 
 
 #########################################
+
+
 def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
     """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
@@ -623,8 +755,46 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisdat[key].append(newdat[key])
 
 
-#########################################
-class apid_obj:  # ruff:ignore[D101, N801]
+class apid_obj:  # ruff:ignore[ N801]
+    """
+    Store the bit layout of one packet type (APID).
+
+    An empty instance is created by `get_layout` or `get_layout_sc`,
+    which then fill in the attributes from a telemetry definition file.
+
+    Attributes
+    ----------
+    names : list of str
+        Mnemonic (field name) of each field in the packet.
+
+    bits : list of int
+        Length of each field, in bits.
+
+    bytestart, bitstart : list or numpy.ndarray of int
+        Byte and bit position where each field starts. Set by
+        `get_layout`.
+
+    byteend, bitend : list or numpy.ndarray of int
+        Byte and bit position where each field ends. Set by
+        `get_layout`.
+
+    startbyte, startbit : list of int
+        Byte and bit position where each field starts, as listed in the
+        spacecraft housekeeping definition file. Set by `get_layout_sc`.
+
+    data : dict of str to list
+        An empty list for each mnemonic. Set by `get_layout`.
+
+    Notes
+    -----
+    `get_layout` and `get_layout_sc` also add an ``apid`` attribute
+    (the APID as an int). `get_layout` adds a ``sw_data_vars``
+    attribute (a list of mnemonics in the science data block) for
+    packets that have one.
+    """
+
+    #########################################
+
     def __init__(self):  # ruff:ignore[ANN204]
         self.names = []
         self.bits = []
@@ -638,7 +808,34 @@ class apid_obj:  # ruff:ignore[D101, N801]
 
 
 #########################################
-def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
+
+
+def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+    """
+    Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
+
+    Parameters
+    ----------
+    apid : int
+        The APID to look up, such as ``0x352``.
+
+    verbose : bool, optional
+        If `True`, print status messages.
+
+    Returns
+    -------
+    apid_obj or None
+        The layout of each field in the packet, or `None` if the APID
+        is not found in the file.
+
+    Notes
+    -----
+    The file ``sweap_tlm.blk`` is looked for first in the current
+    working directory and then in the directory containing this module.
+    The second lookup builds the path with Windows-style backslashes,
+    so it only works on Windows. If neither file can be opened, a
+    ``pdb`` debugging session is started.
+    """
     try:
         file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
     except:  # ruff:ignore[E722]
@@ -708,7 +905,36 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
 
 
 #########################################
-def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
+def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+    """
+    Read the bit layout for one spacecraft housekeeping APID.
+
+    Parameters
+    ----------
+    apid : int
+        The APID to look up.
+
+    verbose : bool, optional
+        If `True`, print a message when the APID is found.
+
+    filename : str, optional
+        Path to the spacecraft housekeeping telemetry definition
+        (``.blk``) file.
+
+    Returns
+    -------
+    tuple of (apid_obj, int) or None
+        The layout of each field in the packet and the packet length
+        from the file's ``Block[...]`` line, or `None` if the APID is
+        not found in the file.
+
+    Notes
+    -----
+    The APID section in the file starts with a line like
+    ``SC_HK_0x<APID>``. Fields written as ``mnemonic[N]`` are treated
+    as ``N`` bytes long (``8 * N`` bits). If the file cannot be opened,
+    a ``pdb`` debugging session is started.
+    """
     try:
         file = open(filename)  # ruff:ignore[PTH123, SIM115]
         print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
