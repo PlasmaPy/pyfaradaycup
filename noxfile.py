@@ -314,12 +314,32 @@ def try_cli(session: nox.Session) -> None:
     )
 
     session.run("eza", "-R", "-l", tempdir, external=True)
+
+    original = "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf"
+    new = f"{tempdir}/0523462910_4_EA_APID351_L1.cdf"
+
+    session.run("cp", original, "/home/namurphy/original.cdf", external=True)
+    session.run("cp", new, "/home/namurphy/new.cdf", external=True)
+
     session.run(
-        "diff",
-        f"{tempdir}/0523462910_4_EA_APID351_L1.cdf",
-        "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf",
-        external=True,
+        "/home/namurphy/lib/cdf39_2-dist-main/bin/cdfcompare",
+        "-attr",
+        "-percent",
+        "-log",
+        #"-ziso8601",
+#        "-novar",
+#        "-tolerance",
+#        "F:1.0e-5,D:1.0e-9",
+        original,
+        new,
+         external=True,
     )
+#    session.run(
+#        "diff",
+#        f"{tempdir}/0523462910_4_EA_APID351_L1.cdf",
+#        "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf",
+#        external=True,
+#    )
 
 if __name__ == "__main__":
     nox.main()
