@@ -17,6 +17,8 @@
 # pre-commit.ci configuration: https://pre-commit.ci/#configuration
 # pre-commit docs: https://pre-commit.com/#adding-pre-commit-plugins-to-your-project
 
+exclude: ^tests/data/
+
 ci:
   autofix_prs: false
   autoupdate_schedule: monthly
