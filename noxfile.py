@@ -40,13 +40,17 @@ SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
 )
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
-MAXPYTHON = max(SUPPORTED_PYTHON_VERSIONS)
-MINPYTHON = min(SUPPORTED_PYTHON_VERSIONS)
+MAXPYTHON = SUPPORTED_PYTHON_VERSIONS[-1]
+MINPYTHON = SUPPORTED_PYTHON_VERSIONS[0]
 
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
 DOCPYTHON = "3.14"
+
+REPO_ROOT = pathlib.Path(__file__).parent
+DATA_DIR = REPO_ROOT / "tests" / "data"
+SSR_DIR = DATA_DIR / "sci" / "sweap" / "raw" / "ssr"
 
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
@@ -290,6 +294,52 @@ def zizmor(session: nox.Session) -> None:
     options.extend(session.posargs or ["--fix=safe"])
     session.run("zizmor", ".github", *options)
 
+
+@nox.session(python=MINPYTHON)
+def try_cli(session: nox.Session) -> None:
+
+    session.install(".")
+
+    tempdir = session.create_tmp()
+    l0file = str(SSR_DIR / "2026" / "215" / "0523462910_4_EA")
+
+    session.run(
+        "python",
+        "src/pyfaradaycup/pipeline/swp_spc_l02l1.py",
+        f"--l0file={l0file}",
+        f"--l1dir={tempdir}",
+        f"--logdir={tempdir}",
+        "-v",
+        env = {"PSP_DATA_DIR": str(DATA_DIR)},
+    )
+
+    session.run("eza", "-R", "-l", tempdir, external=True)
+
+    original = "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf"
+    new = f"{tempdir}/0523462910_4_EA_APID351_L1.cdf"
+
+    session.run("cp", original, "/home/namurphy/original.cdf", external=True)
+    session.run("cp", new, "/home/namurphy/new.cdf", external=True)
+
+    session.run(
+        "/home/namurphy/lib/cdf39_2-dist-main/bin/cdfcompare",
+        "-attr",
+        "-percent",
+        "-log",
+        #"-ziso8601",
+#        "-novar",
+#        "-tolerance",
+#        "F:1.0e-5,D:1.0e-9",
+        original,
+        new,
+         external=True,
+    )
+#    session.run(
+#        "diff",
+#        f"{tempdir}/0523462910_4_EA_APID351_L1.cdf",
+#        "/home/namurphy/Projects/pyfaradaycup/tests/data/sci/sweap/spc/L05/2026/08/APID351/0523462910_4_EA_APID351_L1.cdf",
+#        external=True,
+#    )
 
 if __name__ == "__main__":
     nox.main()
