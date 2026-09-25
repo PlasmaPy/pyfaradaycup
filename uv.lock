@@ -163,6 +163,21 @@ wheels = [
 ]
 
 [[package]]
+name = "cdflib"
+version = "1.3.12"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/66/98/2148d50084c6c40373b07ac0cf715123a03037680276e95916d97897344f/cdflib-1.3.12.tar.gz", hash = "sha256:b74fbbeac4c26e7a32a4aff678c7ae249682d77898c9674654e1a038c8c2624c", size = 284892, upload-time = "2026-06-01T15:37:54.165Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/5c/5f0c71662b0202b1c4d013073ca69aa9fd12cb05727af78f808a2a4c9c95/cdflib-1.3.12-py3-none-any.whl", hash = "sha256:ef3df6e7ea918223059c7c8384802d52d9a1f655d5db677b7b8d29fd9f3d2381", size = 80708, upload-time = "2026-06-01T15:37:52.984Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
@@ -2573,6 +2588,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "cdflib" },
     { name = "nox", version = "2026.4.10", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "nox", version = "2026.8.17", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "nox-uv", version = "0.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -2655,6 +2671,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "cdflib", specifier = ">=1.3.12" },
     { name = "nox" },
     { name = "nox-uv" },
     { name = "pre-commit" },
