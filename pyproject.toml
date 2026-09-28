@@ -71,9 +71,11 @@ dev = [
   { include-group = "zizmor" },
 ]
 test = [
+  "cdflib",
   "pytest",
   "pytest-filter-subpackage",
   "pytest-xdist",
+  "xarray>=2023.10",
 ]
 docs = [
   "sphinx",
