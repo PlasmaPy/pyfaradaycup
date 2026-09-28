@@ -324,14 +324,7 @@ def create_cdf_samples(session: nox.Session) -> None:
         file = path / f"{tag}.cdf"
         cdf = cdflib.cdfwrite.CDF(file)
 
-        cdf.write_var({
-            "Variable": "Epoch",
-            "Data_Type": cdflib.CDF_TIME_TT2000,
-            "Num_Elements": 1,
-            "Rec_Vary": True,
-            },
-            var_data = times_tt2000,
-        )
+        cdf.write_var(time_spec, var_data = times_tt2000        )
 
         cdf.write_var(
             {
