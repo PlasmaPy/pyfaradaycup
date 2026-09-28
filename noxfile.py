@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = [ "nox[uv]", "nox-uv", "uv" ]
+# dependencies = [ "nox[uv]", "nox-uv", "uv", "numpy", "cdflib" ]
 # ///
 
 """
