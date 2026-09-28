@@ -83,7 +83,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
     if not logdir:
         raise ValueError("Please supply logdir")
 
-    """Convert a single L0 file to L1"""  # ruff:ignore[D400]
+    """Convert a single L0 file to L1"""
     # Try to create a filename for the new CDF that we're going to create
     l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
     l0basename = os.path.basename(l0file)  # ruff:ignore[PTH119]
@@ -377,8 +377,6 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            import pdb  # ruff:ignore[PLC0415, T100]
-
             raise RuntimeError("Unidentified error 382")
 
             # pdb.set_trace()  # ruff:ignore[T100]
@@ -749,7 +747,6 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     except ValueError:
         statusmsg("***ERROR*** Could not find kernel versions")
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
 
         raise RuntimeError("Unidentified error 749")
 
@@ -763,7 +760,6 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
 
 def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
-
     # skeleton ≈ metadata schema in the form of an empty CDF file
 
     return f"/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]

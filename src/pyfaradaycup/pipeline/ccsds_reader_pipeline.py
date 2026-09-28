@@ -428,7 +428,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     return data
 
 
-def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913, RET503]
+def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
     try:
@@ -633,21 +633,23 @@ class apid_obj:  # ruff:ignore[D101, N801]
 def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002]
     try:
         # It appears that there is a unique sweap_tlm.blk
-        file = open("/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+        file = open(
+            "/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/sweap_tlm.blk"
+        )
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
                 "***INFO*** No local 'sweap_tlm.blk' found...using the one near ccsds_reader_pipeline.py"
             )
         try:
-            #here = os.path.dirname(__file__)
-            #thisdir = os.path.realpath(__file__)
-            #thisdir = "\\".join(thisdir.split("\\")[0:-1])
+            # here = os.path.dirname(__file__)
+            # thisdir = os.path.realpath(__file__)
+            # thisdir = "\\".join(thisdir.split("\\")[0:-1])
             HERE = pathlib.Path(__file__).parent
-            #print(f"{thisdir = }")
+            # print(f"{thisdir = }")
             file = open(HERE / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
         except:  # ruff:ignore[E722]
-            #print(here)
+            # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
             raise RuntimeError(f"Unable to open sweap_tlm.blk from {file}")
             # import pdb  # ruff:ignore[PLC0415, T100]
