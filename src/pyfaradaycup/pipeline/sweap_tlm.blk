@@ -2,7 +2,7 @@
 # generated at: 2018-04-24 13:57:58.062000
 # generated from: Instruments/SWEAP/SWEM/CTM/SWEAP_FSW_000_CTM.xls
 
-PKT_HDR 
+PKT_HDR
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -17,7 +17,7 @@ PKT_HDR
 	( CCSDS_Data[502]   ,,,	8; )
 }
 
-APID_340 
+APID_340
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -97,7 +97,7 @@ APID_340
 	SW_SPCERRCTR      ,,,	4;
 }
 
-APID_341 
+APID_341
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -121,7 +121,7 @@ APID_341
 	SW_STATUS         ,,,	8;
 }
 
-APID_Op341 
+APID_Op341
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -282,7 +282,7 @@ APID_Op341
 	SW_OSERRCOUNT     ,,,	16;
 }
 
-APID_342 
+APID_342
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -299,7 +299,7 @@ APID_342
 	SW_DATA[4082]     ,,,	8;
 }
 
-APID_343 
+APID_343
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -374,7 +374,7 @@ APID_343
 	SW_SPANAIT        ,,,	10;
 }
 
-APID_344 
+APID_344
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -395,7 +395,7 @@ APID_344
 	SW_EVNTDTA3[16]   ,,,	8;
 }
 
-APID_345 
+APID_345
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -416,7 +416,7 @@ APID_345
 	SW_DATA[512]      ,,,	8;
 }
 
-APID_346 
+APID_346
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -449,7 +449,7 @@ APID_346
 	SW_TICKSBTWN1PPS  ,,,	32;
 }
 
-APID_347 
+APID_347
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -466,7 +466,7 @@ APID_347
 	SW_DWELL_DATA[4082],,,	8;
 }
 
-APID_351 
+APID_351
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -531,7 +531,7 @@ APID_351
 	D3C               ,,,	12;
 }
 
-APID_352 
+APID_352
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -571,7 +571,7 @@ APID_352
 	G3_000            ,,,	12;
 }
 
-APID_353 
+APID_353
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -615,7 +615,7 @@ APID_353
 	DCOS              ,,,	12;
 }
 
-APID_354 
+APID_354
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -655,7 +655,7 @@ APID_354
 	DRSS              ,,,	12;
 }
 
-APID_35E 
+APID_35E
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -715,7 +715,7 @@ APID_35E
 	SW_SPC_SETPTR_PTR ,,,	8;
 }
 
-APID_35F 
+APID_35F
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -788,7 +788,7 @@ APID_35F
 	SW_SPC_CHECKSUM   ,,,	16;
 }
 
-APID_36E 
+APID_36E
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -1018,7 +1018,7 @@ APID_36E
 	SPAE_EDBA         ,,,	16;
 }
 
-APID_37E 
+APID_37E
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -1248,7 +1248,7 @@ APID_37E
 	SPB_EDBA          ,,,	16;
 }
 
-APID_3BE 
+APID_3BE
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -1446,7 +1446,7 @@ APID_3BE
 	SPAI_CLKS_PER_NYS ,,,	7;
 }
 
-APID_3BF 
+APID_3BF
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
@@ -1978,7 +1978,7 @@ APID_3BF
 	SPAI_FHKVAL512    ,,,	16;
 }
 
-APID_3B9 
+APID_3B9
 {
 	( Block[16384]      ,,,	8; )
 	( CCSDS_Header[10]  ,,,	8; )
