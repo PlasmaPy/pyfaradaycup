@@ -45,7 +45,7 @@ import spiceypy  # ty:ignore[unresolved-import]
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 
-DATA_DIR = pathlib.Path(__file__).parent.parent.parent / "data"
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 # Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
