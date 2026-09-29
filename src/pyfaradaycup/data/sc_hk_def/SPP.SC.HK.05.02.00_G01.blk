@@ -34766,3 +34766,4 @@ SC_HK_0x4AC
     EPI_LO_CRIT_STOP_RATE,                                         20,    7,    8;
     EPI_LO_CRIT_ENERGY_RATE,                                       21,    7,    8;
 }
+
