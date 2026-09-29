@@ -41,7 +41,7 @@ except:  # ruff:ignore[E722]
 
 import distutils.dir_util
 
-import spiceypy  # ty:ignore[unresolved-import]
+import spiceypy
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 
@@ -68,7 +68,7 @@ DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 # 				-	Added revision history
 
 
-def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
+def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # noqa: D103
     l0file="",  # ruff:ignore[ANN001]
     l1dir="",  # ruff:ignore[ANN001]
     logdir="",  # ruff:ignore[ANN001]
@@ -81,11 +81,11 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
 ):
 
     if not l0file:
-        raise ValueError("Please supply l0file")
+        raise ValueError("Please supply l0file")  # noqa: EM101, TRY003
     if not l1dir:
-        raise ValueError("Please supply l1dir")
+        raise ValueError("Please supply l1dir")  # noqa: EM101, TRY003
     if not logdir:
-        raise ValueError("Please supply logdir")
+        raise ValueError("Please supply logdir")  # noqa: EM101, TRY003
 
     """Convert a single L0 file to L1"""
     # Try to create a filename for the new CDF that we're going to create
@@ -141,10 +141,10 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
             screen=True,
             verbose=verbose,
         )
-        # import pdb  # ruff:ignore[PLC0415, T100]
+        # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
 
-        # pdb.set_trace()  # ruff:ignore[T100]
-        raise RuntimeError("Undocumented error 135")
+        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        raise RuntimeError("Undocumented error 135")  # noqa: B904, EM101, TRY003
         sys.exit()
 
     # Load in Leap Second Kernel
@@ -381,9 +381,9 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            raise RuntimeError("Unidentified error 382")
+            raise RuntimeError("Unidentified error 382")  # noqa: B904, EM101, TRY003
 
-            # pdb.set_trace()  # ruff:ignore[T100]
+            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
@@ -547,10 +547,10 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
 
-            raise RuntimeError("Unidentified error 549")
-            # import pdb  # ruff:ignore[PLC0415, T100]
+            raise RuntimeError("Unidentified error 549")  # noqa: B904, EM101, TRY003
+            # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
 
-            # pdb.set_trace()  # ruff:ignore[T100]
+            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
@@ -679,11 +679,11 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        # import pdb  # ruff:ignore[PLC0415, T100]
+        # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
 
-        # pdb.set_trace()  # ruff:ignore[T100]
+        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
 
-        raise RuntimeError("Unidentified error 686")
+        raise RuntimeError("Unidentified error 686")  # noqa: B904, EM101, TRY003
 
     return ()
 
@@ -722,10 +722,10 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     """Find the path to the newest NAIF TLS (leap second) kernel file"""  # ruff:ignore[D400]
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
-        raise RuntimeError("Need exactly one of tls or sclk")
+        raise RuntimeError("Need exactly one of tls or sclk")  # noqa: EM101, TRY003
         return False
 
-    # TODO: make this less hardcoded to the directory
+    # TODO: make this less hardcoded to the directory  # noqa: FIX002, TD002, TD003
     # Kristoff said that there's a spacepy(.pycdf?) command that regenerates
     # these files; we'll need to look into this.  This should be automated.
 
@@ -750,10 +750,10 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
         statusmsg("***ERROR*** Could not find kernel versions")
         print(sys.exc_info())  # ruff:ignore[T201]
 
-        raise RuntimeError("Could not find kernel versions")
+        raise RuntimeError("Could not find kernel versions")  # noqa: B904, EM101, TRY003
 
-        # pdb.set_trace()  # ruff:ignore[T100]
-        #return False
+        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        # return False
 
     # return path to newest file
     path = files[maxind]
@@ -765,7 +765,7 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     # skeleton ≈ metadata schema in the form of an empty CDF file
 
     return str(
-        f"{str(DATA_DIR)}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+        f"{DATA_DIR!s}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
     )
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them

@@ -3,6 +3,9 @@
 import os
 import subprocess
 import sys
+
+
+from collections.abc import Generator
 from pathlib import Path
 
 import cdflib.xarray
@@ -18,7 +21,7 @@ l0_l05_executable = str(
 )
 
 
-def test_l0_l05(tmp_path) -> None:
+def test_l0_l05(tmp_path: Path) -> None:  # noqa: ANN001
     """Test the level 0 to level 0.5 step."""
     tag = "0523462910_4_EA"
     apid = "351"
@@ -27,7 +30,7 @@ def test_l0_l05(tmp_path) -> None:
     l1dir = str(tmp_path)
     logdir = str(tmp_path)
 
-    subprocess.run(
+    subprocess.run(  # noqa: S603
         [
             sys.executable,
             l0_l05_executable,
@@ -42,8 +45,8 @@ def test_l0_l05(tmp_path) -> None:
 
     cdf_file = f"{tag}_APID{apid}_L1.cdf"
 
-    l05_cdf_expected = l05_dir / "2026" / "08" / f"APID{apid}" / cdf_file
-    l05_cdf_actual = tmp_path / cdf_file
+    l05_cdf_expected = str(l05_dir / "2026" / "08" / f"APID{apid}" / cdf_file)
+    l05_cdf_actual = str(tmp_path / cdf_file)
 
     # Use unix time so that time is given as a number rather than a datetime.
     expected = cdflib.xarray.cdf_to_xarray(l05_cdf_expected, to_unixtime=True)
