@@ -84,7 +84,6 @@ repos:
   hooks:
   - id: codespell
     name: codespell (add false positives to pyproject.toml)
-    args: [--write-changes]
     exclude: data|CITATION.cff
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
