@@ -528,12 +528,11 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
     if nocdf:
         return dat_exp
     # Fill in the CDF
-    keys = cdf.keys()
+    keys = list(cdf.keys())
 
     # Move 'Epoch' so that it is the first variable (so that we can be ISTP-compliant)
-    epochloc = np.where(np.array(keys) == "Epoch")[0]
-    if len(epochloc) != 0:
-        keys.pop(epochloc[0])
+    if "Epoch" in keys:
+        keys.remove("Epoch")
         keys.insert(0, "Epoch")
 
     for key in keys:
@@ -661,12 +660,11 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
         if nocdf:
             return dat_exp
         # Fill in the CDF
-        keys = cdf.keys()
+        keys = list(cdf.keys())
 
         # Move 'Epoch' so that it is the first variable (so that we can be ISTP-compliant)
-        epochloc = np.where(np.array(keys) == "Epoch")[0]
-        if len(epochloc) != 0:
-            keys.pop(epochloc[0])
+        if "Epoch" in keys:
+            keys.remove("Epoch")
             keys.insert(0, "Epoch")
         for key in keys:
             try:
