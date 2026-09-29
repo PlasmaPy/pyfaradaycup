@@ -19,7 +19,6 @@ l0_l05_executable = str(
 
 def test_l0_l05(tmp_path) -> None:
     """Test the level 0 to level 0.5 step."""
-
     tag = "0523462910_4_EA"
     apid = "351"
 

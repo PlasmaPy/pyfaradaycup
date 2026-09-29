@@ -22,6 +22,7 @@ import datetime
 import glob
 import math
 import os
+import pathlib
 import sys
 
 import numpy as np
@@ -43,6 +44,9 @@ import distutils.dir_util
 import spiceypy  # ty:ignore[unresolved-import]
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
+
+DATA_DIR = pathlib.Path(__file__).parent.parent.parent / "data"
+
 
 # Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
 #         into L0.5 or L1 CDF files
@@ -729,11 +733,11 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
 
     # Search in the MOC data product directory for newest file
     if tls:
-        globdir = "/home/namurphy/Projects/pyfaradaycup/tests/data/moc_data_products/leap_second_kernel/"
+        globdir = str(DATA_DIR / "moc_data_products" / "leap_second_kernel") + "/"
         globstr = globdir + "naif00[0-9][0-9].tls"
         ndigits = 2
     elif sclk:  # probably only the most recent one is needed?
-        globdir = "/home/namurphy/Projects/pyfaradaycup/tests/data/moc_data_products/operations_sclk_kernel/"
+        globdir = str(DATA_DIR / "moc_data_products" / "operations_sclk_kernel") + "/"
         globstr = globdir + "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
@@ -748,10 +752,10 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
         statusmsg("***ERROR*** Could not find kernel versions")
         print(sys.exc_info())  # ruff:ignore[T201]
 
-        raise RuntimeError("Unidentified error 749")
+        raise RuntimeError("Could not find kernel versions")
 
         # pdb.set_trace()  # ruff:ignore[T100]
-        return False
+        #return False
 
     # return path to newest file
     path = files[maxind]
@@ -762,7 +766,9 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     """Find the path to the newest skeleton CDF file"""  # ruff:ignore[D400]
     # skeleton ≈ metadata schema in the form of an empty CDF file
 
-    return f"/home/namurphy/Projects/pyfaradaycup/src/pyfaradaycup/pipeline/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+    return str(
+        f"{str(DATA_DIR)}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+    )
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
     # and we had to search for the most recent (highest) version

@@ -337,27 +337,27 @@ APID_343
 	SW_ADC5SPARE      ,,,	5;
 	SW_SWEMP1P5DV     ,,,	10;
 	( SW_DCB1P5CURR     ,,,	16; )
-	SW_DCB1P5IVALID   ,,,	1;
+	SW_DCB1P5INVALID   ,,,	1;
 	SW_ADC6SPARE      ,,,	5;
 	SW_DCB1P5I        ,,,	10;
 	( SW_DCB3P3CURR     ,,,	16; )
-	SW_DCB1P5IVALID   ,,,	1;
+	SW_DCB1P5INVALID   ,,,	1;
 	SW_ADC7SPARE      ,,,	5;
 	SW_DCB3P3I        ,,,	10;
 	( SW_SPC22CURR      ,,,	16; )
-	SW_SPC22IVALID    ,,,	1;
+	SW_SPC22INVALID    ,,,	1;
 	SW_ADC8SPARE      ,,,	5;
 	SW_SPC22I         ,,,	10;
 	( SW_SPANB22CURR    ,,,	16; )
-	SW_SPANB22IVALID  ,,,	1;
+	SW_SPANB22INVALID  ,,,	1;
 	SW_ADC9SPARE      ,,,	5;
 	SW_SPANB22I       ,,,	10;
 	( SW_SPANAE22CURR   ,,,	16; )
-	SW_SPANAE22IVALID ,,,	1;
+	SW_SPANAE22INVALID ,,,	1;
 	SW_ADC10SPARE     ,,,	5;
 	SW_SPANAE22I      ,,,	10;
 	( SW_SPANAI22CURR   ,,,	16; )
-	SW_SPANAI22IVALID ,,,	1;
+	SW_SPANAI22INVALID ,,,	1;
 	SW_ADC11SPARE     ,,,	5;
 	SW_SPANAI22I      ,,,	10;
 	( SW_SPANBTEMP      ,,,	16; )
@@ -1993,4 +1993,3 @@ APID_3B9
 	( CCSDS_Data[502]   ,,,	8; )
 	DATA[195]         ,,,	32;
 }
-
