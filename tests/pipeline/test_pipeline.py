@@ -1,5 +1,6 @@
 """Test command line tools."""
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -35,7 +36,7 @@ def test_l0_l05(tmp_path) -> None:
             f"--logdir={logdir}",
             "-v",
         ],
-        env={"PSP_DATA_DIR": str(data_dir)},
+        env={**os.environ, "PSP_DATA_DIR": str(data_dir)},
         check=True,
     )
 
