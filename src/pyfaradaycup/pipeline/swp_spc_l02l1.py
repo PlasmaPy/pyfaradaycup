@@ -144,7 +144,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # no
         # import pdb
 
         # pdb.set_trace()
-        raise RuntimeError("Undocumented error 135")  # noqa: B904, EM101, TRY003
+        raise RuntimeError  # noqa: B904
         sys.exit()
 
     # Load in Leap Second Kernel

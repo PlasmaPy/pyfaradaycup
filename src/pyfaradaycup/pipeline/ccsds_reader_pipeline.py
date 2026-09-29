@@ -576,7 +576,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
         try:
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
-            raise RuntimeError("Undocumented error 581")  # noqa: B904, EM101, TRY003
+            raise RuntimeError  # noqa: B904
             # import pdb
 
             # pdb.set_trace()
@@ -606,7 +606,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
                 try:
                     thisval = int(thisbin, 2)
                 except ValueError:
-                    raise ValueError("Undocumented error 611")  # noqa: B904, EM101, TRY003
+                    raise ValueError  # noqa: B904
                     # import pdb
                     #
                     # pdb.set_trace()
@@ -684,7 +684,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError("Undocumented error 686")  # noqa: B904, EM101, TRY003
+                    raise RuntimeError  # noqa: B904
                     # import pdb
                     #
                     # pdb.set_trace()
@@ -715,7 +715,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
     except:  # ruff:ignore[E722]
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError("Undocumented error 718")  # noqa: B904, EM101, TRY003
+        raise RuntimeError  # noqa: B904
         # import pdb
         #
         # pdb.set_trace()
@@ -753,7 +753,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                     # import pdb
                     #
                     # pdb.set_trace()
-                    raise RuntimeError("Undocumented error 756")  # noqa: B904, EM101, TRY003
+                    raise RuntimeError  # noqa: B904
             return (thisapid, length)
     # if we didn't find that APID
     print(  # ruff:ignore[T201]
