@@ -27,17 +27,7 @@ import sys
 
 import numpy as np
 
-try:
-    from spacepy import pycdf
-except:  # ruff:ignore[E722]
-    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)  # ruff:ignore[FIX002, TD002, TD003]
-    # then we don't need this.
-    print(sys.exc_info())  # ruff:ignore[T201]
-    print("***ERROR*** Could not import pycdf from spacepy")  # ruff:ignore[T201]
-    print(  # ruff:ignore[T201]
-        "\t You must have the environmental variable CDF_LIB set, perhaps to /opt/cdf/lib?"
-    )
-    sys.exit()
+from spacepy import pycdf
 
 import distutils.dir_util
 
@@ -141,11 +131,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # no
             screen=True,
             verbose=verbose,
         )
-        # import pdb
-
-        # pdb.set_trace()
         raise RuntimeError  # noqa: B904
-        sys.exit()
 
     # Load in Leap Second Kernel
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
@@ -318,7 +304,6 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # no
             continue
 
         # Close the CDF
-        # import pdb; pdb.set_trace()
         cdf.close()
 
     statusmsg(
@@ -381,9 +366,8 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            raise RuntimeError("Unidentified error 382")  # noqa: B904, EM101, TRY003
+            raise RuntimeError  # noqa: B904, EM101, TRY003
 
-            # pdb.set_trace()
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
@@ -502,7 +486,6 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
         # If we're in an AllGain packet, then the beginning of the packet might not be the beginning of the NYS (which is the time noted in the header)
         if apid == 0x351:  # ruff:ignore[PLR2004]
             pktnum = dat["SW_SPC_PKTNUM"][i]
-            # if pktnum==0: import pdb; pdb.set_trace()
             if pktnum != 0:
                 if len(dat_exp["Epoch"]) == 0:
                     continue  # if file started on pktnum other than zero, then we can't know precise timing for the first 1-3 packets
@@ -548,9 +531,6 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
 
             raise RuntimeError("Unidentified error 549")  # noqa: B904, EM101, TRY003
-            # import pdb
-
-            # pdb.set_trace()
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
@@ -679,11 +659,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        # import pdb
-
-        # pdb.set_trace()
-
-        raise RuntimeError("Unidentified error 686")  # noqa: B904, EM101, TRY003
+        raise RuntimeError  # noqa: B904, EM101, TRY003
 
     return ()
 
@@ -751,9 +727,6 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
         print(sys.exc_info())  # ruff:ignore[T201]
 
         raise RuntimeError("Could not find kernel versions")  # noqa: B904, EM101, TRY003
-
-        # pdb.set_trace()
-        # return False
 
     # return path to newest file
     path = files[maxind]

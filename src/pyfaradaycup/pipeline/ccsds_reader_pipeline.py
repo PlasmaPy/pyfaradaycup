@@ -57,9 +57,6 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
     except:  # ruff:ignore[E722]
         print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
-
-        pdb.set_trace()  # ruff:ignore[T100]
         sys.exit()
 
 
@@ -385,7 +382,6 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
         offset_bytes = (
             0  # we searched for beginning of CCSDS packets, so no offset necessary
         )
-    # import pdb; pdb.set_trace()
 
     # Find all occurrences of the beginning of a packet
     pkt_inds = np.array(
@@ -485,12 +481,6 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
     return ()
 
-    # we shouldn't make it here
-    # import pdb
-
-    # pdb.set_trace()
-
-
 def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
@@ -577,9 +567,6 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
             raise RuntimeError  # noqa: B904
-            # import pdb
-
-            # pdb.set_trace()
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -607,9 +594,6 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
                     thisval = int(thisbin, 2)
                 except ValueError:
                     raise ValueError  # noqa: B904
-                    # import pdb
-                    #
-                    # pdb.set_trace()
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -652,9 +636,6 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
             # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
             raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # noqa: B904, EM102, TRY003
-            # import pdb
-            #
-            # pdb.set_trace()
     lines = file.readlines()
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
@@ -685,9 +666,6 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
                     raise RuntimeError  # noqa: B904
-                    # import pdb
-                    #
-                    # pdb.set_trace()
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -716,9 +694,6 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
         raise RuntimeError  # noqa: B904
-        # import pdb
-        #
-        # pdb.set_trace()
 
     lines = file.readlines()
     for i, line in enumerate(lines):
@@ -750,9 +725,6 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    # import pdb
-                    #
-                    # pdb.set_trace()
                     raise RuntimeError  # noqa: B904
             return (thisapid, length)
     # if we didn't find that APID
