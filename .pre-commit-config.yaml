@@ -84,16 +84,6 @@ repos:
   hooks:
   - id: codespell
     name: codespell (add false positives to pyproject.toml)
-    args: [--write-changes]
-    exclude: data|CITATION.cff
-
-- repo: https://github.com/adhtruong/mirrors-typos
-  # use mirrors-typos because `pre-commit autoupdate` drops the version
-  # of the primary typos repo from v1.x.y to v1
-  rev: v1.50.1
-  hooks:
-  - id: typos
-    name: typos (add false positives to _typos.toml)
     exclude: data|CITATION.cff
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
