@@ -2729,6 +2729,7 @@ dev = [
     { name = "pre-commit", version = "4.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pytest-check" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
     { name = "ty" },
@@ -2757,6 +2758,7 @@ test = [
     { name = "cdflib" },
     { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pytest-check" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
     { name = "xarray", version = "2023.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -2815,6 +2817,7 @@ dev = [
     { name = "nox-uv" },
     { name = "pre-commit" },
     { name = "pytest" },
+    { name = "pytest-check", specifier = ">=2.9.1" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
     { name = "ty" },
@@ -2831,6 +2834,7 @@ nox = [
 test = [
     { name = "cdflib" },
     { name = "pytest" },
+    { name = "pytest-check", specifier = ">=2.9.1" },
     { name = "pytest-filter-subpackage" },
     { name = "pytest-xdist" },
     { name = "xarray", marker = "python_full_version < '3.11'", specifier = ">=2022.6,<2023.10" },
@@ -2909,6 +2913,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e4/47/b9efed96c114afcfa3c9d3fe98a76a1d14c74a9e266d397cf6eb64be5e01/pytest-9.1.1.tar.gz", hash = "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313", size = 1636369, upload-time = "2026-06-19T10:58:32.857Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/24/25/1de2678b631f5a49215c6c96fff41ba892b0a34df68d6d80292b1b48aa7f/pytest-9.1.1-py3-none-any.whl", hash = "sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c", size = 386536, upload-time = "2026-06-19T10:58:31.347Z" },
+]
+
+[[package]]
+name = "pytest-check"
+version = "2.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5c/48/78fb4d9f95e383e81d2a74db1a56fd2f90947cd08e0d585356830e8e2fe8/pytest_check-2.9.1.tar.gz", hash = "sha256:2d8c9f1fe5cceb0b41c480e1454e95e9ed6a3a534bf2c7e3e0f39167b11cf88b", size = 41394, upload-time = "2026-08-01T06:28:06.417Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6b/c5/6c9809d27ecc279d2d4591f1317eb099b52fa9a93998fdcb78bc8f614a4f/pytest_check-2.9.1-py3-none-any.whl", hash = "sha256:9c745f50532c2f650f3d0afab78810aa9e0ca25b8ac60986e1590d8819c04562", size = 21350, upload-time = "2026-08-01T06:28:05.191Z" },
 ]
 
 [[package]]

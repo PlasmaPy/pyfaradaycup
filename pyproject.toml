@@ -73,6 +73,7 @@ dev = [
 test = [
   "cdflib",
   "pytest",
+  "pytest-check>=2.9.1",
   "pytest-filter-subpackage",
   "pytest-xdist",
   "xarray>=2022.6,<2023.10; python_version<'3.11'",
