@@ -3,9 +3,6 @@
 import os
 import subprocess
 import sys
-
-
-from collections.abc import Generator
 from pathlib import Path
 
 import cdflib.xarray
@@ -21,7 +18,7 @@ l0_l05_executable = str(
 )
 
 
-def test_l0_l05(tmp_path: Path) -> None:  # noqa: ANN001
+def test_l0_l05(tmp_path: Path) -> None:
     """Test the level 0 to level 0.5 step."""
     tag = "0523462910_4_EA"
     apid = "351"

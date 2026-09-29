@@ -486,9 +486,9 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     return ()
 
     # we shouldn't make it here
-    # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+    # import pdb
 
-    # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+    # pdb.set_trace()
 
 
 def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
@@ -577,9 +577,9 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
             raise RuntimeError("Undocumented error 581")  # noqa: B904, EM101, TRY003
-            # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+            # import pdb
 
-            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+            # pdb.set_trace()
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -607,9 +607,9 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
                     thisval = int(thisbin, 2)
                 except ValueError:
                     raise ValueError("Undocumented error 611")  # noqa: B904, EM101, TRY003
-                    # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+                    # import pdb
                     #
-                    # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+                    # pdb.set_trace()
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -652,9 +652,9 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
             # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
             raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # noqa: B904, EM102, TRY003
-            # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+            # import pdb
             #
-            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+            # pdb.set_trace()
     lines = file.readlines()
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
@@ -685,9 +685,9 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, 
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
                     raise RuntimeError("Undocumented error 686")  # noqa: B904, EM101, TRY003
-                    # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+                    # import pdb
                     #
-                    # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+                    # pdb.set_trace()
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -716,9 +716,9 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
         raise RuntimeError("Undocumented error 718")  # noqa: B904, EM101, TRY003
-        # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+        # import pdb
         #
-        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        # pdb.set_trace()
 
     lines = file.readlines()
     for i, line in enumerate(lines):
@@ -750,9 +750,9 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+                    # import pdb
                     #
-                    # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+                    # pdb.set_trace()
                     raise RuntimeError("Undocumented error 756")  # noqa: B904, EM101, TRY003
             return (thisapid, length)
     # if we didn't find that APID

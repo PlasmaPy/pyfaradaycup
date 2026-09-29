@@ -141,9 +141,9 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # no
             screen=True,
             verbose=verbose,
         )
-        # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+        # import pdb
 
-        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        # pdb.set_trace()
         raise RuntimeError("Undocumented error 135")  # noqa: B904, EM101, TRY003
         sys.exit()
 
@@ -383,7 +383,7 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
         except:  # ruff:ignore[E722]
             raise RuntimeError("Unidentified error 382")  # noqa: B904, EM101, TRY003
 
-            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+            # pdb.set_trace()
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
@@ -548,9 +548,9 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
 
             raise RuntimeError("Unidentified error 549")  # noqa: B904, EM101, TRY003
-            # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+            # import pdb
 
-            # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+            # pdb.set_trace()
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, D103, FBT002, PLR0912, PLR0915]
@@ -679,9 +679,9 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        # import pdb  # ruff:ignore[PLC0415, T100]  # noqa: RUF100
+        # import pdb
 
-        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        # pdb.set_trace()
 
         raise RuntimeError("Unidentified error 686")  # noqa: B904, EM101, TRY003
 
@@ -752,7 +752,7 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
 
         raise RuntimeError("Could not find kernel versions")  # noqa: B904, EM101, TRY003
 
-        # pdb.set_trace()  # ruff:ignore[T100]  # noqa: RUF100
+        # pdb.set_trace()
         # return False
 
     # return path to newest file
