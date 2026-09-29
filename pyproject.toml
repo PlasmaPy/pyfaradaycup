@@ -73,7 +73,7 @@ test = [
   "pytest",
   "pytest-filter-subpackage",
   "pytest-xdist",
-  "xarray>=2023.10",
+  "xarray>=2022.6,<2023.10",
 ]
 docs = [
   "sphinx",
