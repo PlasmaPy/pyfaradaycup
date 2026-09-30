@@ -26,10 +26,8 @@ import pathlib
 import sys
 
 import numpy as np
-
-from spacepy import pycdf
-
 import spiceypy
+from spacepy import pycdf
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 
@@ -364,7 +362,7 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            raise RuntimeError  # noqa: B904, EM101, TRY003
+            raise RuntimeError  # noqa: B904
 
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
@@ -657,7 +655,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # noqa: B904, EM101, TRY003
+        raise RuntimeError  # noqa: B904
 
     return ()
 

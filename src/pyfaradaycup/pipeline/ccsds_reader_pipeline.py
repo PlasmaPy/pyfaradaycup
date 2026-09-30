@@ -481,6 +481,7 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
 
     return ()
 
+
 def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
     bytearr = struct.unpack("B" * len(bytestr), bytestr)
 
