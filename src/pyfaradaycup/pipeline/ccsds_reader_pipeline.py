@@ -800,7 +800,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
-                "***INFO*** No local 'sweap_tlm.blk' found...using the one near ccsds_reader_pipeline.py"
+                "***INFO*** 'sweap_tlm.blk' not found...using the one in src/pyfaradaycup/data"
             )
         try:
             # here = os.path.dirname(__file__)
