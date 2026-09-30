@@ -106,7 +106,6 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
         If `True`, print messages to the screen as well as to the log
         file.
     """
-
     if not l0file:
         raise ValueError("Please supply l0file")  # noqa: EM101, TRY003
     if not l1dir:
@@ -445,7 +444,6 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
                 verbose=verbose,
             )
             statusmsg(sys.exc_info())
-
 
 
 def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
@@ -1007,7 +1005,6 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     return str(
         f"{DATA_DIR!s}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
     )
-
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
     # and we had to search for the most recent (highest) version

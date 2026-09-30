@@ -42,10 +42,6 @@ def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
-#########################################
-
-
 def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     """
     Read the entire contents of a file into a bytes object.
@@ -89,7 +85,7 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
         sys.exit()
 
 
-def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, D103, FBT002]
+def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
     # make sure file exists
     """
     Check that a file can be opened and return its path.
