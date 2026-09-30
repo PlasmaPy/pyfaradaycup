@@ -704,9 +704,6 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
     spaced ``1 / (32 * 1171.875)`` seconds apart, starting at the
     packet's start tick. Values that appear once per packet are
     repeated for every measurement in that packet.
-
-    If an unexpected error occurs, a ``pdb`` debugging session is
-    started.
     """
     try:
         # Calculate SCET from the variables in the L0 data
