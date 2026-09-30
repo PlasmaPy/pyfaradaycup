@@ -27,9 +27,9 @@ classifiers = [
 dependencies = [
   "numpy>=1.18.5,<1.22; python_version<'3.11'",
   "numpy>=1.23.2; python_version>='3.11'",
-  "python-dateutil>=1",
-  "spacepy>=0.3.1",
-  "spiceypy>=2.0.1",
+  "python-dateutil>=2.9",
+  "spacepy>=0.7",
+  "spiceypy>=6",
 ]
 scripts.levelup = "pyfaradaycup.pipeline.swp_spc_l02l1:main"
 
