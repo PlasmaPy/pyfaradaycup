@@ -638,7 +638,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
 
-            raise RuntimeError("Unidentified error 549")  # noqa: B904, EM101, TRY003
+            raise RuntimeError  # noqa: B904, EM101, TRY003
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
