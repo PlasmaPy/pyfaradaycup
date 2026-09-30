@@ -5,6 +5,8 @@
 #  $LastChangedBy: acase $
 """  # ruff:ignore[D400]
 
+from __future__ import annotations
+
 __all__ = [
     "cdf35e_35f",
     "cdf351_353_354",
@@ -24,6 +26,7 @@ import math
 import os
 import pathlib
 import sys
+from typing import TextIO
 
 import numpy as np
 import spiceypy
@@ -32,6 +35,9 @@ from spacepy import pycdf
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+
+# The log file, which is opened by main
+logfile: TextIO
 
 
 # Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
@@ -54,17 +60,17 @@ DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 # 				-	Added revision history
 
 
-def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
-    l0file="",  # ruff:ignore[ANN001]
-    l1dir="",  # ruff:ignore[ANN001]
-    logdir="",  # ruff:ignore[ANN001]
-    spacecraft=False,  # ruff:ignore[ANN001, FBT002]
-    ptp=False,  # ruff:ignore[ANN001, FBT002]
-    gzip=False,  # ruff:ignore[ANN001, FBT002]
-    apidreq=0,  # ruff:ignore[ANN001]
-    overwrite=False,  # ruff:ignore[ANN001, FBT002]
-    verbose=False,  # ruff:ignore[ANN001, FBT002]
-):
+def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
+    l0file: str = "",
+    l1dir: str = "",
+    logdir: str = "",
+    spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
+    ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    apidreq: int = 0,
+    overwrite: bool = False,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> None:
     """
     Convert one SPC L0 file into L1 CDF files, one per APID.
 
@@ -349,7 +355,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
     logfile.close()
 
 
-def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FBT002]
+def cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> None:  # ruff:ignore[C901, FBT001, FBT002]
     """
     Fill a CDF with housekeeping data, one row per packet.
 
@@ -446,7 +452,12 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             statusmsg(sys.exc_info())
 
 
-def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
+def cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
+    cdf: pycdf.CDF,
+    dat: dict[str, list],
+    nocdf: bool = False,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> dict[str, list] | None:
     """
     Expand SPC science packets (APIDs 0x351, 0x353, 0x354) and write them to a CDF.
 
@@ -641,7 +652,12 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             raise RuntimeError  # ruff:ignore[B904]
 
 
-def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
+def cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
+    cdf: pycdf.CDF,
+    dat: dict[str, list],
+    nocdf: bool = False,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> dict[str, list] | tuple[()]:
     """
     Expand SPC time series (APID 0x352) packets into L1 data and write them to a CDF.
 
@@ -819,7 +835,12 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
     return ()
 
 
-def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def secsubsec2scet(
+    sec: list[int],
+    subsec: list[int],
+    spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
+) -> list[float]:
     """
     Convert MET seconds and subseconds to ephemeris time in nanoseconds.
 
@@ -873,7 +894,12 @@ def secsubsec2scet(sec, subsec, spacecraft=False, verbose=False):  # ruff:ignore
     return ephem_nanosec_j2000  # ruff:ignore[RET504]
 
 
-def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
+def statusmsg(
+    string: str,
+    screen: bool = False,  # ruff:ignore[FBT001, FBT002]
+    file: bool = True,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> None:
     """
     Write a timestamped status message to the log file and/or the screen.
 
@@ -907,7 +933,11 @@ def statusmsg(string, screen=False, file=True, verbose=False):  # ruff:ignore[AN
             print(string)  # ruff:ignore[T201]
 
 
-def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_kernel(
+    tls: bool = False,  # ruff:ignore[FBT001, FBT002]
+    sclk: bool = False,  # ruff:ignore[FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
+) -> str:
     """
     Find the newest NAIF leap second or PSP clock (SCLK) kernel file.
 
@@ -976,7 +1006,7 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     return path  # ruff:ignore[RET504]
 
 
-def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore[ARG001, FBT001, FBT002]
     """
     Return the path to the skeleton CDF file for an APID.
 
@@ -1030,7 +1060,7 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     # return(path)
 
 
-def setup():  # ruff:ignore[ANN201]
+def setup() -> argparse.Namespace:
     """
     Read the command-line arguments for running this module as a script.
 
@@ -1170,7 +1200,7 @@ def setup():  # ruff:ignore[ANN201]
             statusmsg(
                 "***ERROR*** You must provide --l0file, if not using -b or -r",
                 screen=True,
-                verbose=verbose,  # ruff:ignore[F821]
+                verbose=verbose,  # ruff:ignoreignore[F821]
             )
     elif args.l0dir == "":
         statusmsg(
