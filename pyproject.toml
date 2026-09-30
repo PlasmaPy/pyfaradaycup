@@ -27,6 +27,9 @@ classifiers = [
 dependencies = [
   "numpy>=1.18.5,<1.22; python_version<'3.11'",
   "numpy>=1.23.2; python_version>='3.11'",
+  # matplotlib < 3.9 (used with numpy < 1.22 on Python < 3.11) calls
+  # pyparsing's parseString, which pyparsing 3.3 deprecates.
+  "pyparsing<3.3; python_version<'3.11'",
   "python-dateutil>=2.9",
   "spacepy>=0.7",
   "spiceypy>=6",
