@@ -833,8 +833,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
     The file ``sweap_tlm.blk`` is looked for first in the current
     working directory and then in the directory containing this module.
     The second lookup builds the path with Windows-style backslashes,
-    so it only works on Windows. If neither file can be opened, a
-    ``pdb`` debugging session is started.
+    so it only works on Windows.
     """
     try:
         file = open("sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
