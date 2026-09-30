@@ -8,7 +8,7 @@ The following files and directories came from `/psp/code/`.
 - `sc_hk_def/`
 - `sweap_tlm.blk`
 
-The following files and directories came from `/psp/data`.
+The following files and directories came from `/psp/data/`.
 
 - `moc_data_products/operations_sclk_kernel/spp_sclk_*.tsc`
 - `moc_data_products/leap_second_kernel/naif0012.tls`
