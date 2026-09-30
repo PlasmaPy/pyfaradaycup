@@ -29,8 +29,6 @@ import numpy as np
 
 from spacepy import pycdf
 
-import distutils.dir_util
-
 import spiceypy
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
@@ -95,8 +93,8 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]  # no
     nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
     if logdir == "":
         logdir = l1dir  # use L1 file output directory for log file, if nothing else specified
-    distutils.dir_util.mkpath(
-        logdir
+    pathlib.Path(logdir).mkdir(
+        parents=True, exist_ok=True
     )  # in case the directory doesn't exist, this will create it
     logpath = os.path.join(  # ruff:ignore[PTH118]
         logdir,
