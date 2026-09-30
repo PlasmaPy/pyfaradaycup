@@ -24,9 +24,9 @@ Nox documentation: https://nox.thea.codes
 import os
 import pathlib
 
-import nox  # ty:ignore[unresolved-import]
-import nox.command  # ty:ignore[unresolved-import]
-import nox_uv  # ty:ignore[unresolved-import]
+import nox
+import nox.command
+import nox_uv
 
 nox.options.default_venv_backend = "uv"
 
@@ -40,13 +40,17 @@ SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
 )
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
-MAXPYTHON = max(SUPPORTED_PYTHON_VERSIONS)
-MINPYTHON = min(SUPPORTED_PYTHON_VERSIONS)
+MAXPYTHON = SUPPORTED_PYTHON_VERSIONS[-1]
+MINPYTHON = SUPPORTED_PYTHON_VERSIONS[0]
 
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
 DOCPYTHON = "3.14"
+
+REPO_ROOT = pathlib.Path(__file__).parent
+DATA_DIR = REPO_ROOT / "tests" / "data"
+SSR_DIR = DATA_DIR / "sci" / "sweap" / "raw" / "ssr"
 
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)

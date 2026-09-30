@@ -50,10 +50,25 @@ jobs:
           python: '3.14'
           nox_session: tests-3.14
 
+        - name: Tests, Python 3.13
+          os: windows-latest
+          python: '3.13'
+          nox_session: tests-3.13
+
+        - name: Tests, Python 3.12
+          os: ubuntu-latest
+          python: '3.12'
+          nox_session: tests-3.12
+
+        - name: Tests, Python 3.11
+          os: macos-latest
+          python: '3.11'
+          nox_session: tests-3.11
+
         - name: Tests, Python 3.10
           os: windows-latest
           python: '3.10'
-          nox_session: tests-3.13
+          nox_session: tests-3.10
 
         - name: Tests, Python 3.9
           os: ubuntu-latest

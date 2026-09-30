@@ -22,27 +22,17 @@ import datetime
 import glob
 import math
 import os
+import pathlib
 import sys
 
 import numpy as np
-
-try:
-    from spacepy import pycdf
-except:  # ruff:ignore[E722]
-    # TODO: If we are using newer version of SpacePy (>= 0.3, give or take)  # ruff:ignore[FIX002, TD002, TD003]
-    # then we don't need this.
-    print(sys.exc_info())  # ruff:ignore[T201]
-    print("***ERROR*** Could not import pycdf from spacepy")  # ruff:ignore[T201]
-    print(  # ruff:ignore[T201]
-        "\t You must have the environmental variable CDF_LIB set, perhaps to /opt/cdf/lib?"
-    )
-    sys.exit()
-
-import distutils.dir_util
-
-import spiceypy  # ty:ignore[unresolved-import]
+import spiceypy
+from spacepy import pycdf
 
 import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
+
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+
 
 # Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
 #         into L0.5 or L1 CDF files
@@ -116,6 +106,13 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
         If `True`, print messages to the screen as well as to the log
         file.
     """
+    if not l0file:
+        raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
+    if not l1dir:
+        raise ValueError("Please supply l1dir")  # ruff:ignore[EM101, TRY003]
+    if not logdir:
+        raise ValueError("Please supply logdir")  # ruff:ignore[EM101, TRY003]
+
     # Try to create a filename for the new CDF that we're going to create
     l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
     l0basename = os.path.basename(l0file)  # ruff:ignore[PTH119]
@@ -133,8 +130,8 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
     nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
     if logdir == "":
         logdir = l1dir  # use L1 file output directory for log file, if nothing else specified
-    distutils.dir_util.mkpath(
-        logdir
+    pathlib.Path(logdir).mkdir(
+        parents=True, exist_ok=True
     )  # in case the directory doesn't exist, this will create it
     logpath = os.path.join(  # ruff:ignore[PTH118]
         logdir,
@@ -169,10 +166,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
             screen=True,
             verbose=verbose,
         )
-        import pdb  # ruff:ignore[PLC0415, T100]
-
-        pdb.set_trace()  # ruff:ignore[T100]
-        sys.exit()
+        raise RuntimeError  # ruff:ignore[B904]
 
     # Load in Leap Second Kernel
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
@@ -345,7 +339,6 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
             continue
 
         # Close the CDF
-        # import pdb; pdb.set_trace()
         cdf.close()
 
     statusmsg(
@@ -443,20 +436,14 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            import pdb  # ruff:ignore[PLC0415, T100]
+            raise RuntimeError  # ruff:ignore[B904]
 
-            pdb.set_trace()  # ruff:ignore[T100]
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
                 screen=True,
                 verbose=verbose,
             )
             statusmsg(sys.exc_info())
-
-
-#####################################################
-##
-#####################################################
 
 
 def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915, RET503]
@@ -607,7 +594,6 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
         # If we're in an AllGain packet, then the beginning of the packet might not be the beginning of the NYS (which is the time noted in the header)
         if apid == 0x351:  # ruff:ignore[PLR2004]
             pktnum = dat["SW_SPC_PKTNUM"][i]
-            # if pktnum==0: import pdb; pdb.set_trace()
             if pktnum != 0:
                 if len(dat_exp["Epoch"]) == 0:
                     continue  # if file started on pktnum other than zero, then we can't know precise timing for the first 1-3 packets
@@ -633,12 +619,11 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
     if nocdf:
         return dat_exp
     # Fill in the CDF
-    keys = cdf.keys()
+    keys = list(cdf.keys())
 
     # Move 'Epoch' so that it is the first variable (so that we can be ISTP-compliant)
-    epochloc = np.where(np.array(keys) == "Epoch")[0]
-    if len(epochloc) != 0:
-        keys.pop(epochloc[0])
+    if "Epoch" in keys:
+        keys.remove("Epoch")
         keys.insert(0, "Epoch")
 
     for key in keys:
@@ -652,9 +637,8 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
                 verbose=verbose,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-            import pdb  # ruff:ignore[PLC0415, T100]
 
-            pdb.set_trace()  # ruff:ignore[T100]
+            raise RuntimeError  # ruff:ignore[B904]
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
@@ -811,12 +795,11 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
         if nocdf:
             return dat_exp
         # Fill in the CDF
-        keys = cdf.keys()
+        keys = list(cdf.keys())
 
         # Move 'Epoch' so that it is the first variable (so that we can be ISTP-compliant)
-        epochloc = np.where(np.array(keys) == "Epoch")[0]
-        if len(epochloc) != 0:
-            keys.pop(epochloc[0])
+        if "Epoch" in keys:
+            keys.remove("Epoch")
             keys.insert(0, "Epoch")
         for key in keys:
             try:
@@ -831,9 +814,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
-
-        pdb.set_trace()  # ruff:ignore[T100]
+        raise RuntimeError  # ruff:ignore[B904]
 
     return ()
 
@@ -960,15 +941,20 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     """
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
+        raise RuntimeError("Need exactly one of tls or sclk")  # ruff:ignore[EM101, TRY003]
         return False
+
+    # TODO: make this less hardcoded to the directory  # ruff:ignore[FIX002, TD002, TD003]
+    # Kristoff said that there's a spacepy(.pycdf?) command that regenerates
+    # these files; we'll need to look into this.  This should be automated.
 
     # Search in the MOC data product directory for newest file
     if tls:
-        globdir = "/psp/data/moc_data_products/leap_second_kernel/"
+        globdir = str(DATA_DIR / "moc_data_products" / "leap_second_kernel") + "/"
         globstr = globdir + "naif00[0-9][0-9].tls"
         ndigits = 2
-    elif sclk:
-        globdir = "/psp/data/moc_data_products/operations_sclk_kernel/"
+    elif sclk:  # probably only the most recent one is needed?
+        globdir = str(DATA_DIR / "moc_data_products" / "operations_sclk_kernel") + "/"
         globstr = globdir + "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
@@ -982,10 +968,8 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     except ValueError:
         statusmsg("***ERROR*** Could not find kernel versions")
         print(sys.exc_info())  # ruff:ignore[T201]
-        import pdb  # ruff:ignore[PLC0415, T100]
 
-        pdb.set_trace()  # ruff:ignore[T100]
-        return False
+        raise RuntimeError("Could not find kernel versions")  # ruff:ignore[B904, EM101, TRY003]
 
     # return path to newest file
     path = files[maxind]
@@ -1017,7 +1001,10 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     searched for the newest versioned skeleton file; that code is
     kept below as comments.
     """
-    return f"cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+    # skeleton ≈ metadata schema in the form of an empty CDF file
+    return str(
+        f"{DATA_DIR!s}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+    )
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
     # and we had to search for the most recent (highest) version
@@ -1041,11 +1028,6 @@ def get_newest_skeleton(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     # path = files[maxind]
 
     # return(path)
-
-
-#####################################################
-###
-#####################################################
 
 
 def setup():  # ruff:ignore[ANN201]
@@ -1228,11 +1210,6 @@ def setup():  # ruff:ignore[ANN201]
 
     # Return to main routine
     return args
-
-
-############################################
-####
-############################################
 
 
 if __name__ == "__main__":
