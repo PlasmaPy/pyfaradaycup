@@ -956,8 +956,7 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     The kernels are searched for in fixed directories under
     ``/psp/data/moc_data_products/``, so this only works on a system
     with that directory layout. The version number is read from the
-    digits at the end of the file name. If no matching files are
-    found, a ``pdb`` debugging session is started.
+    digits at the end of the file name.
     """
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
