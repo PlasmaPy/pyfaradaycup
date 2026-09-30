@@ -61,6 +61,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  { include-group = "docs" },
   { include-group = "lint" },
   { include-group = "nox" },
   { include-group = "test" },
@@ -74,6 +75,8 @@ test = [
 ]
 docs = [
   "sphinx",
+  "sphinx-copybutton",
+  "sphinx-notfound-page",
 ]
 lint = [
   "pre-commit",
