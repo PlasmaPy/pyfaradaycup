@@ -27,7 +27,7 @@ def test_l0_l05(tmp_path: Path) -> None:
     l1dir = str(tmp_path)
     logdir = str(tmp_path)
 
-    subprocess.run(  # noqa: S603
+    subprocess.run(  # ruff:ignore[S603]
         [
             sys.executable,
             l0_l05_executable,

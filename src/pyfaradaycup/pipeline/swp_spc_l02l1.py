@@ -107,11 +107,11 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
         file.
     """
     if not l0file:
-        raise ValueError("Please supply l0file")  # noqa: EM101, TRY003
+        raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
     if not l1dir:
-        raise ValueError("Please supply l1dir")  # noqa: EM101, TRY003
+        raise ValueError("Please supply l1dir")  # ruff:ignore[EM101, TRY003]
     if not logdir:
-        raise ValueError("Please supply logdir")  # noqa: EM101, TRY003
+        raise ValueError("Please supply logdir")  # ruff:ignore[EM101, TRY003]
 
     # Try to create a filename for the new CDF that we're going to create
     l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
@@ -166,7 +166,7 @@ def main(  # ruff:ignore[ANN201, C901, PLR0912, PLR0913, PLR0915, PLR0917]
             screen=True,
             verbose=verbose,
         )
-        raise RuntimeError  # noqa: B904
+        raise RuntimeError  # ruff:ignore[B904]
 
     # Load in Leap Second Kernel
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
@@ -436,7 +436,7 @@ def cdf35e_35f(cdf, dat, verbose=False) -> None:  # ruff:ignore[ANN001, C901, FB
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            raise RuntimeError  # noqa: B904
+            raise RuntimeError  # ruff:ignore[B904]
 
             statusmsg(
                 f"Failed : Key:{key} failed insert into CDF",
@@ -638,7 +638,7 @@ def cdf351_353_354(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001,
             )
             statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
 
-            raise RuntimeError  # noqa: B904
+            raise RuntimeError  # ruff:ignore[B904]
 
 
 def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
@@ -814,7 +814,7 @@ def cdf352(cdf, dat, nocdf=False, verbose=False):  # ruff:ignore[ANN001, ANN201,
                 statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
     except:  # ruff:ignore[E722]
         print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # noqa: B904
+        raise RuntimeError  # ruff:ignore[B904]
 
     return ()
 
@@ -941,10 +941,10 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
     """
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
-        raise RuntimeError("Need exactly one of tls or sclk")  # noqa: EM101, TRY003
+        raise RuntimeError("Need exactly one of tls or sclk")  # ruff:ignore[EM101, TRY003]
         return False
 
-    # TODO: make this less hardcoded to the directory  # noqa: FIX002, TD002, TD003
+    # TODO: make this less hardcoded to the directory  # ruff:ignore[FIX002, TD002, TD003]
     # Kristoff said that there's a spacepy(.pycdf?) command that regenerates
     # these files; we'll need to look into this.  This should be automated.
 
@@ -969,7 +969,7 @@ def get_newest_kernel(tls=False, sclk=False, verbose=False):  # ruff:ignore[ANN0
         statusmsg("***ERROR*** Could not find kernel versions")
         print(sys.exc_info())  # ruff:ignore[T201]
 
-        raise RuntimeError("Could not find kernel versions")  # noqa: B904, EM101, TRY003
+        raise RuntimeError("Could not find kernel versions")  # ruff:ignore[B904, EM101, TRY003]
 
     # return path to newest file
     path = files[maxind]

@@ -681,7 +681,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
         try:
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
-            raise RuntimeError  # noqa: B904
+            raise RuntimeError  # ruff:ignore[B904]
             thisval = -999
         thisname = form.names[i_bit]
 
@@ -708,7 +708,7 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
                 try:
                     thisval = int(thisbin, 2)
                 except ValueError:
-                    raise ValueError  # noqa: B904
+                    raise ValueError  # ruff:ignore[B904]
                     thisval = -999
 
                 thisname = form.sw_data_vars[i]
@@ -796,7 +796,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
     """
     try:
         # It appears that there is a unique sweap_tlm.blk
-        file = open(DATA_DIR / "sweap_tlm.blk")  # noqa: PTH123, SIM115
+        file = open(DATA_DIR / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
@@ -811,7 +811,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
         except:  # ruff:ignore[E722]
             # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
-            raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # noqa: B904, EM102, TRY003
+            raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
     lines = file.readlines()
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
@@ -841,7 +841,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # noqa: B904
+                    raise RuntimeError  # ruff:ignore[B904]
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -898,7 +898,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
     except:  # ruff:ignore[E722]
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
         print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # noqa: B904
+        raise RuntimeError  # ruff:ignore[B904]
 
     lines = file.readlines()
     for i, line in enumerate(lines):
@@ -930,7 +930,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                     break
                 except:  # ruff:ignore[E722]
                     print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # noqa: B904
+                    raise RuntimeError  # ruff:ignore[B904]
             return (thisapid, length)
     # if we didn't find that APID
     print(  # ruff:ignore[T201]
