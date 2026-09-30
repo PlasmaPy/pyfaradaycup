@@ -72,9 +72,9 @@ def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> b
     """
     try:
         if gzip:
-            import gzip  # ruff:ignore[PLC0415]
+            import gzip  # ruff:ignore[PLC0415]  # ty: ignore[invalid-assignment]
 
-            with gzip.open(path, "rb") as f:
+            with gzip.open(path, "rb") as f:  # ty: ignore[unresolved-attribute]
                 bytestr = f.read()
             return bytestr  # ruff:ignore[RET504]
         with open(path, "rb") as f:  # ruff:ignore[PTH123]
@@ -258,7 +258,7 @@ def read_file(  # ruff:ignore[C901]
         apidformat[apid] = get_layout(apid, verbose=verbose)
         if apidformat[apid]:
             data[apid] = {}
-            for name in apidformat[apid].names:
+            for name in apidformat[apid].names:  # ty: ignore[unresolved-attribute]
                 data[apid][name] = []
 
     # create a list of two dictionaries that can keep track of
@@ -394,7 +394,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
                 + "[0-9][0-9][0-9]"
                 + os.path.sep,
                 path,
-            ).span()
+            ).span()  # ty: ignore[unresolved-attribute]
             file_dt = (
                 datetime.datetime(  # ruff:ignore[DTZ001]
                     int(path[match[0] + 1 : match[0] + 5]), 1, 1
@@ -410,7 +410,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]
+            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -425,7 +425,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             apid,
             verbose=verbose,
             filename=os.path.join("sc_hk_def", sc_hk_filename),  # ruff:ignore[PTH118]
-        )
+        )  # ty: ignore[not-iterable]
         if apidformat[apid]:
             data[apid] = {}
             for name in apidformat[apid].names:
@@ -977,4 +977,4 @@ def get_layout_sc(  # ruff:ignore[C901]
 
 
 if __name__ == "__main__":
-    read_file(ptp=False, verbose=True)
+    read_file(ptp=False, verbose=True)  # ty: ignore[unknown-argument]

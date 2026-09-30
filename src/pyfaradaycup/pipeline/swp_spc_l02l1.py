@@ -309,13 +309,13 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         # Create a new CDF file from the provided skeleton
         try:
             cdf = pycdf.CDF(l1path, skeleton_filename)
-        except "CDFError":  # ruff:ignore[B030]
+        except "CDFError":  # ruff:ignore[B030]  # ty: ignore[invalid-exception-caught]
             statusmsg(
                 f"\n***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={apid})...continuing to next APID\n).",
                 screen=True,
                 verbose=verbose,
             )
-            statusmsg(sys.exc_info(), screen=True, verbose=verbose)
+            statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ty: ignore[invalid-argument-type]
             continue
 
         # Run a different procedure to put data into CDF file depending on APID
@@ -1200,13 +1200,13 @@ def setup() -> argparse.Namespace:
             statusmsg(
                 "***ERROR*** You must provide --l0file, if not using -b or -r",
                 screen=True,
-                verbose=verbose,  # ruff:ignoreignore[F821]
+                verbose=verbose,  # ruff:ignoreignore[F821]  # ty: ignore[unresolved-reference]
             )
     elif args.l0dir == "":
         statusmsg(
             "***ERROR*** You must provide --l0dir if using -b or -r",
             screen=True,
-            verbose=verbose,  # ruff:ignore[F821]
+            verbose=verbose,  # ruff:ignore[F821]  # ty: ignore[unresolved-reference]
         )
 
     # Convert APID to an integer (it is read as a string from the command line)
@@ -1220,9 +1220,9 @@ def setup() -> argparse.Namespace:
         statusmsg(
             "Trouble parsing desired APID....exiting.",
             screen=True,
-            verbose=verbose,  # ruff:ignore[F821]
+            verbose=verbose,  # ruff:ignore[F821]  # ty: ignore[unresolved-reference]
         )
-        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty: ignore[invalid-argument-type, unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
