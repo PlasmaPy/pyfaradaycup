@@ -378,7 +378,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
                 + "[0-9][0-9][0-9]"
                 + os.path.sep,
                 path,
-            ).span()  # ty: ignore[unresolved-attribute]
+            ).span()
             file_dt = (
                 datetime.datetime(  # ruff:ignore[DTZ001]
                     int(path[match[0] + 1 : match[0] + 5]), 1, 1
@@ -394,7 +394,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
+            sc_hk_filename = sc_hk_filenames[-1]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -818,7 +818,7 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
-            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
+            thisapid.apid = apid
             line = (  #  ruff:ignore[PLW2901]
                 ""  # so that the while loop will start out ok
             )
@@ -832,11 +832,11 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
                         thisapid.bits.append(int(pieces[3].strip()))
                         thisapid.data[pieces[0].strip()] = []
                         if hasattr(thisapid, "sw_data_vars"):
-                            thisapid.sw_data_vars.append(thisapid.names[-1])  # ty: ignore[unresolved-attribute]
+                            thisapid.sw_data_vars.append(thisapid.names[-1])
                     elif (line.strip()[0:9] == "( SW_DATA") | (
                         line.strip()[0:12] == "( SW_SPC_SCI"
                     ):
-                        thisapid.sw_data_vars = []  # ty: ignore[unresolved-attribute]
+                        thisapid.sw_data_vars = []
                 except IndexError:
                     break
                 except:  # ruff:ignore[E722]
@@ -906,7 +906,7 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
-            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
+            thisapid.apid = apid
 
             line = ""  # ruff:ignore[PLW2901]
             while line[0:4] != "SC_H":
@@ -940,4 +940,4 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
 
 
 if __name__ == "__main__":
-    read_file(ptp=False, verbose=True)  # ty: ignore[unknown-argument]
+    read_file(ptp=False, verbose=True)
