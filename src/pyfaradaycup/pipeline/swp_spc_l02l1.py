@@ -1188,6 +1188,8 @@ def setup() -> argparse.Namespace:
         default=logdir_default,
     )
 
+    verbose = False  # temporarily set verbose to False since it was not defined previously
+
     # Read in the arguments
     args = parser.parse_args()
 
@@ -1200,13 +1202,13 @@ def setup() -> argparse.Namespace:
             statusmsg(
                 "***ERROR*** You must provide --l0file, if not using -b or -r",
                 screen=True,
-                verbose=verbose,  # ruff:ignoreignore[F821]  # ty: ignore[unresolved-reference]
+                verbose=verbose,
             )
     elif args.l0dir == "":
         statusmsg(
             "***ERROR*** You must provide --l0dir if using -b or -r",
             screen=True,
-            verbose=verbose,  # ruff:ignore[F821]  # ty: ignore[unresolved-reference]
+            verbose=verbose,
         )
 
     # Convert APID to an integer (it is read as a string from the command line)
@@ -1220,7 +1222,7 @@ def setup() -> argparse.Namespace:
         statusmsg(
             "Trouble parsing desired APID....exiting.",
             screen=True,
-            verbose=verbose,  # ruff:ignore[F821]  # ty: ignore[unresolved-reference]
+            verbose=verbose,
         )
         statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty: ignore[invalid-argument-type, unresolved-reference]
         sys.exit()
