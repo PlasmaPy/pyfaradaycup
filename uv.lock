@@ -722,15 +722,6 @@ wheels = [
 ]
 
 [[package]]
-name = "execnet"
-version = "2.1.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bf/89/780e11f9588d9e7128a3f87788354c7946a9cbb1401ad38a48c4db9a4f07/execnet-2.1.2.tar.gz", hash = "sha256:63d83bfdd9a23e35b9c6a3261412324f964c2ec8dcd8d3c6916ee9373e0befcd", size = 166622, upload-time = "2025-11-12T09:56:37.75Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl", hash = "sha256:67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec", size = 40708, upload-time = "2025-11-12T09:56:36.333Z" },
-]
-
-[[package]]
 name = "filelock"
 version = "3.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2579,7 +2570,6 @@ dev = [
     { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest-check" },
     { name = "pytest-filter-subpackage" },
-    { name = "pytest-xdist" },
     { name = "ty" },
     { name = "xarray", version = "2023.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "xarray", version = "2026.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -2608,7 +2598,6 @@ test = [
     { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest-check" },
     { name = "pytest-filter-subpackage" },
-    { name = "pytest-xdist" },
     { name = "xarray", version = "2023.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "xarray", version = "2026.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
@@ -2640,7 +2629,6 @@ dev = [
     { name = "pytest" },
     { name = "pytest-check", specifier = ">=2.9.1" },
     { name = "pytest-filter-subpackage" },
-    { name = "pytest-xdist" },
     { name = "ty" },
     { name = "xarray", marker = "python_full_version < '3.11'", specifier = ">=2022.6,<2023.10" },
     { name = "xarray", marker = "python_full_version >= '3.11'", specifier = ">=2024.6" },
@@ -2657,7 +2645,6 @@ test = [
     { name = "pytest" },
     { name = "pytest-check", specifier = ">=2.9.1" },
     { name = "pytest-filter-subpackage" },
-    { name = "pytest-xdist" },
     { name = "xarray", marker = "python_full_version < '3.11'", specifier = ">=2022.6,<2023.10" },
     { name = "xarray", marker = "python_full_version >= '3.11'", specifier = ">=2024.6" },
 ]
@@ -2790,20 +2777,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/82/f3/10d46a1dcd2245854db8654a27e48da727411e88ed4afa7fc24331ff217c/pytest-filter-subpackage-0.2.0.tar.gz", hash = "sha256:3f468f1b36518128869b95deab661ba45ed6293854329fef14da4c8cac78af56", size = 8085, upload-time = "2024-03-04T16:52:21.731Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/f8/2ed436b6ef3fb46743ba6e562c5421493d695c6534f051420ef2b5a99258/pytest_filter_subpackage-0.2.0-py2.py3-none-any.whl", hash = "sha256:b4a8c21b52110c3fefe949229c387c18be081132138ca3acc4953869a459b3f6", size = 5501, upload-time = "2024-03-04T16:52:19.171Z" },
-]
-
-[[package]]
-name = "pytest-xdist"
-version = "3.8.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "execnet" },
-    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pytest", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/78/b4/439b179d1ff526791eb921115fca8e44e596a13efeda518b9d845a619450/pytest_xdist-3.8.0.tar.gz", hash = "sha256:7e578125ec9bc6050861aa93f2d59f1d8d085595d6551c2c90b6f4fad8d3a9f1", size = 88069, upload-time = "2025-07-01T13:30:59.346Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl", hash = "sha256:202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88", size = 46396, upload-time = "2025-07-01T13:30:56.632Z" },
 ]
 
 [[package]]
