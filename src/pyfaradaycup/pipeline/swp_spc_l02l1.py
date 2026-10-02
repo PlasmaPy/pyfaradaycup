@@ -1226,7 +1226,7 @@ def setup() -> argparse.Namespace:
             screen=True,
             verbose=verbose,
         )
-        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ruff:ignore[F821]  # ty: ignore[invalid-argument-type, unresolved-reference]
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ty:ignore[invalid-argument-type,unresolved-reference]
         sys.exit()
 
     # Make sure the environmental variable reference to the data directory is set and readable
