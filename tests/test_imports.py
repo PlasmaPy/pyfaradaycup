@@ -9,8 +9,8 @@ import pytest
     "package_name",
     [
         "pyfaradaycup",
-        "pyfaradaycup.pipeline",
-        "pyfaradaycup.pipeline.ccsds_reader_pipeline",
+        "pyfaradaycup.decommutator",
+        "pyfaradaycup.decommutator.ccsds_reader_pipeline",
     ],
 )
 def test_import(package_name: str) -> None:
