@@ -273,6 +273,9 @@ filterwarnings = [
   # GitHub issue when ignoring a FutureWarning or DeprecationWarning,
   # and label it with "needed for release".
   "error",
+  # spacepy warns when a variable that the CDF skeleton marks for
+  # compression does not get smaller when compressed, which is harmless.
+  "ignore:DID_NOT_COMPRESS:spacepy.pycdf.CDFWarning",
 ]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
