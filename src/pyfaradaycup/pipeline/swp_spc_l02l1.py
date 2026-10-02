@@ -1188,7 +1188,9 @@ def setup() -> argparse.Namespace:
         default=logdir_default,
     )
 
-    verbose = False  # temporarily set verbose to False since it was not defined previously
+    verbose = (
+        False  # temporarily set verbose to False since it was not defined previously
+    )
 
     # Read in the arguments
     args = parser.parse_args()
