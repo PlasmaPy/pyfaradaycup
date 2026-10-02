@@ -37,6 +37,7 @@ SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
     "3.12",
     "3.13",
     "3.14",
+    "3.15",
 )
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
@@ -46,7 +47,7 @@ MINPYTHON = SUPPORTED_PYTHON_VERSIONS[0]
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
-DOCPYTHON = "3.14"
+DOCPYTHON = "3.15"
 
 REPO_ROOT = pathlib.Path(__file__).parent
 DATA_DIR = REPO_ROOT / "tests" / "data"
