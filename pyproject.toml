@@ -34,7 +34,6 @@ dependencies = [
   "spacepy>=0.7",
   "spiceypy>=6",
 ]
-scripts.levelup = "pyfaradaycup.pipeline.swp_spc_l02l1:main"
 
 [dependency-groups]
 dev = [
