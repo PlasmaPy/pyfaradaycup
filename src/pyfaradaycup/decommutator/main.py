@@ -82,7 +82,6 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     recursive: bool,
     ptp: bool,
     overwrite: bool,
-    stcorrect: bool,  # ruff:ignore[ARG001]
     apid: int,
     l0file: str,
     l0dir: str,
@@ -94,7 +93,22 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     The PSP_DATA_DIR environment variable must be set to the path of an
     existing data directory.
-    """
+
+    To convert the L0 file 0523462910_4_EA, printing messages to the
+    screen as well as to the log file:
+
+    \b
+        export PSP_DATA_DIR=/path/to/data
+        pfc_decommutator \\
+            --l0file=/path/to/0523462910_4_EA \\
+            --l1dir=/path/to/l1dir \\
+            --logdir=/path/to/logdir \\
+            -v
+
+    This writes one L1 CDF file for each APID found in the L0 file, such
+    as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
+    --l1dir, and a log file into the directory given by --logdir.
+    """  # ruff:ignore[D301]
     # Make sure we got a good argument set
     if not batch and not recursive:
         if not l0file:
