@@ -15,7 +15,7 @@ ssr_dir = data_dir / "sci" / "sweap" / "raw" / "ssr"
 l05_dir = data_dir / "sci" / "sweap" / "spc" / "L05"
 
 l0_l05_executable = str(
-    repo_root / "src" / "pyfaradaycup" / "pipeline" / "swp_spc_l02l1.py"
+    repo_root / "src" / "pyfaradaycup" / "decommutator" / "swp_spc_l02l1.py"
 )
 
 

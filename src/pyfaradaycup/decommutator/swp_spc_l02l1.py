@@ -32,7 +32,7 @@ import numpy as np
 import spiceypy
 from spacepy import pycdf
 
-import pyfaradaycup.pipeline.ccsds_reader_pipeline as cc
+import pyfaradaycup.decommutator.ccsds_reader_pipeline as cc
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
