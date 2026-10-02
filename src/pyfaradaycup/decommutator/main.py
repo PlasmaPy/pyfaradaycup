@@ -28,6 +28,7 @@ def _parse_apid(
 
 
 @click.command(name="pfc_decommutator")
+@click.version_option(package_name="pyfaradaycup")
 @click.option("-v", "--verbose", is_flag=True, help="Increase verbosity")
 @click.option("-gz", "--gzip", is_flag=True, help="Read in L0 file as gzip")
 @click.option("-sc", "--spacecraft", is_flag=True, help="Look for S/C packets")
