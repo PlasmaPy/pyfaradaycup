@@ -35,9 +35,7 @@ dependencies = [
   "spacepy>=0.7",
   "spiceypy>=6",
 ]
-
-[project.scripts]
-pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
+scripts.pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
 
 [dependency-groups]
 dev = [
