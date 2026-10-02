@@ -82,6 +82,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     recursive: bool,
     ptp: bool,
     overwrite: bool,
+    stcorrect: bool,
     apid: int,
     l0file: str,
     l0dir: str,
@@ -130,6 +131,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         raise click.ClickException(  # ruff:ignore[TRY003]
             "Directory specified in env. variable PSP_DATA_DIR does not exist"  # ruff:ignore[EM101]
         )
+
+    if stcorrect:
+        raise RuntimeError("--stcorrect has not been implemented.")
 
     swp_spc_l02l1.main(
         l0file=l0file,
