@@ -265,6 +265,9 @@ lint.pylint.max-positional-args = 6
 addopts = [
   "--durations=5",
   "--durations-min=0.4",
+  # Import modules by name so that doctests in src/ do not conflict
+  # with the copy of the package installed into site-packages by nox.
+  "--import-mode=importlib",
   "--tb=short",
 ]
 empty_parameter_set_mark = "fail_at_collect"
