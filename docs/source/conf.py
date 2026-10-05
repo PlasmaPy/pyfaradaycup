@@ -60,5 +60,19 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+
+# https://pydata-sphinx-theme.readthedocs.io/en/stable/user_guide/index.html
+html_theme_options = {
+    "github_url": "https://github.com/PlasmaPy/pyfaradaycup",
+    "use_edit_page_button": True,
+}
+
+# Used by the "Edit on GitHub" button
+html_context = {
+    "github_user": "PlasmaPy",
+    "github_repo": "pyfaradaycup",
+    "github_version": "main",
+    "doc_path": "docs/source",
+}
