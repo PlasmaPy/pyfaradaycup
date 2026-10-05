@@ -846,6 +846,7 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
             print(sys.exc_info())  # ruff:ignore[T201]
             raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
     lines = file.readlines()
+    file.close()
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
             if verbose:
@@ -938,6 +939,7 @@ def get_layout_sc(  # ruff:ignore[C901]
         raise RuntimeError  # ruff:ignore[B904]
 
     lines = file.readlines()
+    file.close()
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             if verbose:
