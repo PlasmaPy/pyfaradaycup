@@ -17,8 +17,6 @@
 # pre-commit.ci configuration: https://pre-commit.ci/#configuration
 # pre-commit docs: https://pre-commit.com/#adding-pre-commit-plugins-to-your-project
 
-exclude: ^tests/data/
-
 ci:
   autofix_prs: false
   autoupdate_schedule: monthly
@@ -86,17 +84,7 @@ repos:
   hooks:
   - id: codespell
     name: codespell (add false positives to pyproject.toml)
-    args: [--write-changes]
-    exclude: CITATION.cff
-
-- repo: https://github.com/adhtruong/mirrors-typos
-  # use mirrors-typos because `pre-commit autoupdate` drops the version
-  # of the primary typos repo from v1.x.y to v1
-  rev: v1.50.1
-  hooks:
-  - id: typos
-    name: typos (add false positives to _typos.toml)
-    exclude: CITATION.cff
+    exclude: data|CITATION.cff
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.16.6

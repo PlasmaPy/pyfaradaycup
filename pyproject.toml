@@ -25,39 +25,17 @@ classifiers = [
   "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
-  "argcomplete>=3.6.3",
-  "bokeh>=2.3.3",
-  "cached-property>=1.5.2",
-  "certifi>=2020.4.5.1",
-  "charset-normalizer>=3.4.7",
-  "cycler>=0.11",
-  "et-xmlfile>=2",
-  "h5py>=3.1",
-  "idna>=3.16",
-  "imap-tools>=1.13",
-  "jinja2>=3.0.3",
-  "kiwisolver>=1.3.1",
-  "markupsafe>=2.0.1",
-  "matplotlib>=3.3.4",
-  "numpy>=1.19.5",
-  "openpyxl>=3.1.5",
-  "packaging>=21.3",
-  "pillow>=8.4",
-  "pip>=26.0.1",
-  "pyparsing>=3.0.7",
-  "python-dateutil>=2.8.2",
-  "pyyaml>=6",
-  "requests>=2.32.5",
-  "scipy>=1.5.4",
-  "setuptools>=82.0.1",
-  "six>=1.16",
-  "spacepy>=0.4.1",
-  "spiceypy>=4.0.1",
-  "tornado>=6.1",
-  "typing-extensions>=4.1.1",
-  "urllib3>=2.6.3",
-  "xlrd>=1.2",
+  "click>=8.1",
+  "numpy>=1.18.5,<1.22; python_version<'3.11'",
+  "numpy>=1.23.2; python_version>='3.11'",
+  # matplotlib < 3.9 (used with numpy < 1.22 on Python < 3.11) calls
+  # pyparsing's parseString, which pyparsing 3.3 deprecates.
+  "pyparsing<3.3; python_version<'3.11'",
+  "python-dateutil>=2.9",
+  "spacepy>=0.7",
+  "spiceypy>=6",
 ]
+scripts.pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
 
 [dependency-groups]
 dev = [
@@ -68,9 +46,12 @@ dev = [
   { include-group = "zizmor" },
 ]
 test = [
+  "cdflib",
   "pytest",
+  "pytest-check>=2.9.1",
   "pytest-filter-subpackage",
-  "pytest-xdist",
+  "xarray>=2022.6,<2023.10; python_version<'3.11'",
+  "xarray>=2024.6; python_version>='3.11'",
 ]
 docs = [
   "sphinx",
@@ -286,10 +267,8 @@ lint.pylint.max-positional-args = 6
 
 [tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
 addopts = [
-  "--dist=loadfile",
   "--durations=5",
   "--durations-min=0.4",
-  "--numprocesses=auto",
   "--tb=short",
 ]
 empty_parameter_set_mark = "fail_at_collect"
@@ -299,6 +278,9 @@ filterwarnings = [
   # GitHub issue when ignoring a FutureWarning or DeprecationWarning,
   # and label it with "needed for release".
   "error",
+  # spacepy warns when a variable that the CDF skeleton marks for
+  # compression does not get smaller when compressed, which is harmless.
+  "ignore:DID_NOT_COMPRESS:spacepy.pycdf.CDFWarning",
 ]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
