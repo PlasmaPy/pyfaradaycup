@@ -1,10 +1,10 @@
-"""Tests for `pyfaradaycup.pipeline.ccsds_reader_pipeline.parse_ccsds_head`."""
+"""Tests for `pyfaradaycup.decommutator.ccsds_reader_pipeline.parse_ccsds_head`."""
 
 import struct
 
 import pytest
 
-from pyfaradaycup.pipeline.ccsds_reader_pipeline import parse_ccsds_head
+from pyfaradaycup.decommutator.ccsds_reader_pipeline import parse_ccsds_head
 
 
 def make_header(apid: int, seq_count: int, packet_length: int, met: int) -> bytes:

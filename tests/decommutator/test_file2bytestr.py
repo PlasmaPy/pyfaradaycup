@@ -1,10 +1,9 @@
-
-"""Tests for `pyfaradaycup.pipeline.ccsds_reader_pipeline.file2bytestr`."""
+"""Tests for `pyfaradaycup.decommutator.ccsds_reader_pipeline.file2bytestr`."""
 
 import gzip
 from pathlib import Path
 
-from pyfaradaycup.pipeline.ccsds_reader_pipeline import file2bytestr
+from pyfaradaycup.decommutator.ccsds_reader_pipeline import file2bytestr
 
 CONTENTS = b"\x08\x52\xc0\x05\x00\x63 some packet bytes"
 
