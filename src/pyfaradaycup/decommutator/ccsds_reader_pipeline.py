@@ -66,9 +66,8 @@ def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> b
 
     Notes
     -----
-    If the file cannot be read, this function prints the error, opens a
-    ``pdb`` debugging session, and then exits the program.
-    @namurphy - should we start to replace these ``pdb`` so we don't heavy over use ``ruff:ignore``
+    If the file cannot be read, this function prints the error and
+    exits the program with ``sys.exit()``.
     """
     try:
         if gzip:
@@ -822,10 +821,9 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
 
     Notes
     -----
-    The file ``sweap_tlm.blk`` is looked for first in the current
-    working directory and then in the directory containing this module.
-    The second lookup builds the path with Windows-style backslashes,
-    so it only works on Windows.
+    The file ``sweap_tlm.blk`` is read from the package data directory,
+    ``src/pyfaradaycup/data/``. If it cannot be opened, a
+    `RuntimeError` is raised.
     """
     try:
         # It appears that there is a unique sweap_tlm.blk
@@ -928,7 +926,7 @@ def get_layout_sc(  # ruff:ignore[C901]
     The APID section in the file starts with a line like
     ``SC_HK_0x<APID>``. Fields written as ``mnemonic[N]`` are treated
     as ``N`` bytes long (``8 * N`` bits). If the file cannot be opened,
-    a ``pdb`` debugging session is started.
+    a `RuntimeError` is raised.
     """
     try:
         file = open(filename)  # ruff:ignore[PTH123, SIM115]
