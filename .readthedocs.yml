@@ -14,8 +14,8 @@ build:
   tools:
     python: '3.14'
 
-  apt_packages:
-  - graphviz
+  # apt_packages:
+  # - graphviz
 
   jobs:
 
