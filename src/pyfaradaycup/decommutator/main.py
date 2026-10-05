@@ -17,13 +17,12 @@ def _parse_apid(
     param: click.Parameter,  # ruff:ignore[ARG001]
     value: str,
 ) -> int:
-    """Convert an APID given as a decimal or ``0x``-prefixed hexadecimal string."""
-    base = 16 if value[0:2] == "0x" else 10
+    """Convert an APID given as a hexadecimal string, with or without ``0x``."""
     try:
-        return int(value, base)
+        return int(value, 16)
     except ValueError:
         raise click.BadParameter(  # ruff:ignore[B904, TRY003]
-            f"{value!r} is not a decimal or 0x-prefixed hexadecimal integer"  # ruff:ignore[EM102]
+            f"{value!r} is not a hexadecimal integer"  # ruff:ignore[EM102]
         )
 
 
@@ -114,7 +113,7 @@ def _warn_about_ineffective_options(
     default="0",
     show_default=True,
     callback=_parse_apid,
-    help="APID to create L1 file for [0==all]",
+    help="APID to create L1 file for, in hexadecimal (e.g., 35E) [0==all]",
 )
 @click.option("-l0", "--l0file", default="", help="Input L0 File. Required.")
 @click.option(
@@ -171,7 +170,11 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     --l1dir, and a log file into the directory given by --logdir.
     """  # ruff:ignore[D301]
     _warn_about_ineffective_options(
-        batch=batch, recursive=recursive, l0dir=l0dir, ptp=ptp, spacecraft=spacecraft
+        batch=batch,
+        recursive=recursive,
+        l0dir=l0dir,
+        ptp=ptp,
+        spacecraft=spacecraft,
     )
 
     # Make sure we got a good argument set
