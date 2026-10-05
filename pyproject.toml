@@ -55,6 +55,7 @@ test = [
   "xarray>=2024.6; python_version>='3.11'",
 ]
 docs = [
+  "pydata-sphinx-theme",
   "sphinx",
   "sphinx-click",
   "sphinx-copybutton",
