@@ -916,10 +916,11 @@ def get_layout_sc(  # ruff:ignore[C901]
 
     Returns
     -------
-    tuple of (apid_obj, int) or None
-        The layout of each field in the packet and the packet length
-        from the file's ``Block[...]`` line, or `None` if the APID is
-        not found in the file.
+    tuple or None
+        A tuple containing the layout of each field in the packet (an
+        `apid_obj`) and the packet length from the file's
+        ``Block[...]`` line (an `int`), or `None` if the APID is not
+        found in the file.
 
     Notes
     -----
