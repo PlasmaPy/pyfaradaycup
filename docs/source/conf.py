@@ -25,8 +25,33 @@ extensions = [
     "sphinx.ext.viewcode",  # add links to highlighted source code
     # other 3rd party extensions
     "notfound.extension",  # adds a notfound 404 page
+    "sphinx_click",  # document click command line tools
     "sphinx_copybutton",  # adds a button that enables code to be copied
 ]
+
+# Generate API documentation pages with sphinx.ext.apidoc
+apidoc_modules = [
+    {
+        "path": "../../src/pyfaradaycup",
+        "destination": "api/",
+        "separate_modules": True,
+        "module_first": True,
+    },
+]
+
+# Convert numpydoc type specifications like "int, optional" or
+# "dict of str to list" into cross-references
+napoleon_preprocess_types = True
+
+intersphinx_mapping = {
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "spacepy": ("https://spacepy.github.io/", None),
+}
+
+# Do not convert "--" into an en dash, so that command line options
+# like --l0file are shown correctly
+smartquotes_action = "qe"
 
 templates_path = ["_templates"]
 exclude_patterns = []

@@ -9,4 +9,5 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   utils
+   cli
+   api/modules
