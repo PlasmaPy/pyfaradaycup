@@ -1031,6 +1031,8 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     Notes
     -----
     The function does not check that the file exists. Earlier versions
+    searched for the newest versioned skeleton file; that code is
+    kept below as comments.
     """
     # skeleton ≈ metadata schema in the form of an empty CDF file
     return str(
