@@ -171,7 +171,11 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     --l1dir, and a log file into the directory given by --logdir.
     """  # ruff:ignore[D301]
     _warn_about_ineffective_options(
-        batch=batch, recursive=recursive, l0dir=l0dir, ptp=ptp, spacecraft=spacecraft
+        batch=batch,
+        recursive=recursive,
+        l0dir=l0dir,
+        ptp=ptp,
+        spacecraft=spacecraft,
     )
 
     # Make sure we got a good argument set
