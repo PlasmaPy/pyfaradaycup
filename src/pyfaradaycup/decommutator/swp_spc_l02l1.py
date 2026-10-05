@@ -89,7 +89,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         If `True`, read spacecraft housekeeping packets with
         `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
         If `False`, read SWEAP instrument packets with
-        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file`.
+        `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file`.
 
     ptp : bool, optional
         If `True`, the L0 file is a PTP file. Only used when
@@ -387,8 +387,8 @@ def cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> N
 
     Each variable in the CDF is filled from the matching key in
     ``dat``. Variables with no matching key are filled with the
-    variable's ``FILLVAL``. If an unexpected error occurs, a ``pdb``
-    debugging session is started.
+    variable's ``FILLVAL``. If an unexpected error occurs, a
+    `RuntimeError` is raised.
     """
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
@@ -956,16 +956,19 @@ def get_newest_kernel(
 
     Returns
     -------
-    str or bool
-        Path to the kernel file with the highest version number, or
-        `False` if both or neither of ``tls`` and ``sclk`` are `True`.
+    str
+        Path to the kernel file with the highest version number.
+
+    Raises
+    ------
+    RuntimeError
+        If both or neither of ``tls`` and ``sclk`` are `True`.
 
     Notes
     -----
-    The kernels are searched for in fixed directories under
-    ``/psp/data/moc_data_products/``, so this only works on a system
-    with that directory layout. The version number is read from the
-    digits at the end of the file name.
+    The kernels are searched for under ``moc_data_products/`` in the
+    package data directory, ``src/pyfaradaycup/data/``. The version
+    number is read from the digits at the end of the file name.
     """
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
@@ -1019,13 +1022,13 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     Returns
     -------
     str
-        The path ``cdf_skeletons/psp_swp_spc_l1_<apid>_skeleton.cdf``,
+        The path ``cdf_skeletons/psp_swp_spc_l1_<apid>_skeleton.cdf``
+        inside the package data directory, ``src/pyfaradaycup/data/``,
         with the APID as three lowercase hexadecimal digits.
 
     Notes
     -----
-    The path is relative to the current working directory. The
-    function does not check that the file exists. Earlier versions
+    The function does not check that the file exists. Earlier versions
     searched for the newest versioned skeleton file; that code is
     kept below as comments.
     """
