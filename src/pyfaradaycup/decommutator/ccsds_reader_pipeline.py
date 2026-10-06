@@ -66,8 +66,7 @@ def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> b
 
     Notes
     -----
-    If the file cannot be read, this function prints the error and
-    exits the program with ``sys.exit()``.
+    If the file cannot be read, a `RuntimeError` is raised.
     """
     try:
         if gzip:
@@ -80,10 +79,9 @@ def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> b
             bytestr = f.read()
         return bytestr  # ruff:ignore[RET504, TRY300]
 
-    except:  # ruff:ignore[E722]
-        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # ruff:ignore[T201]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        sys.exit()
+    except Exception as exc:
+        msg = f"Could not read in file: {path}"
+        raise RuntimeError(msg) from exc
 
 
 def choose_file(path: str = "", ptp: bool = False, verbose: bool = False) -> str:  # ruff:ignore[ARG001, FBT001, FBT002]

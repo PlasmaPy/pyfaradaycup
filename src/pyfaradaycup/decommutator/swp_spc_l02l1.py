@@ -87,7 +87,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
-        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
+        `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file_sc`.
         If `False`, read SWEAP instrument packets with
         `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file`.
 
@@ -104,7 +104,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     overwrite : bool, optional
         If `True`, replace L1 CDF files that already exist. If `False`
-        and a file already exists, the program exits.
+        and a file already exists, a `FileExistsError` is raised.
 
     verbose : bool, optional
         If `True`, print messages to the screen as well as to the log
@@ -144,10 +144,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     try:
         global logfile  # ruff:ignore[PLW0603]
         logfile = open(logpath, "w")  # ruff:ignore[PTH123, SIM115]
-    except:  # ruff:ignore[E722]
-        print("\n***ERROR*** Could not open log file!\n")  # ruff:ignore[T201]
-        sys.exit(1)
-
+    except Exception as exc:
+        msg = f"Could not open log file: {logpath}"
+        raise RuntimeError(msg) from exc
     # Write some information to the log file
     statusmsg("scriptname = swp_spc_l02l1.py", verbose=verbose)
     statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
@@ -176,35 +175,33 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
     tls_path = get_newest_kernel(tls=True)
     if not tls_path:
-        statusmsg(
-            "***ERROR*** [swp_spc_l02l1.py] Could not find leap second kernel...exiting"
-        )
-        sys.exit()
-    else:
+        msg = "Could not find leap second kernel"
+        statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        raise RuntimeError(msg)
+    else:  # ruff:ignore[RET506]
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {tls_path}")
             spiceypy.furnsh(tls_path)
-        except:  # ruff:ignore[E722]
-            statusmsg(
-                "***ERROR*** [swp_spc_l02l1.py] Could not furnsh leap second kernel...exiting"
-            )
-            sys.exit()
+        except Exception as exc:
+            msg = f"Could not load leap second kernel: {tls_path}"
+            statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            raise RuntimeError(msg) from exc
 
     # Load in S/C Clock Kernel
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest S/C clock kernel...")
     sclk_path = get_newest_kernel(sclk=True)
     if not sclk_path:
-        statusmsg("***ERROR*** [swp_spc_l02l1.py] Could not find SCLK kernel...exiting")
-        sys.exit()
-    else:
+        msg = "Could not find SCLK kernel"
+        statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        raise RuntimeError(msg)
+    else:  # ruff:ignore[RET506]
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {sclk_path}")
             spiceypy.furnsh(sclk_path)
-        except:  # ruff:ignore[E722]
-            statusmsg(
-                "***ERROR*** [swp_spc_l02l1.py] Could not furnsh SCLK kernel...exiting"
-            )
-            sys.exit()
+        except Exception as exc:
+            msg = f"Could not load SCLK kernel: {sclk_path}"
+            statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            raise RuntimeError(msg) from exc
 
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
@@ -285,24 +282,25 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
                 )
                 os.remove(l1path)  # ruff:ignore[PTH107]
             else:
+                msg = f"L1 CDF already exists and overwrite was not requested: {l1path}"
                 statusmsg(
-                    "***ERROR*** [swp_spc_l02l1] L1 CDF already exists, and overwrite (-o option) was not requested...exiting.",
+                    f"***ERROR*** [swp_spc_l02l1] {msg}",
                     screen=True,
                     verbose=verbose,
                 )
-                raise (SystemExit)  # ruff:ignore[TRY301]
-        except SystemExit:
-            sys.exit()
+                raise FileExistsError(msg)  # ruff:ignore[TRY301]
+        except FileExistsError:
+            raise
         except OSError:
             pass  # Apparently the file did not exist already
-        except:  # ruff:ignore[E722]
-            statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
+        except Exception as exc:
+            msg = f"Could not check existence of or delete L1 CDF file: {l1path}"
             statusmsg(
-                "\n***ERROR*** [swp_spc_l02l1] Could not check existence/delete L1 CDF file path. Exiting...\n",
+                f"***ERROR*** [swp_spc_l02l1] {msg}",
                 screen=True,
                 verbose=verbose,
             )
-            sys.exit()
+            raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton
         try:
