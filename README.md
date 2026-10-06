@@ -6,20 +6,20 @@ An open source Python package for data reduction and analysis of Faraday Cup mea
 
 1. [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
 
-2. Clone the repository, such as with:
+1. Clone the repository, such as with:
 
    ```shell
    git clone https://github.com/PlasmaPy/pyfaradaycup.git
    ```
 
-3. Create a virtual environment in the directory.
+1. Create a virtual environment in the directory.
 
    ```shell
    cd pyfaradaycup
    uv venv
    ```
 
-4. Activate the virtual environment for your shell, using the command printed out from the previous command.
+1. Activate the virtual environment for your shell, using the command printed out from the previous command.
 
    ```shell
    source .venv/bin/activate  # POSIX compliant shells like bash, zsh, and sh
@@ -31,9 +31,10 @@ An open source Python package for data reduction and analysis of Faraday Cup mea
    > [!NOTE]
    > This command will need to be repeated if you open a new terminal window.
 
-5. Install the package into the virtual environment with:
+1. Install the package into the virtual environment with:
 
    ```shell
    uv pip install -e .
    ```
+
    The `-e` is short for `--editable`.
