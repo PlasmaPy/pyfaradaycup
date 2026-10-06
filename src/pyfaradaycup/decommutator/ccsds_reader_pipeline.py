@@ -9,17 +9,8 @@ from __future__ import annotations
 
 __all__ = [
     "apid_obj",
-    "choose_file",
-    "file2bytestr",
-    "get_layout",
-    "get_layout_sc",
-    "parse_ccsds_head",
-    "parse_pkt",
-    "read_bytestr",
     "read_file",
     "read_file_sc",
-    "read_stdin",
-    "wrapper_status",
 ]
 
 import datetime
@@ -39,11 +30,11 @@ if TYPE_CHECKING:
     import os
 
 
-def read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignore[FBT001, FBT002]
+def _read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignore[FBT001, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-def file2bytestr(
+def _file2bytestr(
     path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -85,7 +76,7 @@ def file2bytestr(
         raise RuntimeError(msg) from exc
 
 
-def choose_file(
+def _choose_file(
     path: str | os.PathLike[str],
     ptp: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
@@ -128,7 +119,7 @@ def choose_file(
     return path
 
 
-def wrapper_status(
+def _wrapper_status(
     path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -169,10 +160,10 @@ def wrapper_status(
     the headers are decoded, not the packet data.
     """
     # make sure the file can be read
-    path = choose_file(path)
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
@@ -217,8 +208,8 @@ def wrapper_status(
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):  # ruff:ignore[B007]
-        wrap_cchead = parse_ccsds_head(bytestr[pointer : pointer + 10])
-        data_cchead = parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
+        wrap_cchead = _parse_ccsds_head(bytestr[pointer : pointer + 10])
+        data_cchead = _parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
         data["wrap_met"].append(wrap_cchead["CCSDS_MET"])
         data["wrap_apid"].append(wrap_cchead["CCSDS_ApID"])
         data["wrap_seq"].append(wrap_cchead["CCSDS_SeqCnt"])
@@ -236,10 +227,10 @@ def read_file(  # ruff:ignore[C901]
 ) -> dict[int, dict[str, list]]:
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # make sure the file can be read
-    path = choose_file(path)
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
@@ -251,7 +242,7 @@ def read_file(  # ruff:ignore[C901]
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid] = get_layout(apid, verbose=verbose)
+        apidformat[apid] = _get_layout(apid, verbose=verbose)
         if apidformat[apid]:
             data[apid] = {}
             for name in apidformat[apid].names:  # ty: ignore[unresolved-attribute]
@@ -296,7 +287,7 @@ def read_file(  # ruff:ignore[C901]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # ruff:ignore[F841]
+        foo = _read_bytestr(  # ruff:ignore[F841]
             bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
         )
 
@@ -332,10 +323,10 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
 ) -> dict[int, dict[str, list]]:
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
     # make sure the file can be read
-    path = choose_file(path)
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # We'll need to find which apid dictionary to use,
     # based on which version of FSW was running
@@ -362,9 +353,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     # we'll assume the first bytes in the file are a header
     try:
         if ptp:  # ruff:ignore[SIM108]
-            cchead = parse_ccsds_head(bytestr[17:])
+            cchead = _parse_ccsds_head(bytestr[17:])
         else:
-            cchead = parse_ccsds_head(bytestr)
+            cchead = _parse_ccsds_head(bytestr)
         if (
             (cchead["CCSDS_Version"] != 0)
             | (cchead["CCSDS_PacketType"] != 0)
@@ -415,7 +406,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid], lengths[apid] = get_layout_sc(
+        apidformat[apid], lengths[apid] = _get_layout_sc(
             apid,
             verbose=verbose,
             filename=data_dir / "sc_hk_def" / sc_hk_filename,
@@ -493,7 +484,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # ruff:ignore[F841]
+        foo = _read_bytestr(  # ruff:ignore[F841]
             bytestr, pointer + offset_bytes, data, apidformat, pktcnt, verbose=verbose
         )
 
@@ -521,7 +512,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     return data
 
 
-def read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
+def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     bytestr: bytes,
     pointer,  # ruff:ignore[ANN001]
     data: dict[int, dict[str, list]],
@@ -532,7 +523,7 @@ def read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
     try:
-        ccsds_head = parse_ccsds_head(bytestr[pointer : pointer + 10])
+        ccsds_head = _parse_ccsds_head(bytestr[pointer : pointer + 10])
     except ValueError:
         if verbose:
             print("Full CCSDS Header Not Present")  # ruff:ignore[T201]
@@ -571,7 +562,7 @@ def read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
         pktcnt[0][apid] += 1
 
         # parse the packet and add decommed values to data variable
-        parse_pkt(
+        _parse_pkt(
             thispkt, data, apidformat, apid, ccsds_head
         )  # could send this off to a parallel task?  Might try that if too slow this way
 
@@ -583,7 +574,7 @@ def read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     return ()
 
 
-def parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]:  # ruff:ignore[ARG001, FBT001, FBT002]
+def _parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]:  # ruff:ignore[ARG001, FBT001, FBT002]
     """
     Decode a 10-byte CCSDS packet header into its fields.
 
@@ -636,7 +627,7 @@ def parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]:  
     return head
 
 
-def parse_pkt(  # ruff:ignore[C901, PLR0912, PLR0913]
+def _parse_pkt(  # ruff:ignore[C901, PLR0912, PLR0913]
     bytestr: bytes,
     data: dict[int, dict[str, list]],
     apidformat,  # ruff:ignore[ANN001]
@@ -747,7 +738,7 @@ class apid_obj:  # ruff:ignore[N801]
     """
     Store the bit layout of one packet type (APID).
 
-    An empty instance is created by `get_layout` or `get_layout_sc`,
+    An empty instance is created by `_get_layout` or `_get_layout_sc`,
     which then fill in the attributes from a telemetry definition file.
 
     Attributes
@@ -760,23 +751,23 @@ class apid_obj:  # ruff:ignore[N801]
 
     bytestart, bitstart : list or numpy.ndarray of int
         Byte and bit position where each field starts. Set by
-        `get_layout`.
+        `_get_layout`.
 
     byteend, bitend : list or numpy.ndarray of int
         Byte and bit position where each field ends. Set by
-        `get_layout`.
+        `_get_layout`.
 
     startbyte, startbit : list of int
         Byte and bit position where each field starts, as listed in the
-        spacecraft housekeeping definition file. Set by `get_layout_sc`.
+        spacecraft housekeeping definition file. Set by `_get_layout_sc`.
 
     data : dict of str to list
-        An empty list for each mnemonic. Set by `get_layout`.
+        An empty list for each mnemonic. Set by `_get_layout`.
 
     Notes
     -----
-    `get_layout` and `get_layout_sc` also add an ``apid`` attribute
-    (the APID as an int). `get_layout` adds a ``sw_data_vars``
+    `_get_layout` and `_get_layout_sc` also add an ``apid`` attribute
+    (the APID as an int). `_get_layout` adds a ``sw_data_vars``
     attribute (a list of mnemonics in the science data block) for
     packets that have one.
     """
@@ -796,7 +787,7 @@ class apid_obj:  # ruff:ignore[N801]
         self.startbit: list[int] = []
 
 
-def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901, FBT001, FBT002]
+def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901, FBT001, FBT002]
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -889,7 +880,7 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
     return None
 
 
-def get_layout_sc(  # ruff:ignore[C901]
+def _get_layout_sc(  # ruff:ignore[C901]
     apid: int,
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     filename: str | os.PathLike[str] | None = None,

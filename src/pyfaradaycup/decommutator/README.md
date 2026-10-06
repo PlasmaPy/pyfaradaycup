@@ -44,7 +44,7 @@ It would also be useful to return the kernels and skeleton files that were used.
   Two runs that start in the same second with the same `--logdir` write to the same file.
   Including the name of the L0 file in the log file name would fix this.
 - **Remove the global state.**
-  The log file is the module-level global `logfile`, which `statusmsg` writes to.
+  The log file is the module-level global `logfile`, which `_statusmsg` writes to.
   SPICE kernels are loaded with `spiceypy.furnsh` on every call and are never unloaded.
   This is safe when each step runs in its own process, but not when `main` is called more than once in the same process.
   Pass the log file as an argument, and unload the kernels when the conversion finishes.
@@ -53,7 +53,7 @@ It would also be useful to return the kernels and skeleton files that were used.
 
 Calling the conversion as a function is better suited to Dagster than starting a subprocess, since Dagster can then capture exceptions, log messages, and return values.
 
-- **Use the `logging` module instead of `statusmsg` and `print`.**
+- **Use the `logging` module instead of `_statusmsg` and `print`.**
   Dagster can then show the messages with their levels in its own logs.
   The warnings that `pfc_decommutator` prints for options that have no effect should use `logging` too.
 - **Keep `pfc_decommutator` as a thin wrapper.**
@@ -72,7 +72,7 @@ Calling the conversion as a function is better suited to Dagster than starting a
 ### Test the `--spacecraft` option
 
 - **Add a test that converts a spacecraft L0 file with `--spacecraft`.**
-  The only test converts an instrument L0 file, so `read_file_sc`, `get_layout_sc`, and the code that writes the spacecraft housekeeping CDFs are never run.
+  The only test converts an instrument L0 file, so `read_file_sc`, `_get_layout_sc`, and the code that writes the spacecraft housekeeping CDFs are never run.
   Add a spacecraft L0 file to `tests/data`, along with the expected L1 CDF files, and compare them as the existing test does.
   Include a file for which the flight software version cannot be found from the packet header, so that the fallback to the file path, and then to the newest definition file, is also tested.
 
