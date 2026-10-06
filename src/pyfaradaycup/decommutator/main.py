@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["pfc_decommutator"]
 
-import os
 import pathlib
 
 import click
@@ -166,14 +165,10 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     """
     Convert one SPC L0 file into L1 CDF files, one per APID.
 
-    The PSP_DATA_DIR environment variable must be set to the path of an
-    existing data directory.
-
     To convert the L0 file 0523462910_4_EA, printing messages to the
     screen as well as to the log file:
 
     \b
-        export PSP_DATA_DIR=/path/to/data
         pfc_decommutator \\
             --l0file=/path/to/0523462910_4_EA \\
             --l1dir=/path/to/l1dir \\
@@ -182,7 +177,8 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     This writes one L1 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
-    --l1dir, and a log file into the directory given by --logdir.
+    --l1dir, and a log file into the directory given by --logdir. If
+    --l1dir or --logdir is not given, the current directory is used.
     """  # ruff:ignore[D301]
     _warn_about_ineffective_options(
         batch=batch,
@@ -201,17 +197,6 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     if l0file is None:
         raise click.UsageError(  # ruff:ignore[TRY003]
             "You must provide --l0file"  # ruff:ignore[EM101]
-        )
-
-    # Make sure the environmental variable reference to the data directory is set and readable
-    datadir = os.environ.get("PSP_DATA_DIR")
-    if datadir is None:
-        raise click.ClickException(  # ruff:ignore[TRY003]
-            "Environmental variable PSP_DATA_DIR could not be found...you must specify path to data directory using that environmental variable"  # ruff:ignore[EM101]
-        )
-    if not pathlib.Path(datadir).exists():
-        raise click.ClickException(  # ruff:ignore[TRY003]
-            "Directory specified in env. variable PSP_DATA_DIR does not exist"  # ruff:ignore[EM101]
         )
 
     if stcorrect:
