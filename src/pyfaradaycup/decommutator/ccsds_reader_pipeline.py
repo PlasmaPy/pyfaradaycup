@@ -33,10 +33,10 @@ from typing import TYPE_CHECKING
 import dateutil.parser
 import numpy as np
 
+from pyfaradaycup._paths import data_dir
+
 if TYPE_CHECKING:
     import os
-
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 def read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignore[FBT001, FBT002]
@@ -821,7 +821,7 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
     """
     try:
         # It appears that there is a unique sweap_tlm.blk
-        file = (DATA_DIR / "sweap_tlm.blk").open()
+        file = (data_dir / "sweap_tlm.blk").open()
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
@@ -832,11 +832,11 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
             # thisdir = os.path.realpath(__file__)
             # thisdir = "\\".join(thisdir.split("\\")[0:-1])
             # print(f"{thisdir = }")
-            file = (DATA_DIR / "sweap_tlm.blk").open()
+            file = (data_dir / "sweap_tlm.blk").open()
         except:  # ruff:ignore[E722]
             # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
-            raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
+            raise RuntimeError(f"Unable to open {data_dir}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
     lines = file.readlines()
     file.close()
     for i, line in enumerate(lines):

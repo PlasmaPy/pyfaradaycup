@@ -29,11 +29,10 @@ import spiceypy
 from spacepy import pycdf
 
 import pyfaradaycup.decommutator.ccsds_reader_pipeline as cc
+from pyfaradaycup._paths import data_dir
 
 if TYPE_CHECKING:
     import os
-
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 # The log file, which is opened by main
 logfile: TextIO
@@ -967,11 +966,11 @@ def get_newest_kernel(
 
     # Search in the MOC data product directory for newest file
     if tls:
-        globdir = DATA_DIR / "moc_data_products" / "leap_second_kernel"
+        globdir = data_dir / "moc_data_products" / "leap_second_kernel"
         globstr = "naif00[0-9][0-9].tls"
         ndigits = 2
     elif sclk:  # probably only the most recent one is needed?
-        globdir = DATA_DIR / "moc_data_products" / "operations_sclk_kernel"
+        globdir = data_dir / "moc_data_products" / "operations_sclk_kernel"
         globstr = "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
@@ -1019,7 +1018,7 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     """
     # skeleton ≈ metadata schema in the form of an empty CDF file
     return str(
-        DATA_DIR
+        data_dir
         / "cdf_skeletons"
         / f"psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
     )
