@@ -15,9 +15,11 @@ __all__ = [
     "get_newest_skeleton",
     "main",
     "secsubsec2scet",
+    "setup",
     "statusmsg",
 ]
 
+import argparse
 import datetime
 import glob
 import math
@@ -88,8 +90,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
         `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
-        If `False`, read SWEAP instrument packets with
-        `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file`.
+        If `False`, read SWEAP instrument packets with `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file_sc`.
 
     ptp : bool, optional
         If `True`, the L0 file is a PTP file. Only used when
@@ -387,8 +388,8 @@ def cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> N
 
     Each variable in the CDF is filled from the matching key in
     ``dat``. Variables with no matching key are filled with the
-    variable's ``FILLVAL``. If an unexpected error occurs, a
-    `RuntimeError` is raised.
+    variable's ``FILLVAL``. If an unexpected error occurs, a ``pdb``
+    debugging session is started.
     """
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
@@ -956,19 +957,16 @@ def get_newest_kernel(
 
     Returns
     -------
-    str
-        Path to the kernel file with the highest version number.
-
-    Raises
-    ------
-    RuntimeError
-        If both or neither of ``tls`` and ``sclk`` are `True`.
+    str or bool
+        Path to the kernel file with the highest version number, or
+        `False` if both or neither of ``tls`` and ``sclk`` are `True`.
 
     Notes
     -----
-    The kernels are searched for under ``moc_data_products/`` in the
-    package data directory, ``src/pyfaradaycup/data/``. The version
-    number is read from the digits at the end of the file name.
+    The kernels are searched for in fixed directories under
+    ``/psp/data/moc_data_products/``, so this only works on a system
+    with that directory layout. The version number is read from the
+    digits at the end of the file name.
     """
     # Make sure we chose exactly one of the options
     if tls + sclk != 1:
@@ -1022,13 +1020,13 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     Returns
     -------
     str
-        The path ``cdf_skeletons/psp_swp_spc_l1_<apid>_skeleton.cdf``
-        inside the package data directory, ``src/pyfaradaycup/data/``,
+        The path ``cdf_skeletons/psp_swp_spc_l1_<apid>_skeleton.cdf``,
         with the APID as three lowercase hexadecimal digits.
 
     Notes
     -----
-    The function does not check that the file exists. Earlier versions
+    The path is relative to the current working directory. The
+    function does not check that the file exists. Earlier versions
     searched for the newest versioned skeleton file; that code is
     kept below as comments.
     """
@@ -1059,3 +1057,245 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     # path = files[maxind]
 
     # return(path)
+
+
+def setup() -> argparse.Namespace:
+    """
+    Read the command-line arguments for running this module as a script.
+
+    Returns
+    -------
+    argparse.Namespace
+        The parsed arguments. ``apid`` is converted to an integer, and
+        a ``version`` attribute (the data product version) is added.
+
+    Raises
+    ------
+    KeyError
+        If the ``PSP_DATA_DIR`` environment variable is not set.
+
+    ValueError
+        If the directory in ``PSP_DATA_DIR`` does not exist.
+    """
+    # defaults
+    l0file_default = ""
+    l0dir_default = ""
+    l1dir_default = ""
+    logdir_default = ""
+    apid_default = "0"
+
+    # Get User Input
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="Increase verbosity",
+        required=False,
+    )
+    parser.add_argument(
+        "-gz",
+        "--gzip",
+        default=False,
+        action="store_true",
+        help="Read in L0 file as gzip",
+        required=False,
+    )
+    parser.add_argument(
+        "-sc",
+        "--spacecraft",
+        default=False,
+        action="store_true",
+        help="Look for S/C packets",
+        required=False,
+    )
+    parser.add_argument(
+        "-b",
+        "--batch",
+        default=False,
+        action="store_true",
+        help="Convert all L0 files in same directory as selected",
+        required=False,
+    )
+    parser.add_argument(
+        "-r",
+        "--recursive",
+        default=False,
+        action="store_true",
+        help="Convert all L0 files in given directory and in all subdirectories",
+        required=False,
+    )
+    parser.add_argument(
+        "-p",
+        "--ptp",
+        default=False,
+        action="store_true",
+        help="Indicate that input L0 file is a PTP file",
+        required=False,
+    )
+    parser.add_argument(
+        "-o",
+        "--overwrite",
+        default=False,
+        action="store_true",
+        help="Overwrite existing L1 CDF file, if necessary",
+        required=False,
+    )
+    parser.add_argument(
+        "-stc",
+        "--stcorrect",
+        default=False,
+        action="store_true",
+        help="If ST is wrong (FPGA bug if ST set higher than 2), then try to correct it)",
+        required=False,
+    )
+    parser.add_argument(
+        "-a",
+        "--apid",
+        help=f"APID to create L1 file for [0==all] [default={apid_default}]",
+        required=False,
+        default=apid_default,
+        type=str,
+    )
+    parser.add_argument(
+        "-l0",
+        "--l0file",
+        help=f"Input L0 File [default={l0file_default}]",
+        required=False,
+        default=l0file_default,
+    )
+    parser.add_argument(
+        "-d",
+        "--l0dir",
+        help=f"Input L0 Directory (for use with -b or -r [default={l0dir_default}]",
+        required=False,
+        default=l0dir_default,
+    )
+    parser.add_argument(
+        "-dl1",
+        "--l1dir",
+        help=f"Output L1 Directory [default={l1dir_default}]",
+        required=False,
+        default=l1dir_default,
+    )
+    parser.add_argument(
+        "-dlog",
+        "--logdir",
+        help=f"Output for Log Files [default={logdir_default}]",
+        required=False,
+        default=logdir_default,
+    )
+
+    verbose = (
+        False  # temporarily set verbose to False since it was not defined previously
+    )
+
+    # Read in the arguments
+    args = parser.parse_args()
+
+    # Version of the data product
+    args.version = 2
+
+    # Make sure we got a good argument set
+    if (args.batch == 0) & (args.recursive == 0):
+        if args.l0file == "":
+            statusmsg(
+                "***ERROR*** You must provide --l0file, if not using -b or -r",
+                screen=True,
+                verbose=verbose,
+            )
+    elif args.l0dir == "":
+        statusmsg(
+            "***ERROR*** You must provide --l0dir if using -b or -r",
+            screen=True,
+            verbose=verbose,
+        )
+
+    # Convert APID to an integer (it is read as a string from the command line)
+    try:
+        if args.apid[0:2] == "0x":  # ruff:ignore[SIM108]
+            base = 16
+        else:
+            base = 10
+        args.apid = int(args.apid, base)
+    except TypeError:
+        statusmsg(
+            "Trouble parsing desired APID....exiting.",
+            screen=True,
+            verbose=verbose,
+        )
+        statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ty:ignore[invalid-argument-type,unresolved-reference]
+        sys.exit()
+
+    # Make sure the environmental variable reference to the data directory is set and readable
+    try:
+        datadir = os.environ["PSP_DATA_DIR"]
+    except:  # ruff:ignore[E722]
+        raise KeyError(  # ruff:ignore[B904, TRY003]
+            "Environmental variable PSP_DATA_DIR could not be found...you must specify path to data directory using that environmental variable"  # ruff:ignore[EM101]
+        )
+
+    if not os.path.exists(datadir):  # ruff:ignore[PTH110]
+        raise ValueError(  # ruff:ignore[TRY003]
+            "Directory specified in env. variable PSP_DATA_DIR does not exist"  # ruff:ignore[EM101]
+        )
+
+    # Return to main routine
+    return args
+
+
+if __name__ == "__main__":
+    args = setup()
+    main(
+        l0file=args.l0file,
+        l1dir=args.l1dir,
+        logdir=args.logdir,
+        spacecraft=args.spacecraft,
+        ptp=args.ptp,
+        gzip=args.gzip,
+        apidreq=args.apid,
+        overwrite=args.overwrite,
+        verbose=args.verbose,
+    )
+    """
+    Convert one SPC L0 file into L1 CDF files, one per APID.
+
+    Parameters
+    ----------
+    l0file : str, optional
+        Path to the L0 file to convert.
+
+    l1dir : str, optional
+        Directory for the L1 CDF files. If empty, the directory of
+        ``l0file`` is used.
+
+    logdir : str, optional
+        Directory for the log file. If empty, ``l1dir`` is used. It is
+        created if it does not exist.
+
+    spacecraft : bool, optional
+        If `True`, read spacecraft housekeeping packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file_sc`.
+        If `False`, read SWEAP instrument packets with
+        `~pyfaradaycup.pipeline.ccsds_reader_pipeline.read_file`.
+
+    ptp : bool, optional
+        If `True`, the L0 file is a PTP file. Only used when
+        ``spacecraft`` is `True`.
+
+    gzip : bool, optional
+        If `True`, read the L0 file as gzip-compressed.
+
+    apidreq : int, optional
+        Only create a CDF for this APID. If ``0``, create a CDF for
+        every supported APID found in the file.
+
+    overwrite : bool, optional
+        If `True`, replace L1 CDF files that already exist. If `False`
+        and a file already exists, the program exits.
+
+    verbose : bool, optional
+        If `True`, print messages to the screen as well as to the log
+        file.
+    """
