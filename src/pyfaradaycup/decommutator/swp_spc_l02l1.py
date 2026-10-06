@@ -194,17 +194,17 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest S/C clock kernel...")
     sclk_path = get_newest_kernel(sclk=True)
     if not sclk_path:
-        statusmsg("***ERROR*** [swp_spc_l02l1.py] Could not find SCLK kernel...exiting")
-        sys.exit()
-    else:
+        msg = "Could not find SCLK kernel"
+        statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        raise RuntimeError(msg)
+    else:  # ruff:ignore[RET506]
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {sclk_path}")
             spiceypy.furnsh(sclk_path)
-        except:  # ruff:ignore[E722]
-            statusmsg(
-                "***ERROR*** [swp_spc_l02l1.py] Could not furnsh SCLK kernel...exiting"
-            )
-            sys.exit()
+        except Exception as exc:
+            msg = f"Could not furnsh SCLK kernel: {sclk_path}"
+            statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            raise RuntimeError(msg) from exc
 
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
