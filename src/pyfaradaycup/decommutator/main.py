@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["pfc_decommutator"]
 
-import os
 import pathlib
 
 import click
@@ -27,7 +26,12 @@ def _parse_apid(
 
 
 def _warn_about_ineffective_options(
-    *, batch: bool, recursive: bool, l0dir: str, ptp: bool, spacecraft: bool
+    *,
+    batch: bool,
+    recursive: bool,
+    l0dir: pathlib.Path | None,
+    ptp: bool,
+    spacecraft: bool,
 ) -> None:
     """Print a warning to standard error for each option that has little or no effect."""
     warnings = []
@@ -39,7 +43,7 @@ def _warn_about_ineffective_options(
         warnings.append(
             "-r/--recursive is not implemented; only --l0file will be converted"
         )
-    if l0dir:
+    if l0dir is not None:
         warnings.append(
             "-d/--l0dir is not implemented; no files in it will be converted"
         )
@@ -115,22 +119,32 @@ def _warn_about_ineffective_options(
     callback=_parse_apid,
     help="APID to create L1 file for, in hexadecimal (e.g., 35E) [0==all]",
 )
-@click.option("-l0", "--l0file", default="", help="Input L0 File. Required.")
+@click.option(
+    "-l0",
+    "--l0file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Input L0 File. Required.",
+)
 @click.option(
     "-d",
     "--l0dir",
-    default="",
+    type=click.Path(file_okay=False, path_type=pathlib.Path),
     help=(
         "Input L0 Directory (for use with -b or -r). "
         "Not implemented: no files in it are converted."
     ),
 )
-@click.option("-dl1", "--l1dir", default="", help="Output L1 Directory. Required.")
+@click.option(
+    "-dl1",
+    "--l1dir",
+    type=click.Path(file_okay=False, path_type=pathlib.Path),
+    help="Output L1 Directory. Defaults to the current directory. Created if it does not exist.",
+)
 @click.option(
     "-dlog",
     "--logdir",
-    default="",
-    help="Output for Log Files. Required. Created if it does not exist.",
+    type=click.Path(file_okay=False, path_type=pathlib.Path),
+    help="Output for Log Files. Defaults to the current directory. Created if it does not exist.",
 )
 def pfc_decommutator(  # ruff:ignore[PLR0913]
     *,
@@ -143,22 +157,18 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     overwrite: bool,
     stcorrect: bool,
     apid: int,
-    l0file: str,
-    l0dir: str,
-    l1dir: str,
-    logdir: str,
+    l0file: pathlib.Path | None,
+    l0dir: pathlib.Path | None,
+    l1dir: pathlib.Path | None,
+    logdir: pathlib.Path | None,
 ) -> None:
     """
     Convert one SPC L0 file into L1 CDF files, one per APID.
-
-    The PSP_DATA_DIR environment variable must be set to the path of an
-    existing data directory.
 
     To convert the L0 file 0523462910_4_EA, printing messages to the
     screen as well as to the log file:
 
     \b
-        export PSP_DATA_DIR=/path/to/data
         pfc_decommutator \\
             --l0file=/path/to/0523462910_4_EA \\
             --l1dir=/path/to/l1dir \\
@@ -167,7 +177,8 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     This writes one L1 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
-    --l1dir, and a log file into the directory given by --logdir.
+    --l1dir, and a log file into the directory given by --logdir. If
+    --l1dir or --logdir is not given, the current directory is used.
     """  # ruff:ignore[D301]
     _warn_about_ineffective_options(
         batch=batch,
@@ -177,26 +188,15 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         spacecraft=spacecraft,
     )
 
-    # Make sure we got a good argument set
-    if not batch and not recursive:
-        if not l0file:
-            raise click.UsageError(  # ruff:ignore[TRY003]
-                "You must provide --l0file, if not using -b or -r"  # ruff:ignore[EM101]
-            )
-    elif not l0dir:
+    # Make sure we got a good argument set. Because -b and -r are not
+    # implemented, --l0file is needed even when they are given.
+    if (batch or recursive) and l0dir is None:
         raise click.UsageError(  # ruff:ignore[TRY003]
             "You must provide --l0dir if using -b or -r"  # ruff:ignore[EM101]
         )
-
-    # Make sure the environmental variable reference to the data directory is set and readable
-    datadir = os.environ.get("PSP_DATA_DIR")
-    if datadir is None:
-        raise click.ClickException(  # ruff:ignore[TRY003]
-            "Environmental variable PSP_DATA_DIR could not be found...you must specify path to data directory using that environmental variable"  # ruff:ignore[EM101]
-        )
-    if not pathlib.Path(datadir).exists():
-        raise click.ClickException(  # ruff:ignore[TRY003]
-            "Directory specified in env. variable PSP_DATA_DIR does not exist"  # ruff:ignore[EM101]
+    if l0file is None:
+        raise click.UsageError(  # ruff:ignore[TRY003]
+            "You must provide --l0file"  # ruff:ignore[EM101]
         )
 
     if stcorrect:

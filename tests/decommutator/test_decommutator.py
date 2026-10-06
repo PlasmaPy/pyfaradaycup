@@ -31,7 +31,6 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
             f"--logdir={logdir}",
             "-v",
         ],
-        env={"PSP_DATA_DIR": str(data_dir)},
         catch_exceptions=False,
     )
 

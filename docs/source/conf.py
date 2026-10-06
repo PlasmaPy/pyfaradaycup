@@ -43,6 +43,11 @@ apidoc_modules = [
 # "dict of str to list" into cross-references
 napoleon_preprocess_types = True
 
+# Link type specifications that are not class names to glossary terms
+napoleon_type_aliases = {
+    "path-like": ":term:`path-like <path-like object>`",
+}
+
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),

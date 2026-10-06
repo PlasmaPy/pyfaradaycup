@@ -23,34 +23,37 @@ __all__ = [
 ]
 
 import datetime
-import os
 import pathlib
 import re
 import struct
 import sys
 import time
+from typing import TYPE_CHECKING
 
 import dateutil.parser
 import numpy as np
 
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+from pyfaradaycup._paths import data_dir
 
-
-# import Tkinter
-# import tkFileDialog
+if TYPE_CHECKING:
+    import os
 
 
 def read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignore[FBT001, FBT002]
     """Parse binary stream on stdin"""  # ruff:ignore[D400]
 
 
-def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> bytes:  # ruff:ignore[ARG001, FBT001, FBT002]
+def file2bytestr(
+    path: str | os.PathLike[str],
+    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> bytes:
     """
     Read the entire contents of a file into a bytes object.
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the file to read.
 
     verbose : bool, optional
@@ -75,23 +78,24 @@ def file2bytestr(path: str = "", verbose: bool = False, gzip: bool = False) -> b
             with gzip.open(path, "rb") as f:  # ty: ignore[unresolved-attribute]
                 bytestr = f.read()
             return bytestr  # ruff:ignore[RET504]
-        with open(path, "rb") as f:  # ruff:ignore[PTH123]
-            bytestr = f.read()
-        return bytestr  # ruff:ignore[RET504, TRY300]
+        return pathlib.Path(path).read_bytes()
 
     except Exception as exc:
         msg = f"Could not read in file: {path}"
         raise RuntimeError(msg) from exc
 
 
-def choose_file(path: str = "", ptp: bool = False, verbose: bool = False) -> str:  # ruff:ignore[ARG001, FBT001, FBT002]
-    # make sure file exists
+def choose_file(
+    path: str | os.PathLike[str],
+    ptp: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
+    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
+) -> str:
     """
     Check that a file can be opened and return its path.
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the file to check.
 
     ptp : bool, optional
@@ -103,34 +107,29 @@ def choose_file(path: str = "", ptp: bool = False, verbose: bool = False) -> str
     Returns
     -------
     str
-        The input ``path`` if the file can be opened, or an empty string
-        if it cannot be opened or no path was given.
+        The input ``path`` as a string.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened.
 
     Notes
     -----
-    If the file cannot be opened, an error message is printed instead of
-    raising an exception. An interactive file dialog was used here
-    previously but is currently disabled.
+    An interactive file dialog was used here previously to choose a
+    file when none could be opened, but it has been removed.
     """
+    path = str(path)
     try:
-        open(path).close()  # ruff:ignore[PTH123]
-    except:  # ruff:ignore[E722]
-        print("***ERROR*** File can not be read...will give option to choose file")  # ruff:ignore[T201]
-        path = ""
-
-    # pop up a dialog to choose a file if path==''
-    # path = 'C:\\Users\\comra_000\\SWEAP\\SPC\\FEU\\Testing\\20150228_UCB_SPC_FEU_LVPS_PTP_data\\PTP_data.dat'
-    if path == "":
-        print("***ERROR*** Must define a file path")  # ruff:ignore[T201]
-        # root = Tkinter.Tk()
-        # root.withdraw()
-        # path = tkFileDialog.askopenfilename()
-
+        pathlib.Path(path).open().close()
+    except OSError as exc:
+        msg = f"Could not open file: {path}"
+        raise RuntimeError(msg) from exc
     return path
 
 
 def wrapper_status(
-    path: str = "",
+    path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
     spconly: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -140,7 +139,7 @@ def wrapper_status(
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the CCSDS file to read.
 
     verbose : bool, optional
@@ -169,7 +168,7 @@ def wrapper_status(
     header (APIDs 0x348-0x350) followed by an instrument header. Only
     the headers are decoded, not the packet data.
     """
-    # get a filename if not specified
+    # make sure the file can be read
     path = choose_file(path)
 
     # convert file to a hex string
@@ -231,12 +230,12 @@ def wrapper_status(
 
 
 def read_file(  # ruff:ignore[C901]
-    path: str = "",
+    path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[int, dict[str, list]]:
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
-    # get a filename if not specified
+    # make sure the file can be read
     path = choose_file(path)
 
     # convert file to a hex string
@@ -326,13 +325,13 @@ def read_file(  # ruff:ignore[C901]
 
 
 def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
-    path: str = "",
+    path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[int, dict[str, list]]:
     """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
-    # get a filename if not specified
+    # make sure the file can be read
     path = choose_file(path)
 
     # convert file to a hex string
@@ -342,8 +341,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     # based on which version of FSW was running
     # Those versions (and respective dates) are listed in the L1 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
-    # Corresponding SC_HK files that we will read in are in ./sc_hk_def/
-    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:  # ruff:ignore[PTH123]
+    # Both it and the corresponding SC_HK files that we will read in
+    # (in sc_hk_def/) are in the package data directory
+    with (data_dir / "sc_hsk" / "L1" / "APID257_combined.txt").open() as f:
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])
@@ -384,20 +384,17 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         print("Could not find which SC_HK file to use based on packet header")  # ruff:ignore[T201]
         print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
         try:
-            match = re.search(
-                os.path.sep
-                + "20[1-5][0-9]"
-                + os.path.sep
-                + "[0-9][0-9][0-9]"
-                + os.path.sep,
-                path,
-            ).span()  # ty: ignore[unresolved-attribute]
-            file_dt = (
-                datetime.datetime(  # ruff:ignore[DTZ001]
-                    int(path[match[0] + 1 : match[0] + 5]), 1, 1
-                )
-                + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
+            # Look for .../<year>/<day of year>/... in the path
+            parts = pathlib.Path(path).parts
+            year, doy = next(
+                (year, doy)
+                for year, doy in zip(parts, parts[1:-1])
+                if re.fullmatch("20[1-5][0-9]", year)
+                and re.fullmatch("[0-9][0-9][0-9]", doy)
             )
+            file_dt = datetime.datetime(  # ruff:ignore[DTZ001]
+                int(year), 1, 1
+            ) + datetime.timedelta(days=int(doy) - 1)
             try:
                 good_time = np.where(vers_dt < file_dt)[0][-1]
             except IndexError:
@@ -407,7 +404,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
+            sc_hk_filename = list(sc_hk_filenames.values())[-1]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -421,7 +418,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         apidformat[apid], lengths[apid] = get_layout_sc(
             apid,
             verbose=verbose,
-            filename=os.path.join("sc_hk_def", sc_hk_filename),  # ruff:ignore[PTH118]
+            filename=data_dir / "sc_hk_def" / sc_hk_filename,
         )  # ty: ignore[not-iterable]
         if apidformat[apid]:
             data[apid] = {}
@@ -825,7 +822,7 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
     """
     try:
         # It appears that there is a unique sweap_tlm.blk
-        file = open(DATA_DIR / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+        file = (data_dir / "sweap_tlm.blk").open()
     except:  # ruff:ignore[E722]
         if verbose:
             print(  # ruff:ignore[T201]
@@ -836,11 +833,11 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
             # thisdir = os.path.realpath(__file__)
             # thisdir = "\\".join(thisdir.split("\\")[0:-1])
             # print(f"{thisdir = }")
-            file = open(DATA_DIR / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
+            file = (data_dir / "sweap_tlm.blk").open()
         except:  # ruff:ignore[E722]
             # print(here)
             print(sys.exc_info())  # ruff:ignore[T201]
-            raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
+            raise RuntimeError(f"Unable to open {data_dir}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
     lines = file.readlines()
     file.close()
     for i, line in enumerate(lines):
@@ -895,7 +892,7 @@ def get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ign
 def get_layout_sc(  # ruff:ignore[C901]
     apid: int,
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-    filename: str = "",
+    filename: str | os.PathLike[str] | None = None,
 ) -> tuple[apid_obj, int] | None:
     """
     Read the bit layout for one spacecraft housekeeping APID.
@@ -908,9 +905,10 @@ def get_layout_sc(  # ruff:ignore[C901]
     verbose : bool, optional
         If `True`, print a message when the APID is found.
 
-    filename : str, optional
+    filename : str or path-like
         Path to the spacecraft housekeeping telemetry definition
-        (``.blk``) file.
+        (``.blk``) file. Although it has a default of `None` (so that it
+        can follow ``verbose``), it must be provided.
 
     Returns
     -------
@@ -924,11 +922,14 @@ def get_layout_sc(  # ruff:ignore[C901]
     -----
     The APID section in the file starts with a line like
     ``SC_HK_0x<APID>``. Fields written as ``mnemonic[N]`` are treated
-    as ``N`` bytes long (``8 * N`` bits). If the file cannot be opened,
-    a `RuntimeError` is raised.
+    as ``N`` bytes long (``8 * N`` bits). If ``filename`` is not
+    provided, a `ValueError` is raised. If the file cannot be opened, a
+    `RuntimeError` is raised.
     """
+    if filename is None:
+        raise ValueError("Please supply filename")  # ruff:ignore[EM101, TRY003]
     try:
-        file = open(filename)  # ruff:ignore[PTH123, SIM115]
+        file = pathlib.Path(filename).open()  # ruff:ignore[SIM115]
         print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
     except:  # ruff:ignore[E722]
         print("could not open SC HK BLK file")  # ruff:ignore[T201]
@@ -973,7 +974,3 @@ def get_layout_sc(  # ruff:ignore[C901]
         f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None
-
-
-if __name__ == "__main__":
-    read_file(ptp=False, verbose=True)  # ty: ignore[unknown-argument]
