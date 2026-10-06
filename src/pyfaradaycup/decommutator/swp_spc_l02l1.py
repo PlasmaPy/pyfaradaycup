@@ -104,7 +104,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     overwrite : bool, optional
         If `True`, replace L1 CDF files that already exist. If `False`
-        and a file already exists, the program exits.
+        and a file already exists, a `FileExistsError` is raised.
 
     verbose : bool, optional
         If `True`, print messages to the screen as well as to the log
@@ -285,24 +285,25 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
                 )
                 os.remove(l1path)  # ruff:ignore[PTH107]
             else:
+                msg = f"L1 CDF already exists and overwrite was not requested: {l1path}"
                 statusmsg(
-                    "***ERROR*** [swp_spc_l02l1] L1 CDF already exists, and overwrite (-o option) was not requested...exiting.",
+                    f"***ERROR*** [swp_spc_l02l1] {msg}",
                     screen=True,
                     verbose=verbose,
                 )
-                raise (SystemExit)  # ruff:ignore[TRY301]
-        except SystemExit:
-            sys.exit()
+                raise FileExistsError(msg)  # ruff:ignore[TRY301]
+        except FileExistsError:
+            raise
         except OSError:
             pass  # Apparently the file did not exist already
-        except:  # ruff:ignore[E722]
-            statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
+        except Exception as exc:
+            msg = f"Could not check existence of or delete L1 CDF file: {l1path}"
             statusmsg(
-                "\n***ERROR*** [swp_spc_l02l1] Could not check existence/delete L1 CDF file path. Exiting...\n",
+                f"***ERROR*** [swp_spc_l02l1] {msg}",
                 screen=True,
                 verbose=verbose,
             )
-            sys.exit()
+            raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton
         try:
