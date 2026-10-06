@@ -19,18 +19,19 @@ __all__ = [
 ]
 
 import datetime
-import glob
 import math
-import os
 import pathlib
 import sys
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
 import spiceypy
 from spacepy import pycdf
 
 import pyfaradaycup.decommutator.ccsds_reader_pipeline as cc
+
+if TYPE_CHECKING:
+    import os
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
@@ -59,9 +60,9 @@ logfile: TextIO
 
 
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
-    l0file: str = "",
-    l1dir: str = "",
-    logdir: str = "",
+    l0file: str | os.PathLike[str],
+    l1dir: str | os.PathLike[str] | None = None,
+    logdir: str | os.PathLike[str] | None = None,
     spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
     ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -74,16 +75,16 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     Parameters
     ----------
-    l0file : str, optional
+    l0file : str or path-like
         Path to the L0 file to convert.
 
-    l1dir : str, optional
-        Directory for the L1 CDF files. If empty, the directory of
-        ``l0file`` is used.
+    l1dir : str or path-like, optional
+        Directory for the L1 CDF files. If `None` (the default), the
+        current directory is used. It is created if it does not exist.
 
-    logdir : str, optional
-        Directory for the log file. If empty, ``l1dir`` is used. It is
-        created if it does not exist.
+    logdir : str or path-like, optional
+        Directory for the log file. If `None` (the default), the current
+        directory is used. It is created if it does not exist.
 
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
@@ -112,46 +113,35 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     """
     if not l0file:
         raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
-    if not l1dir:
-        raise ValueError("Please supply l1dir")  # ruff:ignore[EM101, TRY003]
-    if not logdir:
-        raise ValueError("Please supply logdir")  # ruff:ignore[EM101, TRY003]
 
-    # Try to create a filename for the new CDF that we're going to create
-    l0dirname = os.path.dirname(l0file)  # ruff:ignore[PTH120]
-    l0basename = os.path.basename(l0file)  # ruff:ignore[PTH119]
-    if l1dir == "":
-        l1dir = (
-            l0dirname  # use input L0 directory for L1 files, if nothing else specified
-        )
+    # Use the current directory for output files if no directory is given
+    l0file = pathlib.Path(l0file)
+    l1dir = pathlib.Path("." if l1dir is None else l1dir)
+    logdir = pathlib.Path("." if logdir is None else logdir)
 
     # Get a version of filename with no extension
-    l0file_noext = os.path.splitext(l0basename)[0]  # ruff:ignore[PTH122]
+    l0file_noext = l0file.stem
     if l0file_noext[-3:] == "ptp":
-        l0file_noext = os.path.splitext(l0file_noext)[0]  # ruff:ignore[PTH122]
+        l0file_noext = pathlib.Path(l0file_noext).stem
 
     # Open a log file to write to
     nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
-    if logdir == "":
-        logdir = l1dir  # use L1 file output directory for log file, if nothing else specified
-    pathlib.Path(logdir).mkdir(
-        parents=True, exist_ok=True
-    )  # in case the directory doesn't exist, this will create it
-    logpath = os.path.join(  # ruff:ignore[PTH118]
-        logdir,
-        f"swp_spc_l02l1_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log",
+    logpath = (
+        logdir
+        / f"swp_spc_l02l1_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log"
     )
     try:
+        logdir.mkdir(parents=True, exist_ok=True)
         global logfile  # ruff:ignore[PLW0603]
-        logfile = open(logpath, "w")  # ruff:ignore[PTH123, SIM115]
+        logfile = logpath.open("w")
     except Exception as exc:
         msg = f"Could not open log file: {logpath}"
         raise RuntimeError(msg) from exc
     # Write some information to the log file
     statusmsg("scriptname = swp_spc_l02l1.py", verbose=verbose)
     statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
-    statusmsg("l0file = " + l0file, verbose=verbose)
-    statusmsg("l1dir = " + l1dir, verbose=verbose)
+    statusmsg(f"l0file = {l0file}", verbose=verbose)
+    statusmsg(f"l1dir = {l1dir}", verbose=verbose)
     statusmsg("spacecraft = " + repr(spacecraft), verbose=verbose)
     statusmsg("ptp = " + repr(ptp), verbose=verbose)
     statusmsg("gzip = " + repr(gzip), verbose=verbose)
@@ -160,8 +150,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     # Make sure the L0 file exists and is readable
     try:
-        foo = open(l0file)  # ruff:ignore[PTH123, SIM115]
-        foo.close()
+        l0file.open().close()
         statusmsg("L0 file exists and is readable")
     except OSError:
         statusmsg(
@@ -233,17 +222,15 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             continue  # skip this apid if user only wanted one apid and this isn't it
 
         # Filename for the L1 file we're about to write for this apid
-        l1path = os.path.join(  # ruff:ignore[PTH118]
-            l1dir,
-            l0file_noext + f"_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf",  # ruff:ignore[FURB116]
+        l1path = (
+            l1dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
         )
-        statusmsg("About to write: " + l1path)
+        statusmsg(f"About to write: {l1path}")
 
         # Make sure the skeleton file exists and is readable
         try:
             skeleton_filename = get_newest_skeleton(apid)
-            foo = open(skeleton_filename)  # ruff:ignore[PTH123, SIM115]
-            foo.close()
+            pathlib.Path(skeleton_filename).open().close()
             statusmsg("Skeleton to be used: " + skeleton_filename)
         except OSError:
             statusmsg(
@@ -264,9 +251,8 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         # See if the CDF file already exists
         try:
             # try to open and close it
-            statusmsg("Using L1 path: " + l1path, screen=True, verbose=verbose)
-            foo = open(l1path)  # ruff:ignore[PTH123, SIM115]
-            foo.close()
+            statusmsg(f"Using L1 path: {l1path}", screen=True, verbose=verbose)
+            l1path.open().close()
 
             # if we get here, this file already exists; so delete it, if desired
             statusmsg(
@@ -280,7 +266,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
                     screen=True,
                     verbose=verbose,
                 )
-                os.remove(l1path)  # ruff:ignore[PTH107]
+                l1path.unlink()
             else:
                 msg = f"L1 CDF already exists and overwrite was not requested: {l1path}"
                 statusmsg(
@@ -302,9 +288,11 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             )
             raise RuntimeError(msg) from exc
 
-        # Create a new CDF file from the provided skeleton
+        # Create a new CDF file from the provided skeleton, creating the
+        # L1 directory if it doesn't exist
+        l1path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            cdf = pycdf.CDF(l1path, skeleton_filename)
+            cdf = pycdf.CDF(str(l1path), skeleton_filename)
         except "CDFError":  # ruff:ignore[B030]  # ty: ignore[invalid-exception-caught]
             statusmsg(
                 f"\n***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={apid})...continuing to next APID\n).",
@@ -979,19 +967,19 @@ def get_newest_kernel(
 
     # Search in the MOC data product directory for newest file
     if tls:
-        globdir = str(DATA_DIR / "moc_data_products" / "leap_second_kernel") + "/"
-        globstr = globdir + "naif00[0-9][0-9].tls"
+        globdir = DATA_DIR / "moc_data_products" / "leap_second_kernel"
+        globstr = "naif00[0-9][0-9].tls"
         ndigits = 2
     elif sclk:  # probably only the most recent one is needed?
-        globdir = str(DATA_DIR / "moc_data_products" / "operations_sclk_kernel") + "/"
-        globstr = globdir + "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
+        globdir = DATA_DIR / "moc_data_products" / "operations_sclk_kernel"
+        globstr = "spp_sclk_[0-9][0-9][0-9][0-9].tsc"
         ndigits = 4
 
-    files = glob.glob(globstr)  # ruff:ignore[PTH207]
+    files = sorted(globdir.glob(globstr))
 
     # isolate version numbers from the file path and find newest
     if tls or sclk:
-        versions = [int(i[-4 - ndigits : -4]) for i in files]
+        versions = [int(file.stem[-ndigits:]) for file in files]
     try:
         maxind = np.argmax(versions)
     except ValueError:
@@ -1001,8 +989,7 @@ def get_newest_kernel(
         raise RuntimeError("Could not find kernel versions")  # ruff:ignore[B904, EM101, TRY003]
 
     # return path to newest file
-    path = files[maxind]
-    return path  # ruff:ignore[RET504]
+    return str(files[maxind])
 
 
 def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore[ARG001, FBT001, FBT002]
@@ -1032,7 +1019,9 @@ def get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore
     """
     # skeleton ≈ metadata schema in the form of an empty CDF file
     return str(
-        f"{DATA_DIR!s}/cdf_skeletons/psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
+        DATA_DIR
+        / "cdf_skeletons"
+        / f"psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
     )
 
     # The remaining code in this function is from when we used skeleton file numbers with a version # in them
