@@ -65,6 +65,26 @@ def tests(session: nox.Session) -> None:
     session.run("pytest", *doctest_options, *session.posargs)
 
 
+@nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
+def coverage(session: nox.Session) -> None:
+    """
+    Run tests with pytest and measure code coverage.
+
+    The project is installed in editable mode (by ``uv sync``) so that
+    file paths in the coverage report point to ``src/``, which is
+    needed for the report uploaded to Codecov to map onto the source.
+
+    Configuration: ``[tool.coverage]`` in pyproject.toml
+    """
+    session.run(
+        "pytest",
+        "--cov",
+        "--cov-report=xml",
+        "--cov-report=term",
+        *session.posargs,
+    )
+
+
 if RUNNING_ON_RTD:
     rtd_output_path = pathlib.Path(os.environ.get("READTHEDOCS_OUTPUT")) / "html"  # ty: ignore[invalid-argument-type]
     rtd_output_path.mkdir(parents=True, exist_ok=True)
