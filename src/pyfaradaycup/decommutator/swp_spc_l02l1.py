@@ -22,6 +22,7 @@ import datetime
 import math
 import pathlib
 import sys
+import warnings
 from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
@@ -327,8 +328,14 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             )
             continue
 
-        # Close the CDF
-        cdf.close()
+        # Close the CDF. spacepy warns when a variable that the CDF
+        # skeleton marks for compression does not get smaller when
+        # compressed, which is harmless.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
+            )
+            cdf.close()
 
     statusmsg(
         "***INFO*** [swp_spc_l02l1] Script complete.", screen=True, verbose=verbose
