@@ -50,6 +50,7 @@ test = [
   "cdflib",
   "pytest",
   "pytest-check>=2.9.1",
+  "pytest-cov",
   "pytest-filter-subpackage",
   "xarray>=2022.6,<2023.10; python_version<'3.11'",
   "xarray>=2024.6; python_version>='3.11'",
@@ -284,3 +285,15 @@ markers = [
 ]
 strict = true
 testpaths = [ "tests", "src/pyfaradaycup" ]
+
+[tool.coverage]  # https://coverage.readthedocs.io/en/latest/config.html
+run.source_pkgs = [ "pyfaradaycup" ]
+run.branch = true
+paths.source = [ "src/pyfaradaycup", "*/site-packages/pyfaradaycup" ]
+report.exclude_also = [
+  "@overload",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]
+report.show_missing = true
