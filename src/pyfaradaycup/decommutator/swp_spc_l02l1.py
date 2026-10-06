@@ -144,10 +144,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     try:
         global logfile  # ruff:ignore[PLW0603]
         logfile = open(logpath, "w")  # ruff:ignore[PTH123, SIM115]
-    except:  # ruff:ignore[E722]
-        print("\n***ERROR*** Could not open log file!\n")  # ruff:ignore[T201]
-        sys.exit(1)
-
+    except Exception as exc:
+        msg = f"Could not open log file: {logpath}"
+        raise RuntimeError(msg) from exc
     # Write some information to the log file
     statusmsg("scriptname = swp_spc_l02l1.py", verbose=verbose)
     statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
