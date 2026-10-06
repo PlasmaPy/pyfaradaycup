@@ -62,12 +62,19 @@ Calling the conversion as a function is better suited to Dagster than starting a
 
 ### Make the inputs configurable
 
-- **Allow the kernel and skeleton directories to be chosen.**
+- **Allow the kernel, skeleton, and housekeeping definition files to be chosen.**
   The leap second kernel, SCLK kernel, CDF skeletons, and `sweap_tlm.blk` are read from the `data` directory of the installed package, and the newest kernel is chosen from the file name.
-  A new SCLK kernel therefore needs a new installation of the package, and Dagster cannot treat the kernel as an input.
+  With `--spacecraft`, the list of flight software versions (`sc_hsk/L1/APID257_combined.txt`) and the spacecraft housekeeping definitions (`sc_hk_def/`) are read from there too.
+  These are copies of files on the server used to process the data, so they go out of date when the server's files are updated.
+  A new SCLK kernel or flight software version therefore needs a new installation of the package, and Dagster cannot treat these files as inputs.
   Add arguments for these paths, with the packaged files as the default.
-- **Remove the hard-coded path used by `--spacecraft`.**
-  `read_file_sc` reads `/psp/data/sc_hsk/L1/APID257_combined.txt`, so this option only works on a computer that has that file.
+
+### Test the `--spacecraft` option
+
+- **Add a test that converts a spacecraft L0 file with `--spacecraft`.**
+  The only test converts an instrument L0 file, so `read_file_sc`, `get_layout_sc`, and the code that writes the spacecraft housekeeping CDFs are never run.
+  Add a spacecraft L0 file to `tests/data`, along with the expected L1 CDF files, and compare them as the existing test does.
+  Include a file for which the flight software version cannot be found from the packet header, so that the fallback to the file path, and then to the newest definition file, is also tested.
 
 ### Remove options that do nothing
 

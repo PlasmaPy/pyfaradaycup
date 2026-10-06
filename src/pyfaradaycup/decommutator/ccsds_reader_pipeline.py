@@ -341,8 +341,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     # based on which version of FSW was running
     # Those versions (and respective dates) are listed in the L1 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
-    # Corresponding SC_HK files that we will read in are in ./sc_hk_def/
-    with pathlib.Path("/psp/data/sc_hsk/L1/APID257_combined.txt").open() as f:
+    # Both it and the corresponding SC_HK files that we will read in
+    # (in sc_hk_def/) are in the package data directory
+    with (data_dir / "sc_hsk" / "L1" / "APID257_combined.txt").open() as f:
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])
@@ -403,7 +404,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
+            sc_hk_filename = list(sc_hk_filenames.values())[-1]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -417,7 +418,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         apidformat[apid], lengths[apid] = get_layout_sc(
             apid,
             verbose=verbose,
-            filename=pathlib.Path("sc_hk_def") / sc_hk_filename,
+            filename=data_dir / "sc_hk_def" / sc_hk_filename,
         )  # ty: ignore[not-iterable]
         if apidformat[apid]:
             data[apid] = {}
