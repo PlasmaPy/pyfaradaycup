@@ -176,19 +176,17 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
     tls_path = get_newest_kernel(tls=True)
     if not tls_path:
-        statusmsg(
-            "***ERROR*** [swp_spc_l02l1.py] Could not find leap second kernel...exiting"
-        )
-        sys.exit()
-    else:
+        msg = "Could not find leap second kernel"
+        statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        raise RuntimeError(msg)
+    else:  # ruff:ignore[RET506]
         try:
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {tls_path}")
             spiceypy.furnsh(tls_path)
-        except:  # ruff:ignore[E722]
-            statusmsg(
-                "***ERROR*** [swp_spc_l02l1.py] Could not furnsh leap second kernel...exiting"
-            )
-            sys.exit()
+        except Exception as exc:
+            msg = f"Could not furnsh leap second kernel: {tls_path}"
+            statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            raise RuntimeError(msg) from exc
 
     # Load in S/C Clock Kernel
     statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest S/C clock kernel...")
