@@ -183,7 +183,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {tls_path}")
             spiceypy.furnsh(tls_path)
         except Exception as exc:
-            msg = f"Could not furnsh leap second kernel: {tls_path}"
+            msg = f"Could not load leap second kernel: {tls_path}"
             statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
             raise RuntimeError(msg) from exc
 
@@ -199,7 +199,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {sclk_path}")
             spiceypy.furnsh(sclk_path)
         except Exception as exc:
-            msg = f"Could not furnsh SCLK kernel: {sclk_path}"
+            msg = f"Could not load SCLK kernel: {sclk_path}"
             statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
             raise RuntimeError(msg) from exc
 
