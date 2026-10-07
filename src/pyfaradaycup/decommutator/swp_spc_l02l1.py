@@ -14,7 +14,6 @@ __all__ = [
 import datetime
 import math
 import pathlib
-import sys
 import warnings
 from typing import TYPE_CHECKING, TextIO
 
@@ -103,6 +102,25 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     verbose : bool, optional
         If `True`, print messages to the screen as well as to the log
         file.
+
+    Raises
+    ------
+    ValueError
+        If ``l0file`` is not provided.
+
+    FileExistsError
+        If an L1 CDF file already exists and ``overwrite`` is `False`.
+
+    RuntimeError
+        If the log file cannot be opened, the SPICE kernels cannot be
+        loaded, or the L0 file cannot be read.
+
+    Notes
+    -----
+    Errors for a single APID do not stop the conversion. If the
+    skeleton file cannot be read, the CDF cannot be created, or the CDF
+    cannot be filled, the error is logged and the next APID is
+    processed. A CDF that could not be filled may be left behind.
     """
     if not l0file:
         raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
@@ -145,13 +163,14 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     try:
         l0file.open().close()
         _statusmsg("L0 file exists and is readable")
-    except OSError:
+    except OSError as exc:
+        msg = f"Could not read L0 file: {l0file}"
         _statusmsg(
-            "***ERROR*** [swp_spc_l02l1.py] Input L0 file could not be read...exiting",
+            f"***ERROR*** [swp_spc_l02l1.py] {msg}...exiting",
             screen=True,
             verbose=verbose,
         )
-        raise RuntimeError  # ruff:ignore[B904]
+        raise RuntimeError(msg) from exc
 
     # Load in Leap Second Kernel
     _statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
@@ -286,13 +305,12 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         l1path.parent.mkdir(parents=True, exist_ok=True)
         try:
             cdf = pycdf.CDF(str(l1path), skeleton_filename)
-        except "CDFError":  # ruff:ignore[B030]  # ty: ignore[invalid-exception-caught]
+        except pycdf.CDFError as exc:
             _statusmsg(
-                f"\n***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={apid})...continuing to next APID\n).",
+                f"***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={hex(apid)}): {exc!r}...continuing to next APID",
                 screen=True,
                 verbose=verbose,
             )
-            _statusmsg(sys.exc_info(), screen=True, verbose=verbose)  # ty: ignore[invalid-argument-type]
             continue
 
         # Run a different procedure to put data into CDF file depending on APID
@@ -312,10 +330,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         }
         try:
             cdfproc[apid](cdf, l0data[apid], verbose=verbose)
-        except:  # ruff:ignore[E722]
-            _statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
+        except Exception as exc:  # ruff:ignore[BLE001]
             _statusmsg(
-                f"***WARNING*** [swp_spc_l02l1] CDF not processed for APID={hex(apid)}",
+                f"***WARNING*** [swp_spc_l02l1] CDF not processed for APID={hex(apid)}: {exc!r}",
                 screen=True,
                 verbose=verbose,
             )
@@ -359,6 +376,12 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
         Not currently used. Accepted so that `main` can call each CDF
         writer with the same arguments.
 
+    Raises
+    ------
+    RuntimeError
+        If a variable cannot be written to the CDF, such as when the
+        data has the wrong shape or type for that variable.
+
     Notes
     -----
     Unlike `_cdf352` and `_cdf351_353_354`, the data is not expanded:
@@ -372,8 +395,7 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
 
     Each variable in the CDF is filled from the matching key in
     ``dat``. Variables with no matching key are filled with the
-    variable's ``FILLVAL``. If an unexpected error occurs, a
-    `RuntimeError` is raised.
+    variable's ``FILLVAL``.
     """
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
@@ -424,9 +446,9 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
         except KeyError:  # ruff:ignore[PERF203]
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
-        except:  # ruff:ignore[E722]
-            msg = f"Failed : Key:{key} failed insert into CDF"
-            raise RuntimeError(msg)  # ruff:ignore[B904]
+        except (pycdf.CDFError, TypeError, ValueError) as exc:
+            msg = f"Could not write variable {key!r} to the CDF: {exc}"
+            raise RuntimeError(msg) from exc
 
 
 def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
@@ -470,6 +492,12 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     dict of str to list or None
         If ``nocdf`` is `True`, the expanded data, with one value per
         measurement for each key. Otherwise, `None`.
+
+    Raises
+    ------
+    RuntimeError
+        If a variable in the CDF skeleton is not in the L0 data, or if
+        a variable cannot be written to the CDF.
 
     Notes
     -----
@@ -615,15 +643,14 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
         try:
             # insert data
             cdf[key] = dat_exp[key]
-        except:  # ruff:ignore[E722, PERF203]
-            _statusmsg(
-                f"Failed : Key:{key} failed insert into CDF",
-                screen=True,
-                verbose=verbose,
-            )
-            _statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-
-            raise RuntimeError  # ruff:ignore[B904]
+        except KeyError as exc:  # ruff:ignore[PERF203]
+            msg = f"The CDF skeleton has variable {key!r}, but the L0 data does not"
+            _statusmsg(f"Failed : {msg}", screen=True, verbose=verbose)
+            raise RuntimeError(msg) from exc
+        except (pycdf.CDFError, TypeError, ValueError) as exc:
+            msg = f"Could not write variable {key!r} to the CDF: {exc}"
+            _statusmsg(f"Failed : {msg}", screen=True, verbose=verbose)
+            raise RuntimeError(msg) from exc
 
 
 def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
@@ -665,6 +692,11 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
         If ``nocdf`` is `True`, the expanded data, with one value per
         measurement for each key. Otherwise, an empty tuple.
 
+    Raises
+    ------
+    RuntimeError
+        If an unexpected error occurs while expanding the packets.
+
     Notes
     -----
     ``"SPC_TIMESERCOLL"`` sets which four channels a packet contains:
@@ -673,6 +705,10 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     voltages. The values go into ``"VAR0"`` through ``"VAR3"``, and the
     channel names go into ``"VAR0_NAME"`` through ``"VAR3_NAME"``.
     Packets with any other value are logged as errors and skipped.
+
+    Unlike `_cdf351_353_354`, if a variable cannot be written to the
+    CDF, the error is logged and the remaining variables are still
+    written.
 
     ``"Epoch"`` is in nanoseconds past J2000. Each measurement is
     spaced ``1 / (32 * 1171.875)`` seconds apart, starting at the
@@ -739,7 +775,7 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
 
             try:
                 if coll_used not in coll2var:
-                    raise ValueError(  # ruff:ignore[TRY003]
+                    raise ValueError(  # ruff:ignore[TRY003, TRY301]
                         f"Value: {coll_used} not in coll2var.keys()"  # ruff:ignore[EM102]
                     )  # probably a corrupt packet
 
@@ -761,11 +797,12 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
                 dat_exp["VAR2"].extend(dat["G2_000"][i])
                 dat_exp["VAR3"].extend(dat["G3_000"][i])
 
-            except:  # ruff:ignore[E722]
+            except ValueError as exc:
                 _statusmsg(
-                    "***ERROR*** Could not process 0x352 packet (probably it was a false positive ID of a 0x352 packet?)"
+                    f"***ERROR*** Could not process 0x352 packet (probably it was a false positive ID of a 0x352 packet?): {exc}",
+                    screen=True,
+                    verbose=verbose,
                 )
-                _statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
                 continue
 
             # Extend the expanded dt
@@ -795,16 +832,21 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
             try:
                 # insert data
                 cdf[key] = dat_exp[key]
-            except:  # ruff:ignore[E722, PERF203]
+            except KeyError:  # ruff:ignore[PERF203]
                 _statusmsg(
-                    f"Failed : Key:{key} failed insert into CDF",
+                    f"Failed : The CDF skeleton has variable {key!r}, but the L0 data does not",
                     screen=True,
                     verbose=verbose,
                 )
-                _statusmsg(repr(sys.exc_info()), screen=True, verbose=verbose)
-    except:  # ruff:ignore[E722]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # ruff:ignore[B904]
+            except (pycdf.CDFError, TypeError, ValueError) as exc:
+                _statusmsg(
+                    f"Failed : Could not write variable {key!r} to the CDF: {exc}",
+                    screen=True,
+                    verbose=verbose,
+                )
+    except Exception as exc:
+        msg = "Could not process the APID 0x352 packets"
+        raise RuntimeError(msg) from exc
 
     return ()
 
@@ -963,11 +1005,10 @@ def _get_newest_kernel(
         versions = [int(file.stem[-ndigits:]) for file in files]
     try:
         maxind = np.argmax(versions)
-    except ValueError:
-        _statusmsg("***ERROR*** Could not find kernel versions")
-        print(sys.exc_info())  # ruff:ignore[T201]
-
-        raise RuntimeError("Could not find kernel versions")  # ruff:ignore[B904, EM101, TRY003]
+    except ValueError as exc:
+        msg = f"Could not find any kernel files matching {globstr} in {globdir}"
+        _statusmsg(f"***ERROR*** {msg}")
+        raise RuntimeError(msg) from exc
 
     # return path to newest file
     return str(files[maxind])

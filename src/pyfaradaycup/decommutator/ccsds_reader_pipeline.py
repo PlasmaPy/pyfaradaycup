@@ -181,10 +181,9 @@ def _wrapper_status(
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
+    pkt_starts = pkt_inds[:, 0]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):  # ruff:ignore[B007]
@@ -254,10 +253,9 @@ def read_file(  # ruff:ignore[C901]
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
+    pkt_starts = pkt_inds[:, 0]
 
     npackets = len(pkt_starts)
 
@@ -341,7 +339,7 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             | (cchead["CCSDS_PacketType"] != 0)
             | (cchead["CCSDS_SecHdrFlag"] != 1)
         ):
-            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003]
+            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003, TRY301]
         file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # ruff:ignore[DTZ001]
             seconds=cchead["CCSDS_MET"]
         )
@@ -350,9 +348,10 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         except IndexError:
             good_time = 0
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
-    except:  # ruff:ignore[E722]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        print("Could not find which SC_HK file to use based on packet header")  # ruff:ignore[T201]
+    except (ValueError, KeyError) as exc:
+        print(  # ruff:ignore[T201]
+            f"Could not find which SC_HK file to use based on packet header: {exc!r}"
+        )
         print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
         try:
             # Look for .../<year>/<day of year>/... in the path
@@ -371,7 +370,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             except IndexError:
                 good_time = 0
             sc_hk_filename = sc_hk_filenames[versions[good_time]]
-        except:  # ruff:ignore[E722]
+        except (StopIteration, KeyError):
+            # StopIteration: no <year>/<day of year> in the path
+            # KeyError: no SC_HK file for that flight software version
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
@@ -452,10 +453,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
+    pkt_starts = pkt_inds[:, 0]
     npackets = len(pkt_starts)
 
     # Some variables so we can display progress
@@ -655,8 +655,8 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
             thisbin = str_bin[startbit:endbit]
             try:
                 thisval = int(thisbin, 2)
-            except:  # ruff:ignore[E722]
-                # print(sys.exc_info())
+            except ValueError:
+                # The packet ends before this mnemonic, so thisbin is empty
                 thisval = -999
             thisdat[thisname].append(thisval)
         return
@@ -668,11 +668,12 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
 
     for i_bit, bit in enumerate(form.bits[0 : len(form.bits) - sw_data_vars_len]):
         thisbin = str_bin[pointer : pointer + bit]
+        thisname = form.names[i_bit]
         try:
             thisval = int(thisbin, 2)
-        except:  # ruff:ignore[E722]
-            raise RuntimeError  # ruff:ignore[B904]
-        thisname = form.names[i_bit]
+        except ValueError as exc:
+            msg = f"Could not decode {thisname} in an APID {hex(apid)} packet"
+            raise RuntimeError(msg) from exc
 
         # store in our data variable
         thisdat[thisname].append(thisval)
@@ -694,12 +695,12 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
         while (pointer + total_sw_data_length) <= len(str_bin):
             for i in range(n_vars):
                 thisbin = str_bin[pointer : pointer + form.bits[-n_vars + i]]
+                thisname = form.sw_data_vars[i]
                 try:
                     thisval = int(thisbin, 2)
-                except ValueError:
-                    raise ValueError  # ruff:ignore[B904]
-
-                thisname = form.sw_data_vars[i]
+                except ValueError as exc:
+                    msg = f"Could not decode {thisname} in an APID {hex(apid)} packet"
+                    raise RuntimeError(msg) from exc
                 newdat[thisname].append(thisval)
                 pointer += form.bits[-n_vars + i]
 
@@ -778,28 +779,24 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
         The layout of each field in the packet, or `None` if the APID
         is not found in the file.
 
+    Raises
+    ------
+    RuntimeError
+        If ``sweap_tlm.blk`` cannot be read, or if a line in the
+        section for this APID cannot be parsed.
+
     Notes
     -----
     The file ``sweap_tlm.blk`` is read from the package data directory,
-    ``src/pyfaradaycup/data/``. If it cannot be opened, a
-    `RuntimeError` is raised.
+    ``src/pyfaradaycup/data/``.
     """
+    blk_path = data_dir / "sweap_tlm.blk"
     try:
-        # It appears that there is a unique sweap_tlm.blk
-        file = (data_dir / "sweap_tlm.blk").open()
-    except:  # ruff:ignore[E722]
-        if verbose:
-            print(  # ruff:ignore[T201]
-                "***INFO*** 'sweap_tlm.blk' not found...using the one in src/pyfaradaycup/data"
-            )
-        try:
-            file = (data_dir / "sweap_tlm.blk").open()
-        except:  # ruff:ignore[E722]
-            # print(here)
-            print(sys.exc_info())  # ruff:ignore[T201]
-            raise RuntimeError(f"Unable to open {data_dir}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
-    lines = file.readlines()
-    file.close()
+        with blk_path.open() as file:
+            lines = file.readlines()
+    except OSError as exc:
+        msg = f"Unable to read {blk_path}"
+        raise RuntimeError(msg) from exc
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
             if verbose:
@@ -826,9 +823,11 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
                         thisapid.sw_data_vars = []
                 except IndexError:
                     break
-                except:  # ruff:ignore[E722]
-                    print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # ruff:ignore[B904]
+                except ValueError as exc:
+                    msg = (
+                        f"Could not parse line {i + 1} of {blk_path}: {line.strip()!r}"
+                    )
+                    raise RuntimeError(msg) from exc
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -878,26 +877,31 @@ def _get_layout_sc(  # ruff:ignore[C901]
         ``Block[...]`` line (an `int`), or `None` if the APID is not
         found in the file.
 
+    Raises
+    ------
+    ValueError
+        If ``filename`` is not provided.
+
+    RuntimeError
+        If the file cannot be read, or if a line in the section for
+        this APID cannot be parsed.
+
     Notes
     -----
     The APID section in the file starts with a line like
     ``SC_HK_0x<APID>``. Fields written as ``mnemonic[N]`` are treated
-    as ``N`` bytes long (``8 * N`` bits). If ``filename`` is not
-    provided, a `ValueError` is raised. If the file cannot be opened, a
-    `RuntimeError` is raised.
+    as ``N`` bytes long (``8 * N`` bits).
     """
     if filename is None:
         raise ValueError("Please supply filename")  # ruff:ignore[EM101, TRY003]
     try:
-        file = pathlib.Path(filename).open()  # ruff:ignore[SIM115]
-        print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
-    except:  # ruff:ignore[E722]
-        print("could not open SC HK BLK file")  # ruff:ignore[T201]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # ruff:ignore[B904]
+        with pathlib.Path(filename).open() as file:
+            lines = file.readlines()
+    except OSError as exc:
+        msg = f"Unable to read the spacecraft housekeeping definition file {filename}"
+        raise RuntimeError(msg) from exc
+    print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
 
-    lines = file.readlines()
-    file.close()
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             if verbose:
@@ -925,9 +929,9 @@ def _get_layout_sc(  # ruff:ignore[C901]
                         thisapid.bits.append(int(pieces[3].strip()))
                 except IndexError:
                     break
-                except:  # ruff:ignore[E722]
-                    print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # ruff:ignore[B904]
+                except ValueError as exc:
+                    msg = f"Could not parse line {i + 1} of {filename}: {line!r}"
+                    raise RuntimeError(msg) from exc
             return (thisapid, length)
     # if we didn't find that APID
     print(  # ruff:ignore[T201]
