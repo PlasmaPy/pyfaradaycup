@@ -205,7 +205,41 @@ def read_file(  # ruff:ignore[C901]
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[int, dict[str, list]]:
-    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
+    """
+    Read SPC instrument packets from an L0 file.
+
+    Parameters
+    ----------
+    path : str or path-like
+        Path to the L0 file to read.
+
+    verbose : bool, optional
+        If `True`, print status messages, including why a packet was
+        skipped.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    dict of int to dict of str to list
+        The decoded data, keyed by APID and then by mnemonic, with one
+        entry per packet. Only APIDs 0x351-0x354, 0x35E, and 0x35F are
+        read. If no packets are found, each list is empty.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened or read.
+
+    Notes
+    -----
+    Packets are found by searching the raw bytes for a SWEM wrapper
+    header (APID 0x348-0x350) followed by an SPC instrument header.
+    The packet layouts are read from ``sweap_tlm.blk`` in the package
+    data directory. Progress and a summary of the number of packets
+    found for each APID are written to standard output.
+    """
     # make sure the file can be read
     path = _choose_file(path)
 
@@ -300,7 +334,51 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[int, dict[str, list]]:
-    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
+    """
+    Read spacecraft housekeeping packets from an L0 file.
+
+    Parameters
+    ----------
+    path : str or path-like
+        Path to the L0 file to read.
+
+    verbose : bool, optional
+        If `True`, print status messages, including why a packet was
+        skipped.
+
+    ptp : bool, optional
+        If `True`, the file is a PTP file, in which each packet is
+        preceded by a PTP header.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    dict of int to dict of str to list
+        The decoded data, keyed by APID and then by mnemonic, with one
+        entry per packet. Only APIDs 0x07B, 0x081, 0x254, 0x256, 0x257,
+        and 0x262 are read. If no packets are found, each list is empty.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened or read.
+
+    Notes
+    -----
+    The packet layouts depend on the version of the spacecraft flight
+    software, so the spacecraft housekeeping definition (``.blk``) file
+    is chosen by date. The date is taken from the MET of the first
+    packet in the file. If that fails, it is taken from a
+    ``<year>/<day of year>`` part of ``path``, and if that also fails,
+    the newest definition file is used. The flight software versions
+    and their dates are listed in ``sc_hsk/L1/APID257_combined.txt`` in
+    the package data directory.
+
+    Progress and a summary of the number of packets found for each
+    APID are written to standard output.
+    """
     # make sure the file can be read
     path = _choose_file(path)
 
