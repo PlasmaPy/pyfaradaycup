@@ -2,7 +2,7 @@
 Tests of the private helper functions in ccsds_reader_pipeline.
 
 The end-to-end test in ``test_decommutator.py`` checks that a whole L0
-file is converted to the expected L1 CDF files, but when it fails it
+file is converted to the expected L05 CDF files, but when it fails it
 does not show which step went wrong. The tests here check individual
 functions so that a failure points to the function responsible.
 """
