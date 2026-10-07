@@ -4,7 +4,9 @@
 # which was run as a script.
 
 # While the decommutator step goes from level 0 (L0) to level 0.5 (L05 or L0.5),
-# the software and filenames has sometimes used level 1 (L1) for level 0.5.
+# the software and filenames have sometimes previously used level 1 (L1) in place
+# of level 0.5. That has mostly been updated, but there are a few places that
+# still use `L1` instead of `L05`.
 
 # The following are relic comments from the previous file.
 
