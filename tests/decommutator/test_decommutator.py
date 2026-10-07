@@ -20,14 +20,14 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
     tag = "0523462910_4_EA"
 
     l0file = str(ssr_dir / "2026" / "215" / tag)
-    l1dir = str(tmp_path)
+    l05dir = str(tmp_path)
     logdir = str(tmp_path)
 
     result = CliRunner().invoke(
         pfc_decommutator,
         [
             f"--l0file={l0file}",
-            f"--l1dir={l1dir}",
+            f"--l05dir={l05dir}",
             f"--logdir={logdir}",
             "-v",
         ],

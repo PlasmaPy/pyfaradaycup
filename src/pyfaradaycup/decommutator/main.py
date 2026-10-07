@@ -135,10 +135,10 @@ def _warn_about_ineffective_options(
     ),
 )
 @click.option(
-    "-dl1",
-    "--l1dir",
+    "-dl05",
+    "--l05dir",
     type=click.Path(file_okay=False, path_type=pathlib.Path),
-    help="Output L1 Directory. Defaults to the current directory. Created if it does not exist.",
+    help="Output L0.5 Directory. Defaults to the current directory. Created if it does not exist.",
 )
 @click.option(
     "-dlog",
@@ -159,7 +159,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     apid: int,
     l0file: pathlib.Path | None,
     l0dir: pathlib.Path | None,
-    l1dir: pathlib.Path | None,
+    l05dir: pathlib.Path | None,
     logdir: pathlib.Path | None,
 ) -> None:
     """
@@ -171,14 +171,14 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     \b
         pfc_decommutator \\
             --l0file=/path/to/0523462910_4_EA \\
-            --l1dir=/path/to/l1dir \\
+            --l05dir=/path/to/l05dir \\
             --logdir=/path/to/logdir \\
             -v
 
     This writes one L1 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
-    --l1dir, and a log file into the directory given by --logdir. If
-    --l1dir or --logdir is not given, the current directory is used.
+    --l05dir, and a log file into the directory given by --logdir. If
+    --l05dir or --logdir is not given, the current directory is used.
     """  # ruff:ignore[D301]
     _warn_about_ineffective_options(
         batch=batch,
@@ -204,7 +204,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     swp_spc_l0_to_l05.main(
         l0file=l0file,
-        l1dir=l1dir,
+        l05dir=l05dir,
         logdir=logdir,
         spacecraft=spacecraft,
         ptp=ptp,

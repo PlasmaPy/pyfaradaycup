@@ -61,7 +61,7 @@ logfile: TextIO
 
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     l0file: str | os.PathLike[str],
-    l1dir: str | os.PathLike[str] | None = None,
+    l05dir: str | os.PathLike[str] | None = None,
     logdir: str | os.PathLike[str] | None = None,
     spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
     ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -78,7 +78,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     l0file : str or path-like
         Path to the L0 file to convert.
 
-    l1dir : str or path-like, optional
+    l05dir : str or path-like, optional
         Directory for the L0.5 CDF files. If `None` (the default), the
         current directory is used. It is created if it does not exist.
 
@@ -135,7 +135,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
     # Use the current directory for output files if no directory is given
     l0file = pathlib.Path(l0file)
-    l1dir = pathlib.Path("." if l1dir is None else l1dir)
+    l05dir = pathlib.Path("." if l05dir is None else l05dir)
     logdir = pathlib.Path("." if logdir is None else logdir)
 
     # Get a version of filename with no extension
@@ -160,7 +160,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     _statusmsg("filename = swp_spc_l0_to_l05.py", verbose=verbose)
     _statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
     _statusmsg(f"l0file = {l0file}", verbose=verbose)
-    _statusmsg(f"l1dir = {l1dir}", verbose=verbose)
+    _statusmsg(f"l05dir = {l05dir}", verbose=verbose)
     _statusmsg("spacecraft = " + repr(spacecraft), verbose=verbose)
     _statusmsg("ptp = " + repr(ptp), verbose=verbose)
     _statusmsg("gzip = " + repr(gzip), verbose=verbose)
@@ -243,7 +243,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
 
         # Filename for the L0.5 file we're about to write for this apid
         l1path = (
-            l1dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
+            l05dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
         )
         _statusmsg(f"About to write: {l1path}")
 
