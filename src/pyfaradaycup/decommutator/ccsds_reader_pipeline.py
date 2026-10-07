@@ -1,9 +1,10 @@
-"""
+"""Functionality for the CCSDS reader pipeline."""
+
 #  $URL: file:///psp/psp_swp_spc_code_repository/trunk/ccsds_reader_pipeline.py $
 #  $LastChangedRevision: 103 $
 #  $LastChangedDate: 2020-08-13 08:42:52 -0400 (Thu, 13 Aug 2020) $
 #  $LastChangedBy: acase $
-"""  # ruff:ignore[D400]
+
 
 from __future__ import annotations
 
