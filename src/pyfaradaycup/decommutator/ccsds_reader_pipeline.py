@@ -31,10 +31,6 @@ if TYPE_CHECKING:
     import os
 
 
-def _read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignore[FBT001, FBT002]
-    """Parse binary stream on stdin"""  # ruff:ignore[D400]
-
-
 def _file2bytestr(
     path: str | os.PathLike[str],
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
