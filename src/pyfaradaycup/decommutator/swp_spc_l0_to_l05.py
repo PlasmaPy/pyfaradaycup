@@ -8,7 +8,7 @@
 # of level 0.5. That has mostly been updated, but there are a few places that
 # still use `L1` instead of `L05`.
 
-# The following are relic comments from the previous file.
+# The following are relic comments from the original swp_spc_l02l1.py:
 
 # Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
 #         into L0.5 CDF files
