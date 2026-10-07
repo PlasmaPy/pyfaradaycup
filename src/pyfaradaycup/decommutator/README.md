@@ -21,10 +21,6 @@ Dagster decides whether a step succeeded from the exit code of a subprocess, or 
 - **Stop skipping APIDs that fail.**
   When a skeleton file is missing, or when writing a CDF fails, `main` logs a message and moves to the next APID, and the run still ends with "Script complete".
   Collect these failures and raise an exception at the end if there were any.
-- **Remove the bare `except:` blocks**, or narrow them to the exceptions that are expected.
-  Several of them hide the original error.
-- **Raise exceptions with messages.**
-  For example, an unreadable L0 file currently gives a `RuntimeError` with no message.
 
 ### Return what was written
 
