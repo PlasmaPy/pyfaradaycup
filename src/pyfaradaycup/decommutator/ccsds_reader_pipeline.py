@@ -593,6 +593,10 @@ def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
     exp_length = 10
     if len(bytearr) < exp_length:
         raise ValueError("CCSDS header is not as long as expected")  # ruff:ignore[EM101, TRY003]
+    # For now, issue a warning when the bytearr is too long.
+    # If bytearr being too long turns out to be normal and
+    # expected behavior, we can remove this warning later,
+    # or set it to the debug level of verbosity with a logger.
     if len(bytearr) > exp_length:
         warnings.warn(
             f"CCSDS header is {len(bytearr)} bytes long; only the first "
