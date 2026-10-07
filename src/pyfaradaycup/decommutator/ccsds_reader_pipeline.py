@@ -5,7 +5,6 @@
 #  $LastChangedDate: 2020-08-13 08:42:52 -0400 (Thu, 13 Aug 2020) $
 #  $LastChangedBy: acase $
 
-
 from __future__ import annotations
 
 __all__ = [
