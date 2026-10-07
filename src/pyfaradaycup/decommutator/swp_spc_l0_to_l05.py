@@ -1,9 +1,37 @@
-"""
+"""Contains the main function for the decommutator."""
+
+# The original version of this file from /psp/code on fc was swp_spc_l02l1.py,
+# which was run as a script.
+
+# While the decommutator step goes from level 0 (L0) to level 0.5 (L05 or L0.5),
+# the software and filenames has sometimes used level 1 (L1) for level 0.5.
+
+# The following are relic comments from the previous file.
+
+# Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
+#         into L0.5 CDF files
+
+# Requirements: Must have a reference to a skeleton file for the ApID that you wish to convert_one
+
+# Input: path to a binary L0 file
+
+# Output: saves a CDF file
+
+# Revision History
+# 	2020/02/03	-	Fix timing bug in 0x351 that arose when switching to spiceypy.  Add capability to produce 0x352 (time series) files.  Will require update to 0x352 (time series) skeleton also.  Update bug in naming of L1 files coming from gzip (spacecraft files, probably).  Remove versioning from skeleton files (since SVN is taking care of that).
+# 	2020/01/29  -   Use spiceypy to adjust time of each measurement to SCET; remove unused command-line argument options
+# 					Change method by which newest skeleton files are found; various other cleanups
+# 	2019/08/27	-	Calling new ccsds_reader that separates out s/c from instr. packets
+# 				-	Also, new ccsds_reader will use new packet finder (much faster), and does not scan through packets like before
+# 	2019/08/23	-	Fixed bug that was reading in the oldest rather than newest skeleton file
+# 				-	Added capability to read 0x081 and 0x262 packets from s/c hsk files.  Requires link to SC_HK.blk block definition file
+# 				-	Added revision history
+
+
 #  $URL: file:///psp/psp_swp_spc_code_repository/trunk/swp_spc_l02l1.py $
 #  $LastChangedRevision: 97 $
 #  $LastChangedDate: 2020-08-04 09:20:42 -0400 (Tue, 04 Aug 2020) $
 #  $LastChangedBy: acase $
-"""  # ruff:ignore[D400]
 
 from __future__ import annotations
 
@@ -31,26 +59,6 @@ if TYPE_CHECKING:
 logfile: TextIO
 
 
-# Purpose: Convert binary "level-zero" or "ssr" files that come from the SWEM or Spacecraft
-#         into L0.5 or L1 CDF files
-
-# Requirements: Must have a reference to a skeleton file for the ApID that you wish to convert_one
-
-# Input: path to a binary L0 file
-
-# Output: saves a CDF file
-
-# Revision History
-# 	2020/02/03	-	Fix timing bug in 0x351 that arose when switching to spiceypy.  Add capability to produce 0x352 (time series) files.  Will require update to 0x352 (time series) skeleton also.  Update bug in naming of L1 files coming from gzip (spacecraft files, probably).  Remove versioning from skeleton files (since SVN is taking care of that).
-# 	2020/01/29  -   Use spiceypy to adjust time of each measurement to SCET; remove unused command-line argument options
-# 					Change method by which newest skeleton files are found; various other cleanups
-# 	2019/08/27	-	Calling new ccsds_reader that separates out s/c from instr. packets
-# 				-	Also, new ccsds_reader will use new packet finder (much faster), and does not scan through packets like before
-# 	2019/08/23	-	Fixed bug that was reading in the oldest rather than newest skeleton file
-# 				-	Added capability to read 0x081 and 0x262 packets from s/c hsk files.  Requires link to SC_HK.blk block definition file
-# 				-	Added revision history
-
-
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     l0file: str | os.PathLike[str],
     l1dir: str | os.PathLike[str] | None = None,
@@ -63,7 +71,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> None:
     """
-    Convert one SPC L0 file into L1 CDF files, one per APID.
+    Convert one SPC L0 file into L0.5 CDF files, one per APID.
 
     Parameters
     ----------
@@ -71,7 +79,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         Path to the L0 file to convert.
 
     l1dir : str or path-like, optional
-        Directory for the L1 CDF files. If `None` (the default), the
+        Directory for the L0.5 CDF files. If `None` (the default), the
         current directory is used. It is created if it does not exist.
 
     logdir : str or path-like, optional
@@ -96,7 +104,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         every supported APID found in the file.
 
     overwrite : bool, optional
-        If `True`, replace L1 CDF files that already exist. If `False`
+        If `True`, replace L0.5 CDF files that already exist. If `False`
         and a file already exists, a `FileExistsError` is raised.
 
     verbose : bool, optional
@@ -109,7 +117,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         If ``l0file`` is not provided.
 
     FileExistsError
-        If an L1 CDF file already exists and ``overwrite`` is `False`.
+        If an L0.5 CDF file already exists and ``overwrite`` is `False`.
 
     RuntimeError
         If the log file cannot be opened, the SPICE kernels cannot be
@@ -149,7 +157,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         msg = f"Could not open log file: {logpath}"
         raise RuntimeError(msg) from exc
     # Write some information to the log file
-    _statusmsg("filename = swp_spc_l02l1.py", verbose=verbose)
+    _statusmsg("filename = swp_spc_l0_to_l05.py", verbose=verbose)
     _statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
     _statusmsg(f"l0file = {l0file}", verbose=verbose)
     _statusmsg(f"l1dir = {l1dir}", verbose=verbose)
@@ -166,42 +174,42 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     except OSError as exc:
         msg = f"Could not read L0 file: {l0file}"
         _statusmsg(
-            f"***ERROR*** [swp_spc_l02l1.py] {msg}...exiting",
+            f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}...exiting",
             screen=True,
             verbose=verbose,
         )
         raise RuntimeError(msg) from exc
 
     # Load in Leap Second Kernel
-    _statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest leap second kernel...")
+    _statusmsg("***INFO*** [swp_spc_l0_to_l05.py] Finding newest leap second kernel...")
     tls_path = _get_newest_kernel(tls=True)
     if not tls_path:
         msg = "Could not find leap second kernel"
-        _statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            _statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {tls_path}")
+            _statusmsg(f"***INFO*** [swp_spc_l0_to_l05.py] Using: {tls_path}")
             spiceypy.furnsh(tls_path)
         except Exception as exc:
             msg = f"Could not load leap second kernel: {tls_path}"
-            _statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
             raise RuntimeError(msg) from exc
 
     # Load in S/C Clock Kernel
-    _statusmsg("***INFO*** [swp_spc_l02l1.py] Finding newest S/C clock kernel...")
+    _statusmsg("***INFO*** [swp_spc_l0_to_l05.py] Finding newest S/C clock kernel...")
     sclk_path = _get_newest_kernel(sclk=True)
     if not sclk_path:
         msg = "Could not find SCLK kernel"
-        _statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+        _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            _statusmsg(f"***INFO*** [swp_spc_l02l1.py] Using: {sclk_path}")
+            _statusmsg(f"***INFO*** [swp_spc_l0_to_l05.py] Using: {sclk_path}")
             spiceypy.furnsh(sclk_path)
         except Exception as exc:
             msg = f"Could not load SCLK kernel: {sclk_path}"
-            _statusmsg(f"***ERROR*** [swp_spc_l02l1.py] {msg}")
+            _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
             raise RuntimeError(msg) from exc
 
     # Read in the L0 file into a python SPC data structure
@@ -233,7 +241,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             _statusmsg("This apid not requested by user")
             continue  # skip this apid if user only wanted one apid and this isn't it
 
-        # Filename for the L1 file we're about to write for this apid
+        # Filename for the L0.5 file we're about to write for this apid
         l1path = (
             l1dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
         )
@@ -246,7 +254,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             _statusmsg("Skeleton to be used: " + skeleton_filename)
         except OSError:
             _statusmsg(
-                "***ERROR*** [swp_spc_l02l1.py] Skeleton file could not be read...moving to next apid",
+                "***ERROR*** [swp_spc_l0_to_l05.py] Skeleton file could not be read...moving to next apid",
                 screen=True,
                 verbose=verbose,
             )
@@ -254,7 +262,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             continue
         except TypeError:
             _statusmsg(
-                f"***ERROR*** [swp_spc_l02l1.py] Skeleton file for apid={hex(apid)} could not be found...moving to next apid",
+                f"***ERROR*** [swp_spc_l0_to_l05.py] Skeleton file for apid={hex(apid)} could not be found...moving to next apid",
                 screen=True,
                 verbose=verbose,
             )
@@ -263,26 +271,28 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         # See if the CDF file already exists
         try:
             # try to open and close it
-            _statusmsg(f"Using L1 path: {l1path}", screen=True, verbose=verbose)
+            _statusmsg(f"Using L0.5 path: {l1path}", screen=True, verbose=verbose)
             l1path.open().close()
 
             # if we get here, this file already exists; so delete it, if desired
             _statusmsg(
-                f"***INFO*** [swp_spc_l02l1] L1 CDF file ({l1path}) already exists",
+                f"***INFO*** [swp_spc_l02l1] L0.5 CDF file ({l1path}) already exists",
                 screen=True,
                 verbose=verbose,
             )
             if overwrite:
                 _statusmsg(
-                    "***INFO*** [swp_spc_l02l1] Overwriting existing L1 CDF",
+                    "***INFO*** [swp_spc_l0_to_l05] Overwriting existing L0.5 CDF",
                     screen=True,
                     verbose=verbose,
                 )
                 l1path.unlink()
             else:
-                msg = f"L1 CDF already exists and overwrite was not requested: {l1path}"
+                msg = (
+                    f"L0.5 CDF already exists and overwrite was not requested: {l1path}"
+                )
                 _statusmsg(
-                    f"***ERROR*** [swp_spc_l02l1] {msg}",
+                    f"***ERROR*** [swp_spc_l0_to_l05] {msg}",
                     screen=True,
                     verbose=verbose,
                 )
@@ -292,22 +302,22 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         except OSError:
             pass  # Apparently the file did not exist already
         except Exception as exc:
-            msg = f"Could not check existence of or delete L1 CDF file: {l1path}"
+            msg = f"Could not check existence of or delete L0.5 CDF file: {l1path}"
             _statusmsg(
-                f"***ERROR*** [swp_spc_l02l1] {msg}",
+                f"***ERROR*** [swp_spc_l0_to_l05] {msg}",
                 screen=True,
                 verbose=verbose,
             )
             raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton, creating the
-        # L1 directory if it doesn't exist
+        # L0.5 directory if it doesn't exist
         l1path.parent.mkdir(parents=True, exist_ok=True)
         try:
             cdf = pycdf.CDF(str(l1path), skeleton_filename)
         except pycdf.CDFError as exc:
             _statusmsg(
-                f"***ERROR*** [swp_spc_l02l1] Could not create new CDF (APID={hex(apid)}): {exc!r}...continuing to next APID",
+                f"***ERROR*** [swp_spc_l0_to_l05] Could not create new CDF (APID={hex(apid)}): {exc!r}...continuing to next APID",
                 screen=True,
                 verbose=verbose,
             )
@@ -332,7 +342,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
             cdfproc[apid](cdf, l0data[apid], verbose=verbose)
         except Exception as exc:  # ruff:ignore[BLE001]
             _statusmsg(
-                f"***WARNING*** [swp_spc_l02l1] CDF not processed for APID={hex(apid)}: {exc!r}",
+                f"***WARNING*** [swp_spc_l0_to_l05] CDF not processed for APID={hex(apid)}: {exc!r}",
                 screen=True,
                 verbose=verbose,
             )
@@ -366,7 +376,7 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
     Parameters
     ----------
     cdf : spacepy.pycdf.CDF
-        The L1 CDF file to write the data into.
+        The L0.5 CDF file to write the data into.
 
     dat : dict of str to list
         Decoded L0 data for one APID, with one entry per packet for
@@ -468,7 +478,7 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     Parameters
     ----------
     cdf : spacepy.pycdf.CDF
-        The L1 CDF file to write the data into. Not used if ``nocdf``
+        The L0.5 CDF file to write the data into. Not used if ``nocdf``
         is `True`.
 
     dat : dict of str to list
@@ -660,7 +670,7 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[str, list] | tuple[()]:
     """
-    Expand SPC time series (APID 0x352) packets into L1 data and write them to a CDF.
+    Expand SPC time series (APID 0x352) packets into L0.5 data and write them to a CDF.
 
     Each 0x352 packet holds many fast measurements from one NY second,
     for four channels at a time. This function gives every measurement
@@ -669,7 +679,7 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     Parameters
     ----------
     cdf : spacepy.pycdf.CDF
-        The L1 CDF file to write the data into. Not used if ``nocdf``
+        The L0.5 CDF file to write the data into. Not used if ``nocdf``
         is `True`.
 
     dat : dict of str to list

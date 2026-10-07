@@ -309,11 +309,13 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
 
     # We'll need to find which apid dictionary to use,
     # based on which version of FSW was running
-    # Those versions (and respective dates) are listed in the L1 APID257 file
+    # Those versions (and respective dates) are listed in the L0.5 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
     # Both it and the corresponding SC_HK files that we will read in
     # (in sc_hk_def/) are in the package data directory
-    with (data_dir / "sc_hsk" / "L1" / "APID257_combined.txt").open() as f:
+    with (
+        data_dir / "sc_hsk" / "L1" / "APID257_combined.txt"
+    ).open() as f:  # Should L1 be changed to L05?
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])

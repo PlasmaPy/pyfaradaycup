@@ -8,7 +8,7 @@ import pathlib
 
 import click
 
-from pyfaradaycup.decommutator import swp_spc_l02l1
+from pyfaradaycup.decommutator import swp_spc_l0_to_l05
 
 
 def _parse_apid(
@@ -202,7 +202,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     if stcorrect:
         raise RuntimeError("--stcorrect has not been implemented.")  # ruff:ignore[EM101, TRY003]
 
-    swp_spc_l02l1.main(
+    swp_spc_l0_to_l05.main(
         l0file=l0file,
         l1dir=l1dir,
         logdir=logdir,
