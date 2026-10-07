@@ -131,7 +131,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
         msg = f"Could not open log file: {logpath}"
         raise RuntimeError(msg) from exc
     # Write some information to the log file
-    _statusmsg("scriptname = swp_spc_l02l1.py", verbose=verbose)
+    _statusmsg("filename = swp_spc_l02l1.py", verbose=verbose)
     _statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
     _statusmsg(f"l0file = {l0file}", verbose=verbose)
     _statusmsg(f"l1dir = {l1dir}", verbose=verbose)
@@ -338,7 +338,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     logfile.close()
 
 
-def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> None:  # ruff:ignore[C901, FBT001, FBT002]
+def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> None:  # ruff:ignore[ARG001, C901, FBT001, FBT002]
     """
     Fill a CDF with housekeeping data, one row per packet.
 
@@ -356,8 +356,8 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
         each mnemonic.
 
     verbose : bool, optional
-        If `True`, print error messages to the screen as well as to the
-        log file.
+        Not currently used. Accepted so that `main` can call each CDF
+        writer with the same arguments.
 
     Notes
     -----
@@ -425,14 +425,8 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
             if key not in dat.keys():  # ruff:ignore[SIM118]
                 cdf[key] = np.ones(len(dat["Epoch"])) * cdf[key].attrs["FILLVAL"]
         except:  # ruff:ignore[E722]
-            raise RuntimeError  # ruff:ignore[B904]
-
-            _statusmsg(
-                f"Failed : Key:{key} failed insert into CDF",
-                screen=True,
-                verbose=verbose,
-            )
-            _statusmsg(sys.exc_info())
+            msg = f"Failed : Key:{key} failed insert into CDF"
+            raise RuntimeError(msg)  # ruff:ignore[B904]
 
 
 def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
@@ -500,9 +494,6 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     # Calculate MET from the variables in the L0 data
     # MET of each NYS
     scet = _secsubsec2scet(dat["CCSDS_MET"], dat["SW_SPCSUBSEC"])
-
-    # MET of each measurement (to be filled in in the future)
-    scet_exp = []  # ruff:ignore[F841]
 
     # Same keys as original data dictionary, but will hold one variable per key
     # instead of one for every NYS for every key
@@ -822,7 +813,6 @@ def _secsubsec2scet(
     sec: list[int],
     subsec: list[int],
     spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
 ) -> list[float]:
     """
     Convert MET seconds and subseconds to ephemeris time in nanoseconds.
@@ -842,9 +832,6 @@ def _secsubsec2scet(
         If `True`, ``subsec`` is in units of 1/256 second, as used in
         spacecraft packets. If `False`, ``subsec`` is in units of
         1/65536 second, as used in SWEAP packets.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -919,7 +906,6 @@ def _statusmsg(
 def _get_newest_kernel(
     tls: bool = False,  # ruff:ignore[FBT001, FBT002]
     sclk: bool = False,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
 ) -> str:
     """
     Find the newest NAIF leap second or PSP clock (SCLK) kernel file.
@@ -935,9 +921,6 @@ def _get_newest_kernel(
     sclk : bool, optional
         If `True`, find the newest PSP clock kernel
         (``spp_sclk_NNNN.tsc``).
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -955,10 +938,9 @@ def _get_newest_kernel(
     package data directory, ``src/pyfaradaycup/data/``. The version
     number is read from the digits at the end of the file name.
     """
-    # Make sure we chose exactly one of the options
+    # Choose exactly one of the options
     if tls + sclk != 1:
         raise RuntimeError("Need exactly one of tls or sclk")  # ruff:ignore[EM101, TRY003]
-        return False
 
     # TODO: make this less hardcoded to the directory  # ruff:ignore[FIX002, TD002, TD003]
     # Kristoff said that there's a spacepy(.pycdf?) command that regenerates
@@ -991,7 +973,7 @@ def _get_newest_kernel(
     return str(files[maxind])
 
 
-def _get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignore[ARG001, FBT001, FBT002]
+def _get_newest_skeleton(apid: int) -> str:
     """
     Return the path to the skeleton CDF file for an APID.
 
@@ -999,9 +981,6 @@ def _get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignor
     ----------
     apid : int
         The APID of the skeleton file, such as ``0x352``.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -1022,26 +1001,3 @@ def _get_newest_skeleton(apid: int, verbose: bool = False) -> str:  # ruff:ignor
         / "cdf_skeletons"
         / f"psp_swp_spc_l1_{hex(apid)[2:].zfill(3)}_skeleton.cdf"  # ruff:ignore[FURB116]
     )
-
-    # The remaining code in this function is from when we used skeleton file numbers with a version # in them
-    # and we had to search for the most recent (highest) version
-
-    # Search for newest file
-    # globstr = 'cdf_skeletons/spp_apid_{:}_sweap_00000000t000000_v[0-9][0-9].cdf'.format(hex(apid)[2:].zfill(3))
-    # ndigits = 2
-
-    # files = glob.glob(globstr)
-
-    # isolate version numbers from the file path and find newest
-    # versions = [int(i[-4-ndigits:-4]) for i in files]
-
-    # try:
-    # maxind = np.argmax(versions)
-    # except ValueError:
-    # _statusmsg('***ERROR*** Could not find skeleton versions')
-    # return(False)
-
-    # return path to newest file
-    # path = files[maxind]
-
-    # return(path)

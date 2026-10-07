@@ -36,7 +36,6 @@ def _read_stdin(ptp: bool = False, verbose: bool = False) -> None:  # ruff:ignor
 
 def _file2bytestr(
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> bytes:
     """
@@ -46,9 +45,6 @@ def _file2bytestr(
     ----------
     path : str or path-like
         Path to the file to read.
-
-    verbose : bool, optional
-        Not currently used.
 
     gzip : bool, optional
         If `True`, read the file as gzip-compressed.
@@ -76,11 +72,7 @@ def _file2bytestr(
         raise RuntimeError(msg) from exc
 
 
-def _choose_file(
-    path: str | os.PathLike[str],
-    ptp: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
-) -> str:
+def _choose_file(path: str | os.PathLike[str]) -> str:
     """
     Check that a file can be opened and return its path.
 
@@ -88,12 +80,6 @@ def _choose_file(
     ----------
     path : str or path-like
         Path to the file to check.
-
-    ptp : bool, optional
-        Not currently used.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -121,7 +107,6 @@ def _choose_file(
 
 def _wrapper_status(
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
     spconly: bool = False,  # ruff:ignore[FBT001, FBT002]
 ) -> dict[str, list[int]]:
@@ -132,9 +117,6 @@ def _wrapper_status(
     ----------
     path : str or path-like
         Path to the CCSDS file to read.
-
-    verbose : bool, optional
-        Not currently used.
 
     gzip : bool, optional
         If `True`, read the file as gzip-compressed.
@@ -203,8 +185,6 @@ def _wrapper_status(
         pkt_starts = pkt_inds[:, 0]
     except:  # ruff:ignore[E722]
         return data
-
-    npackets = len(pkt_starts)  # ruff:ignore[F841]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):  # ruff:ignore[B007]
@@ -287,7 +267,7 @@ def read_file(  # ruff:ignore[C901]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = _read_bytestr(  # ruff:ignore[F841]
+        _ = _read_bytestr(
             bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
         )
 
@@ -563,7 +543,7 @@ def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
 
         # parse the packet and add decommed values to data variable
         _parse_pkt(
-            thispkt, data, apidformat, apid, ccsds_head
+            thispkt, data, apidformat, apid
         )  # could send this off to a parallel task?  Might try that if too slow this way
 
     elif apid in pktcnt[1].keys():  # ruff:ignore[SIM118]
@@ -574,7 +554,7 @@ def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     return ()
 
 
-def _parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]:  # ruff:ignore[ARG001, FBT001, FBT002]
+def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
     """
     Decode a 10-byte CCSDS packet header into its fields.
 
@@ -582,9 +562,6 @@ def _parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]: 
     ----------
     bytestr : bytes
         The header bytes. Only the first 10 bytes are used.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -627,13 +604,11 @@ def _parse_ccsds_head(bytestr: bytes, verbose: bool = False) -> dict[str, int]: 
     return head
 
 
-def _parse_pkt(  # ruff:ignore[C901, PLR0912, PLR0913]
+def _parse_pkt(  # ruff:ignore[C901, PLR0912]
     bytestr: bytes,
     data: dict[int, dict[str, list]],
     apidformat,  # ruff:ignore[ANN001]
     apid: int,
-    ccsds_head: dict[str, int],  # ruff:ignore[ARG001]
-    verbose: bool = False,  # ruff:ignore[ARG001, FBT001, FBT002]
 ) -> None:
     """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
@@ -697,7 +672,6 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912, PLR0913]
             thisval = int(thisbin, 2)
         except:  # ruff:ignore[E722]
             raise RuntimeError  # ruff:ignore[B904]
-            thisval = -999
         thisname = form.names[i_bit]
 
         # store in our data variable
@@ -724,7 +698,6 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912, PLR0913]
                     thisval = int(thisbin, 2)
                 except ValueError:
                     raise ValueError  # ruff:ignore[B904]
-                    thisval = -999
 
                 thisname = form.sw_data_vars[i]
                 newdat[thisname].append(thisval)
@@ -820,10 +793,6 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
                 "***INFO*** 'sweap_tlm.blk' not found...using the one in src/pyfaradaycup/data"
             )
         try:
-            # here = os.path.dirname(__file__)
-            # thisdir = os.path.realpath(__file__)
-            # thisdir = "\\".join(thisdir.split("\\")[0:-1])
-            # print(f"{thisdir = }")
             file = (data_dir / "sweap_tlm.blk").open()
         except:  # ruff:ignore[E722]
             # print(here)
