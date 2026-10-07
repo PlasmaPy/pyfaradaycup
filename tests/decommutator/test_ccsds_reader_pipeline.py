@@ -119,16 +119,19 @@ def test_parse_ccsds_head_field_isolation(name: str) -> None:
     assert _parse_ccsds_head(_make_ccsds_head(fields)) == fields
 
 
-def test_parse_ccsds_head_ignores_extra_bytes() -> None:
+def test_parse_ccsds_head_warns_about_extra_bytes() -> None:
     """
-    Test that only the first 10 bytes are decoded.
+    Test that extra bytes give a warning and are not decoded.
 
-    Callers do not always pass exactly 10 bytes: ``read_file_sc`` passes
-    the contents of the whole file to read the first header. The bytes
-    after the header must not change the result.
+    Callers are expected to pass exactly 10 bytes, so a longer input
+    probably means a slicing mistake in the caller, such as passing the
+    rest of the file. The warning makes such a mistake visible, and the
+    bytes after the header must still not change the result.
     """
     header = _make_ccsds_head(_typical_fields)
-    assert _parse_ccsds_head(header + b"\xff" * 20) == _typical_fields
+    with pytest.warns(UserWarning, match="only the first 10 bytes"):
+        result = _parse_ccsds_head(header + b"\xff" * 20)
+    assert result == _typical_fields
 
 
 @pytest.mark.parametrize("length", range(10))

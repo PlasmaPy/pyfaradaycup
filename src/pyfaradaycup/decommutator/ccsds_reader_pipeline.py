@@ -19,6 +19,7 @@ import re
 import struct
 import sys
 import time
+import warnings
 from typing import TYPE_CHECKING
 
 import dateutil.parser
@@ -330,10 +331,10 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     # and thus which SC_HK.blk file to use
     # we'll assume the first bytes in the file are a header
     try:
-        if ptp:  # ruff:ignore[SIM108]
-            cchead = _parse_ccsds_head(bytestr[17:])
+        if ptp:
+            cchead = _parse_ccsds_head(bytestr[17:27])
         else:
-            cchead = _parse_ccsds_head(bytestr)
+            cchead = _parse_ccsds_head(bytestr[:10])
         if (
             (cchead["CCSDS_Version"] != 0)
             | (cchead["CCSDS_PacketType"] != 0)
@@ -576,6 +577,11 @@ def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
     ValueError
         If ``bytestr`` is shorter than 10 bytes.
 
+    Warns
+    -----
+    UserWarning
+        If ``bytestr`` is longer than 10 bytes.
+
     Notes
     -----
     The first 6 bytes are the standard CCSDS primary header. The next
@@ -587,6 +593,12 @@ def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
     exp_length = 10
     if len(bytearr) < exp_length:
         raise ValueError("CCSDS header is not as long as expected")  # ruff:ignore[EM101, TRY003]
+    if len(bytearr) > exp_length:
+        warnings.warn(
+            f"CCSDS header is {len(bytearr)} bytes long; only the first "
+            f"{exp_length} bytes will be decoded",
+            stacklevel=2,
+        )
 
     head = {}
     head["CCSDS_Version"] = bytearr[0] >> 5
