@@ -76,7 +76,7 @@ jobs:
           nox_session: tests-3.10
 
         - name: Tests, Python 3.9
-          os: macos-latest
+          os: ubuntu-latest
           python: '3.9'
           nox_session: tests-3.9
 
