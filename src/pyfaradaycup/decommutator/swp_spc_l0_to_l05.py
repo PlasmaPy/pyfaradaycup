@@ -51,8 +51,8 @@ import numpy as np
 import spiceypy
 from spacepy import pycdf
 
-import pyfaradaycup.decommutator.ccsds_reader_pipeline as cc
 from pyfaradaycup._paths import data_dir
+from pyfaradaycup.decommutator.ccsds_reader_pipeline import _read_file, _read_file_sc
 
 if TYPE_CHECKING:
     import os
@@ -91,9 +91,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
 
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
-        `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file_sc`.
+        ``_read_file_sc``.
         If `False`, read SWEAP instrument packets with
-        `~pyfaradaycup.decommutator.ccsds_reader_pipeline.read_file`.
+        ``_read_file``.
 
     ptp : bool, optional
         If `True`, the L0 file is a PTP file. Only used when
@@ -218,10 +218,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
         _statusmsg("Event = Starting reading file: spacecraft")
-        l0data = cc.read_file_sc(path=l0file, ptp=ptp, verbose=verbose, gzip=gzip)
+        l0data = _read_file_sc(path=l0file, ptp=ptp, verbose=verbose, gzip=gzip)
     else:
         _statusmsg("Event = Starting reading file: non-spacecraft (instrument)")
-        l0data = cc.read_file(path=l0file, verbose=verbose, gzip=gzip)
+        l0data = _read_file(path=l0file, verbose=verbose, gzip=gzip)
     _statusmsg("Event = Finished reading file")
 
     # Loop through the APIDs that we got

@@ -68,7 +68,7 @@ Calling the conversion as a function is better suited to Dagster than starting a
 ### Test the `--spacecraft` option
 
 - **Add a test that converts a spacecraft L0 file with `--spacecraft`.**
-  The only test converts an instrument L0 file, so `read_file_sc`, `_get_layout_sc`, and the code that writes the spacecraft housekeeping CDFs are never run.
+  The only test converts an instrument L0 file, so `_read_file_sc`, `_get_layout_sc`, and the code that writes the spacecraft housekeeping CDFs are never run.
   Add a spacecraft L0 file to `tests/data`, along with the expected L1 CDF files, and compare them as the existing test does.
   Include a file for which the flight software version cannot be found from the packet header, so that the fallback to the file path, and then to the newest definition file, is also tested.
 
