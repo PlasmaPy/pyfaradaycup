@@ -11,3 +11,4 @@ documentation for details.
 
    cli
    api/modules
+   glossary
