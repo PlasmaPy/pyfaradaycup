@@ -1,4 +1,4 @@
-"""Command line tool for converting SPC L0 files into L1 CDF files."""
+"""Command line tool for converting SPC L0 files into L0.5 CDF files."""
 
 from __future__ import annotations
 
@@ -98,8 +98,8 @@ def _warn_about_ineffective_options(
     "--overwrite",
     is_flag=True,
     help=(
-        "Overwrite existing L1 CDF files. Without this, the tool exits "
-        "if an L1 CDF file already exists."
+        "Overwrite existing L0.5 CDF files. Without this, the tool exits "
+        "if an L0.5 CDF file already exists."
     ),
 )
 @click.option(
@@ -117,7 +117,7 @@ def _warn_about_ineffective_options(
     default="0",
     show_default=True,
     callback=_parse_apid,
-    help="APID to create L1 file for, in hexadecimal (e.g., 35E) [0==all]",
+    help="APID to create L0.5 CDF file for, in hexadecimal (e.g., 35E) [0==all]",
 )
 @click.option(
     "-l0",
@@ -163,7 +163,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     logdir: pathlib.Path | None,
 ) -> None:
     """
-    Convert one SPC L0 file into L1 CDF files, one per APID.
+    Convert one SPC L0 file into L0.5 CDF files, one per APID.
 
     To convert the L0 file 0523462910_4_EA, printing messages to the
     screen as well as to the log file:
@@ -175,7 +175,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             --logdir=/path/to/logdir \\
             -v
 
-    This writes one L1 CDF file for each APID found in the L0 file, such
+    This writes one L0.5 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
     --l05dir, and a log file into the directory given by --logdir. If
     --l05dir or --logdir is not given, the current directory is used.

@@ -150,7 +150,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
     logpath = (
         logdir
-        / f"swp_spc_l02l1_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log"
+        / f"swp_spc_l0_to_l05_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log"
     )
     try:
         logdir.mkdir(parents=True, exist_ok=True)
@@ -230,7 +230,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
 
         if apid == 0x07B:  # ruff:ignore[PLR2004]
             _statusmsg(
-                "***WARNING*** [swp_spc_l02l1] APID 0x07B CDFs not yet implemented",
+                "***WARNING*** [swp_spc_l0_to_l05] APID 0x07B CDFs not yet implemented",
                 screen=True,
                 verbose=verbose,
             )
@@ -279,7 +279,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
 
             # if we get here, this file already exists; so delete it, if desired
             _statusmsg(
-                f"***INFO*** [swp_spc_l02l1] L0.5 CDF file ({l1path}) already exists",
+                f"***INFO*** [swp_spc_l0_to_l05] L0.5 CDF file ({l1path}) already exists",
                 screen=True,
                 verbose=verbose,
             )
@@ -361,7 +361,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             cdf.close()
 
     _statusmsg(
-        "***INFO*** [swp_spc_l02l1] Script complete.", screen=True, verbose=verbose
+        "***INFO*** [swp_spc_l0_to_l05] Script complete.", screen=True, verbose=verbose
     )
 
     # Close the log file
@@ -561,7 +561,7 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
 
             if not itst_warned:
                 _statusmsg(
-                    "***WARNING*** [swp_spc_l02l1] The reported IT+ST is not an even power of 2. Using IT=6,ST=2...",
+                    "***WARNING*** [swp_spc_l0_to_l05] The reported IT+ST is not an even power of 2. Using IT=6,ST=2...",
                     screen=True,
                     verbose=verbose,
                 )
