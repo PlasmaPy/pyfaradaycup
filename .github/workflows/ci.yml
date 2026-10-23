@@ -60,8 +60,6 @@ jobs:
           python: '3.13'
           nox_session: tests-3.13
 
-        - name: Tests, Python 3.12
-          os: macos-latest
         - name: Tests with code coverage, Python 3.12
           os: ubuntu-latest
           python: '3.12'
