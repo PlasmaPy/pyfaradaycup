@@ -62,8 +62,10 @@ jobs:
 
         - name: Tests, Python 3.12
           os: macos-latest
+        - name: Tests with code coverage, Python 3.12
+          os: ubuntu-latest
           python: '3.12'
-          nox_session: tests-3.12
+          nox_session: coverage-3.12
 
         - name: Tests, Python 3.11
           os: windows-latest

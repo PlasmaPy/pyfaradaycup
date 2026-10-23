@@ -1,44 +1,40 @@
 """Test command line tools."""
 
-import os
-import subprocess
-import sys
 from pathlib import Path
 
 import cdflib.xarray
 import pytest_check
 import xarray
+from click.testing import CliRunner
+
+from pyfaradaycup.decommutator.main import pfc_decommutator
 
 repo_root = Path(__file__).parent.parent.parent
 data_dir = repo_root / "tests" / "data"
 ssr_dir = data_dir / "sci" / "sweap" / "raw" / "ssr"
 l05_dir = data_dir / "sci" / "sweap" / "spc" / "L05"
 
-l0_l05_executable = str(
-    repo_root / "src" / "pyfaradaycup" / "pipeline" / "swp_spc_l02l1.py"
-)
 
-
-def test_l0_l05(tmp_path: Path) -> None:
-    """Test the level 0 to level 0.5 step."""
+def test_pfc_decommutator(tmp_path: Path) -> None:
+    """Test the level 0 to level 0.5 step using the click command line tool."""
     tag = "0523462910_4_EA"
 
     l0file = str(ssr_dir / "2026" / "215" / tag)
-    l1dir = str(tmp_path)
+    l05dir = str(tmp_path)
     logdir = str(tmp_path)
 
-    subprocess.run(  # ruff:ignore[S603]
+    result = CliRunner().invoke(
+        pfc_decommutator,
         [
-            sys.executable,
-            l0_l05_executable,
             f"--l0file={l0file}",
-            f"--l1dir={l1dir}",
+            f"--l05dir={l05dir}",
             f"--logdir={logdir}",
             "-v",
         ],
-        env={**os.environ, "PSP_DATA_DIR": str(data_dir)},
-        check=True,
+        catch_exceptions=False,
     )
+
+    assert result.exit_code == 0, result.output
 
     apids = ["351", "352", "353", "354", "35E", "35F"]
 

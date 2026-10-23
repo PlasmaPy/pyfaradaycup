@@ -1,58 +1,47 @@
-"""
+"""Functionality for the CCSDS reader pipeline."""
+
 #  $URL: file:///psp/psp_swp_spc_code_repository/trunk/ccsds_reader_pipeline.py $
 #  $LastChangedRevision: 103 $
 #  $LastChangedDate: 2020-08-13 08:42:52 -0400 (Thu, 13 Aug 2020) $
 #  $LastChangedBy: acase $
-"""  # ruff:ignore[D400]
+
+from __future__ import annotations
 
 __all__ = [
     "apid_obj",
-    "choose_file",
-    "file2bytestr",
-    "get_layout",
-    "get_layout_sc",
-    "parse_ccsds_head",
-    "parse_pkt",
-    "read_bytestr",
     "read_file",
     "read_file_sc",
-    "read_stdin",
-    "wrapper_status",
 ]
 
 import datetime
-import os
 import pathlib
 import re
 import struct
 import sys
 import time
+import warnings
+from typing import TYPE_CHECKING
 
 import dateutil.parser
 import numpy as np
 
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+from pyfaradaycup._paths import data_dir
+
+if TYPE_CHECKING:
+    import os
 
 
-# import Tkinter
-# import tkFileDialog
-
-
-def read_stdin(ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, FBT002]
-    """Parse binary stream on stdin"""  # ruff:ignore[D400]
-
-
-def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def _file2bytestr(
+    path: str | os.PathLike[str],
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> bytes:
     """
     Read the entire contents of a file into a bytes object.
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the file to read.
-
-    verbose : bool, optional
-        Not currently used.
 
     gzip : bool, optional
         If `True`, read the file as gzip-compressed.
@@ -64,83 +53,67 @@ def file2bytestr(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN
 
     Notes
     -----
-    If the file cannot be read, this function prints the error, opens a
-    ``pdb`` debugging session, and then exits the program.
-    @namurphy - should we start to replace these ``pdb`` so we don't heavy over use ``ruff:ignore``
+    If the file cannot be read, a `RuntimeError` is raised.
     """
     try:
         if gzip:
-            import gzip  # ruff:ignore[PLC0415]
+            import gzip  # ruff:ignore[PLC0415]  # ty: ignore[invalid-assignment]
 
-            with gzip.open(path, "rb") as f:
+            with gzip.open(path, "rb") as f:  # ty: ignore[unresolved-attribute]
                 bytestr = f.read()
             return bytestr  # ruff:ignore[RET504]
-        with open(path, "rb") as f:  # ruff:ignore[PTH123]
-            bytestr = f.read()
-        return bytestr  # ruff:ignore[RET504, TRY300]
+        return pathlib.Path(path).read_bytes()
 
-    except:  # ruff:ignore[E722]
-        print("***ERROR*** [ccsds_reader_pipeline] Could not read in file...exiting")  # ruff:ignore[T201]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        sys.exit()
+    except Exception as exc:
+        msg = f"Could not read in file: {path}"
+        raise RuntimeError(msg) from exc
 
 
-def choose_file(path="", ptp=False, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
-    # make sure file exists
+def _choose_file(path: str | os.PathLike[str]) -> str:
     """
     Check that a file can be opened and return its path.
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the file to check.
-
-    ptp : bool, optional
-        Not currently used.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
     str
-        The input ``path`` if the file can be opened, or an empty string
-        if it cannot be opened or no path was given.
+        The input ``path`` as a string.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened.
 
     Notes
     -----
-    If the file cannot be opened, an error message is printed instead of
-    raising an exception. An interactive file dialog was used here
-    previously but is currently disabled.
+    An interactive file dialog was used here previously to choose a
+    file when none could be opened, but it has been removed.
     """
+    path = str(path)
     try:
-        open(path).close()  # ruff:ignore[PTH123]
-    except:  # ruff:ignore[E722]
-        print("***ERROR*** File can not be read...will give option to choose file")  # ruff:ignore[T201]
-        path = ""
-
-    # pop up a dialog to choose a file if path==''
-    # path = 'C:\\Users\\comra_000\\SWEAP\\SPC\\FEU\\Testing\\20150228_UCB_SPC_FEU_LVPS_PTP_data\\PTP_data.dat'
-    if path == "":
-        print("***ERROR*** Must define a file path")  # ruff:ignore[T201]
-        # root = Tkinter.Tk()
-        # root.withdraw()
-        # path = tkFileDialog.askopenfilename()
-
+        pathlib.Path(path).open().close()
+    except OSError as exc:
+        msg = f"Could not open file: {path}"
+        raise RuntimeError(msg) from exc
     return path
 
 
-def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def _wrapper_status(
+    path: str | os.PathLike[str],
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    spconly: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> dict[str, list[int]]:
     """
     Read CCSDS headers from SWEM wrapper packets and the packets inside them.
 
     Parameters
     ----------
-    path : str, optional
+    path : str or path-like
         Path to the CCSDS file to read.
-
-    verbose : bool, optional
-        Not currently used.
 
     gzip : bool, optional
         If `True`, read the file as gzip-compressed.
@@ -165,11 +138,11 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
     header (APIDs 0x348-0x350) followed by an instrument header. Only
     the headers are decoded, not the packet data.
     """
-    # get a filename if not specified
-    path = choose_file(path)
+    # make sure the file can be read
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
@@ -205,17 +178,14 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
-
-    npackets = len(pkt_starts)  # ruff:ignore[F841]
+    pkt_starts = pkt_inds[:, 0]
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):  # ruff:ignore[B007]
-        wrap_cchead = parse_ccsds_head(bytestr[pointer : pointer + 10])
-        data_cchead = parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
+        wrap_cchead = _parse_ccsds_head(bytestr[pointer : pointer + 10])
+        data_cchead = _parse_ccsds_head(bytestr[pointer + 12 : pointer + 22])
         data["wrap_met"].append(wrap_cchead["CCSDS_MET"])
         data["wrap_apid"].append(wrap_cchead["CCSDS_ApID"])
         data["wrap_seq"].append(wrap_cchead["CCSDS_SeqCnt"])
@@ -226,13 +196,51 @@ def wrapper_status(path="", verbose=False, gzip=False, spconly=False):  # ruff:i
     return data
 
 
-def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
-    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
-    # get a filename if not specified
-    path = choose_file(path)
+def read_file(  # ruff:ignore[C901]
+    path: str | os.PathLike[str],
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> dict[int, dict[str, list]]:
+    """
+    Read SPC instrument packets from an L0 file.
+
+    Parameters
+    ----------
+    path : str or path-like
+        Path to the L0 file to read.
+
+    verbose : bool, optional
+        If `True`, print status messages, including why a packet was
+        skipped.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    dict of int to dict of str to list
+        The decoded data, keyed by APID and then by mnemonic, with one
+        entry per packet. Only APIDs 0x351-0x354, 0x35E, and 0x35F are
+        read. If no packets are found, each list is empty.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened or read.
+
+    Notes
+    -----
+    Packets are found by searching the raw bytes for a SWEM wrapper
+    header (APID 0x348-0x350) followed by an SPC instrument header.
+    The packet layouts are read from ``sweap_tlm.blk`` in the package
+    data directory. Progress and a summary of the number of packets
+    found for each APID are written to standard output.
+    """
+    # make sure the file can be read
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # define the apids that are ok
     wrapper_apids = range(0x348, 0x351)
@@ -244,10 +252,10 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid] = get_layout(apid, verbose=verbose)
+        apidformat[apid] = _get_layout(apid, verbose=verbose)
         if apidformat[apid]:
             data[apid] = {}
-            for name in apidformat[apid].names:
+            for name in apidformat[apid].names:  # ty: ignore[unresolved-attribute]
                 data[apid][name] = []
 
     # create a list of two dictionaries that can keep track of
@@ -276,10 +284,9 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
+    pkt_starts = pkt_inds[:, 0]
 
     npackets = len(pkt_starts)
 
@@ -289,7 +296,7 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # ruff:ignore[F841]
+        _ = _read_bytestr(
             bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
         )
 
@@ -317,20 +324,72 @@ def read_file(path="", verbose=False, gzip=False):  # ruff:ignore[ANN001, ANN201
     return data
 
 
-def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0915]
-    """Read a CCSDS File and return data structure"""  # ruff:ignore[D400]
-    # get a filename if not specified
-    path = choose_file(path)
+def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
+    path: str | os.PathLike[str],
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
+    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> dict[int, dict[str, list]]:
+    """
+    Read spacecraft housekeeping packets from an L0 file.
+
+    Parameters
+    ----------
+    path : str or path-like
+        Path to the L0 file to read.
+
+    verbose : bool, optional
+        If `True`, print status messages, including why a packet was
+        skipped.
+
+    ptp : bool, optional
+        If `True`, the file is a PTP file, in which each packet is
+        preceded by a PTP header.
+
+    gzip : bool, optional
+        If `True`, read the file as gzip-compressed.
+
+    Returns
+    -------
+    dict of int to dict of str to list
+        The decoded data, keyed by APID and then by mnemonic, with one
+        entry per packet. Only APIDs 0x07B, 0x081, 0x254, 0x256, 0x257,
+        and 0x262 are read. If no packets are found, each list is empty.
+
+    Raises
+    ------
+    RuntimeError
+        If the file cannot be opened or read.
+
+    Notes
+    -----
+    The packet layouts depend on the version of the spacecraft flight
+    software, so the spacecraft housekeeping definition (``.blk``) file
+    is chosen by date. The date is taken from the MET of the first
+    packet in the file. If that fails, it is taken from a
+    ``<year>/<day of year>`` part of ``path``, and if that also fails,
+    the newest definition file is used. The flight software versions
+    and their dates are listed in ``sc_hsk/L1/APID257_combined.txt`` in
+    the package data directory.
+
+    Progress and a summary of the number of packets found for each
+    APID are written to standard output.
+    """
+    # make sure the file can be read
+    path = _choose_file(path)
 
     # convert file to a hex string
-    bytestr = file2bytestr(path, gzip=gzip)
+    bytestr = _file2bytestr(path, gzip=gzip)
 
     # We'll need to find which apid dictionary to use,
     # based on which version of FSW was running
-    # Those versions (and respective dates) are listed in the L1 APID257 file
+    # Those versions (and respective dates) are listed in the L0.5 APID257 file
     # That file is created via psp_sc_hsk_257_l052l1.py
-    # Corresponding SC_HK files that we will read in are in ./sc_hk_def/
-    with open("/psp/data/sc_hsk/L1/APID257_combined.txt") as f:  # ruff:ignore[PTH123]
+    # Both it and the corresponding SC_HK files that we will read in
+    # (in sc_hk_def/) are in the package data directory
+    with (
+        data_dir / "sc_hsk" / "L1" / "APID257_combined.txt"
+    ).open() as f:  # Should L1 be changed to L05?
         lines = f.readlines()
     vers_dt = np.array([dateutil.parser.isoparse(line.split(",")[0]) for line in lines])
     versions = np.array([line.split(",")[1].strip() for line in lines])
@@ -348,16 +407,16 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     # and thus which SC_HK.blk file to use
     # we'll assume the first bytes in the file are a header
     try:
-        if ptp:  # ruff:ignore[SIM108]
-            cchead = parse_ccsds_head(bytestr[17:])
+        if ptp:
+            cchead = _parse_ccsds_head(bytestr[17:27])
         else:
-            cchead = parse_ccsds_head(bytestr)
+            cchead = _parse_ccsds_head(bytestr[:10])
         if (
             (cchead["CCSDS_Version"] != 0)
             | (cchead["CCSDS_PacketType"] != 0)
             | (cchead["CCSDS_SecHdrFlag"] != 1)
         ):
-            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003]
+            raise ValueError("CCSDS header values not as expected")  # ruff:ignore[EM101, TRY003, TRY301]
         file_dt = datetime.datetime(2010, 1, 1) + datetime.timedelta(  # ruff:ignore[DTZ001]
             seconds=cchead["CCSDS_MET"]
         )
@@ -366,35 +425,35 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
         except IndexError:
             good_time = 0
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
-    except:  # ruff:ignore[E722]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        print("Could not find which SC_HK file to use based on packet header")  # ruff:ignore[T201]
+    except (ValueError, KeyError) as exc:
+        print(  # ruff:ignore[T201]
+            f"Could not find which SC_HK file to use based on packet header: {exc!r}"
+        )
         print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
         try:
-            match = re.search(
-                os.path.sep
-                + "20[1-5][0-9]"
-                + os.path.sep
-                + "[0-9][0-9][0-9]"
-                + os.path.sep,
-                path,
-            ).span()  # ty: ignore[unresolved-attribute]
-            file_dt = (
-                datetime.datetime(  # ruff:ignore[DTZ001]
-                    int(path[match[0] + 1 : match[0] + 5]), 1, 1
-                )
-                + datetime.timedelta(days=int(path[match[0] + 6 : match[0] + 9]) - 1)
+            # Look for .../<year>/<day of year>/... in the path
+            parts = pathlib.Path(path).parts
+            year, doy = next(
+                (year, doy)
+                for year, doy in zip(parts, parts[1:-1])
+                if re.fullmatch("20[1-5][0-9]", year)
+                and re.fullmatch("[0-9][0-9][0-9]", doy)
             )
+            file_dt = datetime.datetime(  # ruff:ignore[DTZ001]
+                int(year), 1, 1
+            ) + datetime.timedelta(days=int(doy) - 1)
             try:
                 good_time = np.where(vers_dt < file_dt)[0][-1]
             except IndexError:
                 good_time = 0
             sc_hk_filename = sc_hk_filenames[versions[good_time]]
-        except:  # ruff:ignore[E722]
+        except (StopIteration, KeyError):
+            # StopIteration: no <year>/<day of year> in the path
+            # KeyError: no SC_HK file for that flight software version
             print(  # ruff:ignore[T201]
                 "***WARNING*** Could not find date based on filename...using most recent"
             )
-            sc_hk_filename = sc_hk_filenames[-1]  # ty: ignore[invalid-argument-type]
+            sc_hk_filename = list(sc_hk_filenames.values())[-1]
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -405,11 +464,11 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid], lengths[apid] = get_layout_sc(
+        apidformat[apid], lengths[apid] = _get_layout_sc(
             apid,
             verbose=verbose,
-            filename=os.path.join("sc_hk_def", sc_hk_filename),  # ruff:ignore[PTH118]
-        )
+            filename=data_dir / "sc_hk_def" / sc_hk_filename,
+        )  # ty: ignore[not-iterable]
         if apidformat[apid]:
             data[apid] = {}
             for name in apidformat[apid].names:
@@ -471,10 +530,9 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     pkt_inds = np.array(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
-    try:
-        pkt_starts = pkt_inds[:, 0]
-    except:  # ruff:ignore[E722]
+    if pkt_inds.size == 0:
         return data
+    pkt_starts = pkt_inds[:, 0]
     npackets = len(pkt_starts)
 
     # Some variables so we can display progress
@@ -483,7 +541,7 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
 
     # Loop through each packet beginning and decommutate it
     for i_pointer, pointer in enumerate(pkt_starts):
-        foo = read_bytestr(  # ruff:ignore[F841]
+        foo = _read_bytestr(  # ruff:ignore[F841]
             bytestr, pointer + offset_bytes, data, apidformat, pktcnt, verbose=verbose
         )
 
@@ -511,11 +569,18 @@ def read_file_sc(path="", verbose=False, ptp=False, gzip=False):  # ruff:ignore[
     return data
 
 
-def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002, PLR0912, PLR0913]
+def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
+    bytestr: bytes,
+    pointer,  # ruff:ignore[ANN001]
+    data: dict[int, dict[str, list]],
+    apidformat,  # ruff:ignore[ANN001]
+    pktcnt: list[dict[int, int]],
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+) -> tuple[()]:
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
     try:
-        ccsds_head = parse_ccsds_head(bytestr[pointer : pointer + 10])
+        ccsds_head = _parse_ccsds_head(bytestr[pointer : pointer + 10])
     except ValueError:
         if verbose:
             print("Full CCSDS Header Not Present")  # ruff:ignore[T201]
@@ -554,8 +619,8 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
         pktcnt[0][apid] += 1
 
         # parse the packet and add decommed values to data variable
-        parse_pkt(
-            thispkt, data, apidformat, apid, ccsds_head
+        _parse_pkt(
+            thispkt, data, apidformat, apid
         )  # could send this off to a parallel task?  Might try that if too slow this way
 
     elif apid in pktcnt[1].keys():  # ruff:ignore[SIM118]
@@ -566,7 +631,7 @@ def read_bytestr(bytestr, pointer, data, apidformat, pktcnt, verbose=False):  # 
     return ()
 
 
-def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, FBT002]
+def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
     """
     Decode a 10-byte CCSDS packet header into its fields.
 
@@ -574,9 +639,6 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     ----------
     bytestr : bytes
         The header bytes. Only the first 10 bytes are used.
-
-    verbose : bool, optional
-        Not currently used.
 
     Returns
     -------
@@ -591,6 +653,11 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     ValueError
         If ``bytestr`` is shorter than 10 bytes.
 
+    Warns
+    -----
+    UserWarning
+        If ``bytestr`` is longer than 10 bytes.
+
     Notes
     -----
     The first 6 bytes are the standard CCSDS primary header. The next
@@ -602,6 +669,16 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     exp_length = 10
     if len(bytearr) < exp_length:
         raise ValueError("CCSDS header is not as long as expected")  # ruff:ignore[EM101, TRY003]
+    # For now, issue a warning when the bytearr is too long.
+    # If bytearr being too long turns out to be normal and
+    # expected behavior, we can remove this warning later,
+    # or set it to the debug level of verbosity with a logger.
+    if len(bytearr) > exp_length:
+        warnings.warn(
+            f"CCSDS header is {len(bytearr)} bytes long; only the first "
+            f"{exp_length} bytes will be decoded",
+            stacklevel=2,
+        )
 
     head = {}
     head["CCSDS_Version"] = bytearr[0] >> 5
@@ -619,7 +696,12 @@ def parse_ccsds_head(bytestr, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG
     return head
 
 
-def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ruff:ignore[ANN001, ANN201, ARG001, C901, FBT002, PLR0912, PLR0913]
+def _parse_pkt(  # ruff:ignore[C901, PLR0912]
+    bytestr: bytes,
+    data: dict[int, dict[str, list]],
+    apidformat,  # ruff:ignore[ANN001]
+    apid: int,
+) -> None:
     """Parse one CCSDS packet"""  # ruff:ignore[D400]
     # The format for this APIDs packet list
     form = apidformat[apid]
@@ -665,8 +747,8 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
             thisbin = str_bin[startbit:endbit]
             try:
                 thisval = int(thisbin, 2)
-            except:  # ruff:ignore[E722]
-                # print(sys.exc_info())
+            except ValueError:
+                # The packet ends before this mnemonic, so thisbin is empty
                 thisval = -999
             thisdat[thisname].append(thisval)
         return
@@ -678,12 +760,12 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
 
     for i_bit, bit in enumerate(form.bits[0 : len(form.bits) - sw_data_vars_len]):
         thisbin = str_bin[pointer : pointer + bit]
+        thisname = form.names[i_bit]
         try:
             thisval = int(thisbin, 2)
-        except:  # ruff:ignore[E722]
-            raise RuntimeError  # ruff:ignore[B904]
-            thisval = -999
-        thisname = form.names[i_bit]
+        except ValueError as exc:
+            msg = f"Could not decode {thisname} in an APID {hex(apid)} packet"
+            raise RuntimeError(msg) from exc
 
         # store in our data variable
         thisdat[thisname].append(thisval)
@@ -705,13 +787,12 @@ def parse_pkt(bytestr, data, apidformat, apid, ccsds_head, verbose=False):  # ru
         while (pointer + total_sw_data_length) <= len(str_bin):
             for i in range(n_vars):
                 thisbin = str_bin[pointer : pointer + form.bits[-n_vars + i]]
+                thisname = form.sw_data_vars[i]
                 try:
                     thisval = int(thisbin, 2)
-                except ValueError:
-                    raise ValueError  # ruff:ignore[B904]
-                    thisval = -999
-
-                thisname = form.sw_data_vars[i]
+                except ValueError as exc:
+                    msg = f"Could not decode {thisname} in an APID {hex(apid)} packet"
+                    raise RuntimeError(msg) from exc
                 newdat[thisname].append(thisval)
                 pointer += form.bits[-n_vars + i]
 
@@ -723,7 +804,7 @@ class apid_obj:  # ruff:ignore[N801]
     """
     Store the bit layout of one packet type (APID).
 
-    An empty instance is created by `get_layout` or `get_layout_sc`,
+    An empty instance is created by `_get_layout` or `_get_layout_sc`,
     which then fill in the attributes from a telemetry definition file.
 
     Attributes
@@ -736,40 +817,43 @@ class apid_obj:  # ruff:ignore[N801]
 
     bytestart, bitstart : list or numpy.ndarray of int
         Byte and bit position where each field starts. Set by
-        `get_layout`.
+        `_get_layout`.
 
     byteend, bitend : list or numpy.ndarray of int
         Byte and bit position where each field ends. Set by
-        `get_layout`.
+        `_get_layout`.
 
     startbyte, startbit : list of int
         Byte and bit position where each field starts, as listed in the
-        spacecraft housekeeping definition file. Set by `get_layout_sc`.
+        spacecraft housekeeping definition file. Set by `_get_layout_sc`.
 
     data : dict of str to list
-        An empty list for each mnemonic. Set by `get_layout`.
+        An empty list for each mnemonic. Set by `_get_layout`.
 
     Notes
     -----
-    `get_layout` and `get_layout_sc` also add an ``apid`` attribute
-    (the APID as an int). `get_layout` adds a ``sw_data_vars``
+    `_get_layout` and `_get_layout_sc` also add an ``apid`` attribute
+    (the APID as an int). `_get_layout` adds a ``sw_data_vars``
     attribute (a list of mnemonics in the science data block) for
     packets that have one.
     """
 
-    def __init__(self):  # ruff:ignore[ANN204]
-        self.names = []
-        self.bits = []
+    apid: int
+    sw_data_vars: list[str]
+
+    def __init__(self) -> None:
+        self.names: list[str] = []
+        self.bits: list[int] = []
         self.bytestart = []
         self.bitstart = []
         self.byteend = []
         self.bitend = []
-        self.data = {}
-        self.startbyte = []
-        self.startbit = []
+        self.data: dict[str, list] = {}
+        self.startbyte: list[int] = []
+        self.startbit: list[int] = []
 
 
-def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901, FBT001, FBT002]
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -787,38 +871,30 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
         The layout of each field in the packet, or `None` if the APID
         is not found in the file.
 
+    Raises
+    ------
+    RuntimeError
+        If ``sweap_tlm.blk`` cannot be read, or if a line in the
+        section for this APID cannot be parsed.
+
     Notes
     -----
-    The file ``sweap_tlm.blk`` is looked for first in the current
-    working directory and then in the directory containing this module.
-    The second lookup builds the path with Windows-style backslashes,
-    so it only works on Windows.
+    The file ``sweap_tlm.blk`` is read from the package data directory,
+    ``src/pyfaradaycup/data/``.
     """
+    blk_path = data_dir / "sweap_tlm.blk"
     try:
-        # It appears that there is a unique sweap_tlm.blk
-        file = open(DATA_DIR / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
-    except:  # ruff:ignore[E722]
-        if verbose:
-            print(  # ruff:ignore[T201]
-                "***INFO*** 'sweap_tlm.blk' not found...using the one in src/pyfaradaycup/data"
-            )
-        try:
-            # here = os.path.dirname(__file__)
-            # thisdir = os.path.realpath(__file__)
-            # thisdir = "\\".join(thisdir.split("\\")[0:-1])
-            # print(f"{thisdir = }")
-            file = open(DATA_DIR / "sweap_tlm.blk")  # ruff:ignore[PTH123, SIM115]
-        except:  # ruff:ignore[E722]
-            # print(here)
-            print(sys.exc_info())  # ruff:ignore[T201]
-            raise RuntimeError(f"Unable to open {DATA_DIR}/sweap_tlm.blk")  # ruff:ignore[B904, EM102, TRY003]
-    lines = file.readlines()
+        with blk_path.open() as file:
+            lines = file.readlines()
+    except OSError as exc:
+        msg = f"Unable to read {blk_path}"
+        raise RuntimeError(msg) from exc
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
-            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
+            thisapid.apid = apid
             line = (  #  ruff:ignore[PLW2901]
                 ""  # so that the while loop will start out ok
             )
@@ -832,16 +908,18 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
                         thisapid.bits.append(int(pieces[3].strip()))
                         thisapid.data[pieces[0].strip()] = []
                         if hasattr(thisapid, "sw_data_vars"):
-                            thisapid.sw_data_vars.append(thisapid.names[-1])  # ty: ignore[unresolved-attribute]
+                            thisapid.sw_data_vars.append(thisapid.names[-1])
                     elif (line.strip()[0:9] == "( SW_DATA") | (
                         line.strip()[0:12] == "( SW_SPC_SCI"
                     ):
-                        thisapid.sw_data_vars = []  # ty: ignore[unresolved-attribute]
+                        thisapid.sw_data_vars = []
                 except IndexError:
                     break
-                except:  # ruff:ignore[E722]
-                    print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # ruff:ignore[B904]
+                except ValueError as exc:
+                    msg = (
+                        f"Could not parse line {i + 1} of {blk_path}: {line.strip()!r}"
+                    )
+                    raise RuntimeError(msg) from exc
 
             start = np.array(
                 [0] + [sum(thisapid.bits[0:i]) for i in range(1, len(thisapid.bits))]
@@ -862,7 +940,11 @@ def get_layout(apid, verbose=False):  # ruff:ignore[ANN001, ANN201, C901, FBT002
     return None
 
 
-def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN201, C901, FBT002]
+def _get_layout_sc(  # ruff:ignore[C901]
+    apid: int,
+    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    filename: str | os.PathLike[str] | None = None,
+) -> tuple[apid_obj, int] | None:
     """
     Read the bit layout for one spacecraft housekeeping APID.
 
@@ -874,39 +956,50 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
     verbose : bool, optional
         If `True`, print a message when the APID is found.
 
-    filename : str, optional
+    filename : str or path-like
         Path to the spacecraft housekeeping telemetry definition
-        (``.blk``) file.
+        (``.blk``) file. Although it has a default of `None` (so that it
+        can follow ``verbose``), it must be provided.
 
     Returns
     -------
-    tuple of (apid_obj, int) or None
-        The layout of each field in the packet and the packet length
-        from the file's ``Block[...]`` line, or `None` if the APID is
-        not found in the file.
+    tuple or None
+        A tuple containing the layout of each field in the packet (an
+        `apid_obj`) and the packet length from the file's
+        ``Block[...]`` line (an `int`), or `None` if the APID is not
+        found in the file.
+
+    Raises
+    ------
+    ValueError
+        If ``filename`` is not provided.
+
+    RuntimeError
+        If the file cannot be read, or if a line in the section for
+        this APID cannot be parsed.
 
     Notes
     -----
     The APID section in the file starts with a line like
     ``SC_HK_0x<APID>``. Fields written as ``mnemonic[N]`` are treated
-    as ``N`` bytes long (``8 * N`` bits). If the file cannot be opened,
-    a ``pdb`` debugging session is started.
+    as ``N`` bytes long (``8 * N`` bits).
     """
+    if filename is None:
+        raise ValueError("Please supply filename")  # ruff:ignore[EM101, TRY003]
     try:
-        file = open(filename)  # ruff:ignore[PTH123, SIM115]
-        print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
-    except:  # ruff:ignore[E722]
-        print("could not open SC HK BLK file")  # ruff:ignore[T201]
-        print(sys.exc_info())  # ruff:ignore[T201]
-        raise RuntimeError  # ruff:ignore[B904]
+        with pathlib.Path(filename).open() as file:
+            lines = file.readlines()
+    except OSError as exc:
+        msg = f"Unable to read the spacecraft housekeeping definition file {filename}"
+        raise RuntimeError(msg) from exc
+    print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
 
-    lines = file.readlines()
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             if verbose:
                 print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
             thisapid = apid_obj()
-            thisapid.apid = apid  # ty: ignore[unresolved-attribute]
+            thisapid.apid = apid
 
             line = ""  # ruff:ignore[PLW2901]
             while line[0:4] != "SC_H":
@@ -928,16 +1021,12 @@ def get_layout_sc(apid, verbose=False, filename=""):  # ruff:ignore[ANN001, ANN2
                         thisapid.bits.append(int(pieces[3].strip()))
                 except IndexError:
                     break
-                except:  # ruff:ignore[E722]
-                    print(sys.exc_info())  # ruff:ignore[T201]
-                    raise RuntimeError  # ruff:ignore[B904]
+                except ValueError as exc:
+                    msg = f"Could not parse line {i + 1} of {filename}: {line!r}"
+                    raise RuntimeError(msg) from exc
             return (thisapid, length)
     # if we didn't find that APID
     print(  # ruff:ignore[T201]
         f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
     )
     return None
-
-
-if __name__ == "__main__":
-    read_file(ptp=False, verbose=True)  # ty: ignore[unknown-argument]
