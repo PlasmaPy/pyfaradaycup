@@ -61,16 +61,17 @@ if TYPE_CHECKING:
 logfile: TextIO
 
 
-def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
+def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l0file: str | os.PathLike[str],
     l05dir: str | os.PathLike[str] | None = None,
     logdir: str | os.PathLike[str] | None = None,
-    spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
-    ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    spacecraft: bool = False,
+    ptp: bool = False,
+    gzip: bool = False,
     apidreq: int = 0,
-    overwrite: bool = False,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    overwrite: bool = False,
+    verbose: bool = False,
 ) -> None:
     """
     Convert one SPC L0 file into L0.5 CDF files, one per APID.
@@ -367,7 +368,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915, PLR0917]
     logfile.close()
 
 
-def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> None:  # ruff:ignore[ARG001, C901, FBT001, FBT002]
+def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], *, verbose: bool = False) -> None:  # ruff:ignore[ARG001, C901]
     """
     Fill a CDF with housekeeping data, one row per packet.
 
@@ -466,8 +467,9 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], verbose: bool = False) -> 
 def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     cdf: pycdf.CDF,
     dat: dict[str, list],
-    nocdf: bool = False,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    nocdf: bool = False,
+    verbose: bool = False,
 ) -> dict[str, list] | None:
     """
     Expand SPC science packets (APIDs 0x351, 0x353, 0x354) and write them to a CDF.
@@ -668,8 +670,9 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
 def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     cdf: pycdf.CDF,
     dat: dict[str, list],
-    nocdf: bool = False,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    nocdf: bool = False,
+    verbose: bool = False,
 ) -> dict[str, list] | tuple[()]:
     """
     Expand SPC time series (APID 0x352) packets into L0.5 data and write them to a CDF.
@@ -866,7 +869,8 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
 def _secsubsec2scet(
     sec: list[int],
     subsec: list[int],
-    spacecraft: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    spacecraft: bool = False,
 ) -> list[float]:
     """
     Convert MET seconds and subseconds to ephemeris time in nanoseconds.
@@ -920,9 +924,10 @@ def _secsubsec2scet(
 
 def _statusmsg(
     string: str,
-    screen: bool = False,  # ruff:ignore[FBT001, FBT002]
-    file: bool = True,  # ruff:ignore[FBT001, FBT002]
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    screen: bool = False,
+    file: bool = True,
+    verbose: bool = False,
 ) -> None:
     """
     Write a timestamped status message to the log file and/or the screen.
@@ -958,8 +963,9 @@ def _statusmsg(
 
 
 def _get_newest_kernel(
-    tls: bool = False,  # ruff:ignore[FBT001, FBT002]
-    sclk: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    tls: bool = False,
+    sclk: bool = False,
 ) -> str:
     """
     Find the newest NAIF leap second or PSP clock (SCLK) kernel file.

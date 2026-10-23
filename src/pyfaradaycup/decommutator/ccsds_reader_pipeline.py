@@ -33,7 +33,8 @@ if TYPE_CHECKING:
 
 def _file2bytestr(
     path: str | os.PathLike[str],
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    gzip: bool = False,
 ) -> bytes:
     """
     Read the entire contents of a file into a bytes object.
@@ -104,8 +105,9 @@ def _choose_file(path: str | os.PathLike[str]) -> str:
 
 def _wrapper_status(
     path: str | os.PathLike[str],
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
-    spconly: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    gzip: bool = False,
+    spconly: bool = False,
 ) -> dict[str, list[int]]:
     """
     Read CCSDS headers from SWEM wrapper packets and the packets inside them.
@@ -198,8 +200,9 @@ def _wrapper_status(
 
 def read_file(  # ruff:ignore[C901]
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    verbose: bool = False,
+    gzip: bool = False,
 ) -> dict[int, dict[str, list]]:
     """
     Read SPC instrument packets from an L0 file.
@@ -326,9 +329,10 @@ def read_file(  # ruff:ignore[C901]
 
 def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-    ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    verbose: bool = False,
+    ptp: bool = False,
+    gzip: bool = False,
 ) -> dict[int, dict[str, list]]:
     """
     Read spacecraft housekeeping packets from an L0 file.
@@ -575,7 +579,8 @@ def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     data: dict[int, dict[str, list]],
     apidformat,  # ruff:ignore[ANN001]
     pktcnt: list[dict[int, int]],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    verbose: bool = False,
 ) -> tuple[()]:
     """Take a hex string and find packets"""  # ruff:ignore[D400]
     # Parse the CCSDS header
@@ -853,7 +858,7 @@ class apid_obj:  # ruff:ignore[N801]
         self.startbit: list[int] = []
 
 
-def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901, FBT001, FBT002]
+def _get_layout(apid: int, *, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901]
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -942,7 +947,8 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
 
 def _get_layout_sc(  # ruff:ignore[C901]
     apid: int,
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    verbose: bool = False,
     filename: str | os.PathLike[str] | None = None,
 ) -> tuple[apid_obj, int] | None:
     """
