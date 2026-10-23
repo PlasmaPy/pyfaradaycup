@@ -9,8 +9,6 @@ from __future__ import annotations
 
 __all__ = [
     "apid_obj",
-    "read_file",
-    "read_file_sc",
 ]
 
 import datetime
@@ -196,7 +194,7 @@ def _wrapper_status(
     return data
 
 
-def read_file(  # ruff:ignore[C901]
+def _read_file(  # ruff:ignore[C901]
     path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
@@ -324,7 +322,7 @@ def read_file(  # ruff:ignore[C901]
     return data
 
 
-def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
+def _read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     path: str | os.PathLike[str],
     verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
     ptp: bool = False,  # ruff:ignore[FBT001, FBT002]

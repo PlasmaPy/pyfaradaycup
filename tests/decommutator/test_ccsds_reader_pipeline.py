@@ -140,7 +140,7 @@ def test_parse_ccsds_head_too_short(length: int) -> None:
     Test that a header shorter than 10 bytes raises a ValueError.
 
     A packet can be cut off at the end of an L0 file. ``_read_bytestr``
-    and ``read_file_sc`` catch `ValueError` to skip such a packet, so a
+    and ``_read_file_sc`` catch `ValueError` to skip such a packet, so a
     short header must raise `ValueError` rather than another exception
     or a header with missing fields.
     """
