@@ -30,6 +30,12 @@ build:
     post_create_environment:
     - uv tool install nox --with=nox-uv
 
+    # The nox sessions install their own dependencies, but this job must
+    # be overridden, since the default job runs pip, which uv venv does
+    # not install.
+    install:
+    - echo "Dependencies are installed by the nox sessions"
+
     build:
       html:
       - nox --session docs
