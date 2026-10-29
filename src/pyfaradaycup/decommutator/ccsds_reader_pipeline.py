@@ -12,6 +12,7 @@ __all__ = [
 ]
 
 import datetime
+import logging
 import pathlib
 import re
 import struct
@@ -27,6 +28,8 @@ from pyfaradaycup._paths import data_dir
 
 if TYPE_CHECKING:
     import os
+
+logger = logging.getLogger(__name__)
 
 
 def _file2bytestr(

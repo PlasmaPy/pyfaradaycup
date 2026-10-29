@@ -42,6 +42,7 @@ __all__ = [
 ]
 
 import datetime
+import logging
 import math
 import pathlib
 import warnings
@@ -56,6 +57,8 @@ from pyfaradaycup.decommutator.ccsds_reader_pipeline import _read_file, _read_fi
 
 if TYPE_CHECKING:
     import os
+
+logger = logging.getLogger(__name__)
 
 # The log file, which is opened by main
 logfile: TextIO

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 __all__ = ["pfc_decommutator"]
 
+import logging
 import pathlib
 
 import click
 
 from pyfaradaycup.decommutator import swp_spc_l0_to_l05
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_apid(
