@@ -74,52 +74,47 @@ _PROVENANCE_PACKAGES = ("pyfaradaycup", "numpy", "spacepy", "spiceypy")
 class DecommutationResult:
     """
     What `main` did when converting one L0 file, and the inputs it used.
-
-    Attributes
-    ----------
-    l0file : pathlib.Path
-        The L0 file that was converted.
-
-    l0file_sha256 : str
-        The SHA-256 checksum of the L0 file, as hexadecimal digits.
-
-    cdf_files : dict of int to pathlib.Path
-        The L0.5 CDF files that were written, keyed by APID.
-
-    failures : dict of int to str
-        The reason that each APID that could not be converted failed,
-        keyed by APID.
-
-    packet_counts : dict of int to int
-        The number of packets read for each APID.
-
-    kernels : tuple of pathlib.Path
-        The SPICE kernels that were loaded.
-
-    skeletons : dict of int to pathlib.Path
-        The skeleton CDF file used for each APID.
-
-    software_versions : dict of str to str
-        The versions of Python, pyfaradaycup, and the packages it uses
-        to decode packets and write CDF files.
-
-    hostname : str
-        The name of the computer that did the conversion.
-
-    elapsed : float
-        How long the conversion took, in seconds.
     """
 
+    # Each field is documented in a docstring below it rather than in an
+    # Attributes section, because napoleon and autodoc would otherwise
+    # both document it, and Sphinx warns about duplicate descriptions.
+
     l0file: pathlib.Path
+    """The L0 file that was converted."""
+
     l0file_sha256: str
+    """The SHA-256 checksum of the L0 file, as hexadecimal digits."""
+
     cdf_files: dict[int, pathlib.Path]
+    """The L0.5 CDF files that were written, keyed by APID."""
+
     failures: dict[int, str]
+    """
+    The reason that each APID that could not be converted failed, keyed
+    by APID.
+    """
+
     packet_counts: dict[int, int]
+    """The number of packets read for each APID."""
+
     kernels: tuple[pathlib.Path, ...]
+    """The SPICE kernels that were loaded."""
+
     skeletons: dict[int, pathlib.Path]
+    """The skeleton CDF file used for each APID."""
+
     software_versions: dict[str, str]
+    """
+    The versions of Python, pyfaradaycup, and the packages it uses to
+    decode packets and write CDF files.
+    """
+
     hostname: str
+    """The name of the computer that did the conversion."""
+
     elapsed: float
+    """How long the conversion took, in seconds."""
 
     @property
     def succeeded(self) -> bool:
