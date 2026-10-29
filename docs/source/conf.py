@@ -54,8 +54,6 @@ intersphinx_mapping = {
     "spacepy": ("https://spacepy.github.io/", None),
 }
 
-# Stop waiting for an inventory after this many seconds, so that a
-# network problem causes a warning rather than a stalled build
 intersphinx_timeout = 30
 
 # Do not convert "--" into an en dash, so that command line options
