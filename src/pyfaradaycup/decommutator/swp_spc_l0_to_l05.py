@@ -221,10 +221,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
         _statusmsg("Event = Starting reading file: spacecraft")
-        l0data = _read_file_sc(path=l0file, ptp=ptp, verbose=verbose, gzip=gzip)
+        l0data = _read_file_sc(path=l0file, ptp=ptp, gzip=gzip)
     else:
         _statusmsg("Event = Starting reading file: non-spacecraft (instrument)")
-        l0data = _read_file(path=l0file, verbose=verbose, gzip=gzip)
+        l0data = _read_file(path=l0file, gzip=gzip)
     _statusmsg("Event = Finished reading file")
 
     # Loop through the APIDs that we got
