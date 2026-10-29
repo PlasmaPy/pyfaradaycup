@@ -30,9 +30,6 @@ build:
     post_create_environment:
     - uv tool install nox --with=nox-uv
 
-    install:
-    - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --group docs
-
     build:
       html:
       - nox --session docs
