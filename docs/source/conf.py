@@ -54,7 +54,7 @@ intersphinx_mapping = {
     "spacepy": ("https://spacepy.github.io/", None),
 }
 
-intersphinx_timeout = 30
+intersphinx_timeout = 60
 
 # Do not convert "--" into an en dash, so that command line options
 # like --l0file are shown correctly
