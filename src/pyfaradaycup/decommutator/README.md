@@ -12,23 +12,17 @@ For historical reasons, the output files are named `*_L1.cdf`.
 
 ## Changes needed for use in a Dagster pipeline
 
-`pfc_decommutator` can be run from Dagster as it is, but a step that fails can be reported as a success, and retries and parallel runs are not safe.
+`pfc_decommutator` can be run from Dagster as it is, but retries and parallel runs are not safe.
 The changes below are listed with the most important first.
 
 ### Report every failure as a failure
 
 Dagster decides whether a step succeeded from the exit code of a subprocess, or from whether a Python call raised an exception.
 
-- **Stop skipping APIDs that fail.**
-  When a skeleton file is missing, when a CDF cannot be created or filled, or when the APID is 0x07B, `main` logs a message and moves to the next APID, and the run still ends with "Script complete".
+- **Decide whether `main` should raise when an APID fails.**
+  When a skeleton file is missing, when a CDF cannot be created or filled, or when the APID is 0x07B, `main` logs an error, records it in the `failures` attribute of the `DecommutationResult` it returns, and moves to the next APID.
+  `pfc_decommutator` then exits with a code of 1, but a Dagster asset that calls `main` must check `result.succeeded` itself.
   A CDF that could not be filled is left behind without being closed.
-  Collect these failures and raise an exception at the end if there were any.
-
-### Return what was written
-
-`swp_spc_l0_to_l05.main` returns `None`.
-It should return the paths of the L0.5 CDF files it wrote, and the path of the log file, so that a Dagster asset can check its outputs and attach them as metadata without searching the output directory.
-It would also be useful to return the kernels and skeleton files that were used.
 
 ### Make retries and parallel runs safe
 

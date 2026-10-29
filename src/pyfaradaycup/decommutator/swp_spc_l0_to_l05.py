@@ -38,12 +38,19 @@
 from __future__ import annotations
 
 __all__ = [
+    "DecommutationResult",
     "main",
 ]
 
+import dataclasses
+import hashlib
+import importlib.metadata
 import logging
 import math
 import pathlib
+import platform
+import socket
+import time
 import warnings
 from typing import TYPE_CHECKING
 
@@ -59,6 +66,66 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Packages whose versions are recorded for provenance
+_PROVENANCE_PACKAGES = ("pyfaradaycup", "numpy", "spacepy", "spiceypy")
+
+
+@dataclasses.dataclass(frozen=True)
+class DecommutationResult:
+    """
+    What `main` did when converting one L0 file, and the inputs it used.
+
+    Attributes
+    ----------
+    l0file : pathlib.Path
+        The L0 file that was converted.
+
+    l0file_sha256 : str
+        The SHA-256 checksum of the L0 file, as hexadecimal digits.
+
+    cdf_files : dict of int to pathlib.Path
+        The L0.5 CDF files that were written, keyed by APID.
+
+    failures : dict of int to str
+        The reason that each APID that could not be converted failed,
+        keyed by APID.
+
+    packet_counts : dict of int to int
+        The number of packets read for each APID.
+
+    kernels : tuple of pathlib.Path
+        The SPICE kernels that were loaded.
+
+    skeletons : dict of int to pathlib.Path
+        The skeleton CDF file used for each APID.
+
+    software_versions : dict of str to str
+        The versions of Python, pyfaradaycup, and the packages it uses
+        to decode packets and write CDF files.
+
+    hostname : str
+        The name of the computer that did the conversion.
+
+    elapsed : float
+        How long the conversion took, in seconds.
+    """
+
+    l0file: pathlib.Path
+    l0file_sha256: str
+    cdf_files: dict[int, pathlib.Path]
+    failures: dict[int, str]
+    packet_counts: dict[int, int]
+    kernels: tuple[pathlib.Path, ...]
+    skeletons: dict[int, pathlib.Path]
+    software_versions: dict[str, str]
+    hostname: str
+    elapsed: float
+
+    @property
+    def succeeded(self) -> bool:
+        """Whether every APID was converted."""
+        return not self.failures
+
 
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l0file: str | os.PathLike[str],
@@ -69,7 +136,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     gzip: bool = False,
     apidreq: int = 0,
     overwrite: bool = False,
-) -> None:
+) -> DecommutationResult:
     """
     Convert one SPC L0 file into L0.5 CDF files, one per APID.
 
@@ -103,6 +170,12 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         If `True`, replace L0.5 CDF files that already exist. If `False`
         and a file already exists, a `FileExistsError` is raised.
 
+    Returns
+    -------
+    DecommutationResult
+        The CDF files that were written, the APIDs that could not be
+        converted, and the inputs and software versions that were used.
+
     Raises
     ------
     ValueError
@@ -118,9 +191,11 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     Notes
     -----
     Errors for a single APID do not stop the conversion. If the
-    skeleton file cannot be read, the CDF cannot be created, or the CDF
-    cannot be filled, the error is logged and the next APID is
-    processed. A CDF that could not be filled may be left behind.
+    skeleton file cannot be read, the CDF cannot be created, the CDF
+    cannot be filled, or the APID is 0x07B (which is not implemented),
+    the error is logged, recorded in the ``failures`` attribute of the
+    result, and the next APID is processed. A CDF that could not be
+    filled may be left behind.
 
     Progress and errors are logged with the `logging` module rather than
     printed. Use `~pyfaradaycup.configure_logging` to show them or write
@@ -128,6 +203,8 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     """
     if not l0file:
         raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
+
+    starttime = time.perf_counter()
 
     # Use the current directory for output files if no directory is given
     l0file = pathlib.Path(l0file)
@@ -155,6 +232,22 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     except OSError as exc:
         msg = f"Could not read L0 file: {l0file}"
         raise RuntimeError(msg) from exc
+
+    # Record where the results came from
+    software_versions = _software_versions()
+    hostname = socket.gethostname()
+    l0file_sha256 = _sha256(l0file)
+    logger.info(
+        "Software versions: %s",
+        ", ".join(f"{name} {version}" for name, version in software_versions.items()),
+    )
+    logger.info("Host: %s, working directory: %s", hostname, pathlib.Path.cwd())
+    logger.info(
+        "L0 file: %s, %d bytes, SHA-256 %s",
+        l0file.resolve(),
+        l0file.stat().st_size,
+        l0file_sha256,
+    )
 
     # Load in Leap Second Kernel
     tls_path = _get_newest_kernel(tls=True)
@@ -190,16 +283,24 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         logger.info("Reading SWEAP instrument packets")
         l0data = _read_file(path=l0file, gzip=gzip)
 
+    packet_counts = {
+        apid: len(next(iter(values.values()), [])) for apid, values in l0data.items()
+    }
+    cdf_files: dict[int, pathlib.Path] = {}
+    failures: dict[int, str] = {}
+    skeletons: dict[int, pathlib.Path] = {}
+
     # Loop through the APIDs that we got
     for apid in l0data.keys():  # ruff:ignore[SIM118]
         logger.debug("Processing APID %s", hex(apid))
 
         if apid == 0x07B:  # ruff:ignore[PLR2004]
+            failures[apid] = "CDFs for APID 0x07b are not implemented"
             logger.warning("Skipping APID 0x07b, because its CDFs are not implemented")
             continue
 
         # Make sure we need to do this apid
-        if len(l0data[apid][list(l0data[apid].keys())[0]]) == 0:  # ruff:ignore[RUF015]
+        if packet_counts[apid] == 0:
             logger.info("No packets found for APID %s", hex(apid))
             continue  # skip this apid if there were no packets received
         if (apidreq != 0) & (apidreq != apid):
@@ -217,6 +318,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             pathlib.Path(skeleton_filename).open().close()
             logger.info("Using skeleton %s for APID %s", skeleton_filename, hex(apid))
         except OSError:
+            failures[apid] = f"Could not read skeleton file {skeleton_filename}"
             logger.error(  # ruff:ignore[TRY400]
                 "Could not read skeleton file %s for APID %s; skipping this APID",
                 skeleton_filename,
@@ -224,11 +326,13 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             )
             continue
         except TypeError:
+            failures[apid] = "Could not find skeleton file"
             logger.error(  # ruff:ignore[TRY400]
                 "Could not find skeleton file for APID %s; skipping this APID",
                 hex(apid),
             )
             continue
+        skeletons[apid] = pathlib.Path(skeleton_filename)
 
         # See if the CDF file already exists
         try:
@@ -258,6 +362,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             cdf = pycdf.CDF(str(l1path), skeleton_filename)
         except pycdf.CDFError as exc:
+            failures[apid] = f"Could not create {l1path}: {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
                 "Could not create %s for APID %s (%r); skipping this APID",
                 l1path,
@@ -284,6 +389,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
+            failures[apid] = f"Could not fill {l1path}: {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
                 "Could not fill %s for APID %s (%r); skipping this APID",
                 l1path,
@@ -300,9 +406,56 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
                 "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
             )
             cdf.close()
+        cdf_files[apid] = l1path
         logger.info("Wrote %s", l1path)
 
-    logger.info("Finished converting %s", l0file)
+    result = DecommutationResult(
+        l0file=l0file,
+        l0file_sha256=l0file_sha256,
+        cdf_files=cdf_files,
+        failures=failures,
+        packet_counts=packet_counts,
+        kernels=(pathlib.Path(tls_path), pathlib.Path(sclk_path)),
+        skeletons=skeletons,
+        software_versions=software_versions,
+        hostname=hostname,
+        elapsed=time.perf_counter() - starttime,
+    )
+
+    logger.info(
+        "Wrote %d L0.5 CDF files from %s in %.1f s",
+        len(cdf_files),
+        l0file,
+        result.elapsed,
+    )
+    if failures:
+        logger.warning(
+            "Could not convert %d APIDs: %s",
+            len(failures),
+            ", ".join(hex(apid) for apid in failures),
+        )
+
+    return result
+
+
+def _software_versions() -> dict[str, str]:
+    """Return the versions of Python and the packages used for decommutation."""
+    versions = {"Python": platform.python_version()}
+    for package in _PROVENANCE_PACKAGES:
+        try:
+            versions[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:  # ruff:ignore[PERF203]
+            versions[package] = "unknown"
+    return versions
+
+
+def _sha256(path: pathlib.Path) -> str:
+    """Return the SHA-256 checksum of a file as hexadecimal digits."""
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]

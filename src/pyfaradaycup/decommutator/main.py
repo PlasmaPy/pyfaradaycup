@@ -221,6 +221,8 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     directory given by --logdir. If --l05dir or --logdir is not given,
     the current directory is used. The log file has every message, with
     timestamps in UTC.
+
+    The exit code is 1 if any APID could not be converted.
     """  # ruff:ignore[D301]
     # Make sure we got a good argument set. Because -b and -r are not
     # implemented, --l0file is needed even when they are given.
@@ -247,6 +249,8 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         file_mode="x",
         capture_warnings=True,
     ):
+        ctx = click.get_current_context()
+        logger.info("Running %s with options %s", ctx.command_path, ctx.params)
         logger.info("Writing log file %s", log_file)
         _warn_about_ineffective_options(
             batch=batch,
@@ -256,7 +260,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             spacecraft=spacecraft,
         )
         try:
-            swp_spc_l0_to_l05.main(
+            result = swp_spc_l0_to_l05.main(
                 l0file=l0file,
                 l05dir=l05dir,
                 spacecraft=spacecraft,
@@ -269,6 +273,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             # Record the traceback in the log file as well as on the screen
             logger.exception("Could not convert %s", l0file)
             raise SystemExit(1) from None
+
+        if not result.succeeded:
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":
