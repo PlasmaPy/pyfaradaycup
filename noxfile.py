@@ -99,6 +99,10 @@ SPHINX_BASE_COMMAND: list[str] = [
     doc_build_dir,
     "--nitpicky",
     "--keep-going",
+    # Rebuild every page, since warnings are only shown for pages that
+    # are rebuilt
+    "--fresh-env",
+    "--write-all",
 ]
 
 if not RUNNING_ON_RTD:
