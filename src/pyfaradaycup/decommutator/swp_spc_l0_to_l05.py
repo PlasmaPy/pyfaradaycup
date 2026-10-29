@@ -41,12 +41,11 @@ __all__ = [
     "main",
 ]
 
-import datetime
 import logging
 import math
 import pathlib
 import warnings
-from typing import TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING
 
 import numpy as np
 import spiceypy
@@ -60,21 +59,16 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# The log file, which is opened by main
-logfile: TextIO
-
 
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l0file: str | os.PathLike[str],
     l05dir: str | os.PathLike[str] | None = None,
-    logdir: str | os.PathLike[str] | None = None,
     *,
     spacecraft: bool = False,
     ptp: bool = False,
     gzip: bool = False,
     apidreq: int = 0,
     overwrite: bool = False,
-    verbose: bool = False,
 ) -> None:
     """
     Convert one SPC L0 file into L0.5 CDF files, one per APID.
@@ -87,10 +81,6 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l05dir : str or path-like, optional
         Directory for the L0.5 CDF files. If `None` (the default), the
         current directory is used. It is created if it does not exist.
-
-    logdir : str or path-like, optional
-        Directory for the log file. If `None` (the default), the current
-        directory is used. It is created if it does not exist.
 
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
@@ -113,10 +103,6 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         If `True`, replace L0.5 CDF files that already exist. If `False`
         and a file already exists, a `FileExistsError` is raised.
 
-    verbose : bool, optional
-        If `True`, print messages to the screen as well as to the log
-        file.
-
     Raises
     ------
     ValueError
@@ -126,8 +112,8 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         If an L0.5 CDF file already exists and ``overwrite`` is `False`.
 
     RuntimeError
-        If the log file cannot be opened, the SPICE kernels cannot be
-        loaded, or the L0 file cannot be read.
+        If the SPICE kernels cannot be loaded, or the L0 file cannot be
+        read.
 
     Notes
     -----
@@ -135,6 +121,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     skeleton file cannot be read, the CDF cannot be created, or the CDF
     cannot be filled, the error is logged and the next APID is
     processed. A CDF that could not be filled may be left behind.
+
+    Progress and errors are logged with the `logging` module rather than
+    printed. Use `~pyfaradaycup.configure_logging` to show them or write
+    them to a log file.
     """
     if not l0file:
         raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
@@ -142,165 +132,116 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     # Use the current directory for output files if no directory is given
     l0file = pathlib.Path(l0file)
     l05dir = pathlib.Path("." if l05dir is None else l05dir)
-    logdir = pathlib.Path("." if logdir is None else logdir)
 
     # Get a version of filename with no extension
     l0file_noext = l0file.stem
     if l0file_noext[-3:] == "ptp":
         l0file_noext = pathlib.Path(l0file_noext).stem
 
-    # Open a log file to write to
-    nowdt = datetime.datetime.now()  # ruff:ignore[DTZ005]
-    logpath = (
-        logdir
-        / f"swp_spc_l0_to_l05_{nowdt.year:04.0f}{nowdt.month:02.0f}{nowdt.day:02.0f}{nowdt.hour:02.0f}{nowdt.minute:02.0f}{nowdt.second:02.0f}.log"
+    logger.info("Converting L0 file %s", l0file)
+    logger.info(
+        "Options: l05dir=%s, spacecraft=%s, ptp=%s, gzip=%s, apid=%s, overwrite=%s",
+        l05dir,
+        spacecraft,
+        ptp,
+        gzip,
+        hex(apidreq),
+        overwrite,
     )
-    try:
-        logdir.mkdir(parents=True, exist_ok=True)
-        global logfile  # ruff:ignore[PLW0603]
-        logfile = logpath.open("w")
-    except Exception as exc:
-        msg = f"Could not open log file: {logpath}"
-        raise RuntimeError(msg) from exc
-    # Write some information to the log file
-    _statusmsg("filename = swp_spc_l0_to_l05.py", verbose=verbose)
-    _statusmsg("timerun = " + nowdt.isoformat(), verbose=verbose)
-    _statusmsg(f"l0file = {l0file}", verbose=verbose)
-    _statusmsg(f"l05dir = {l05dir}", verbose=verbose)
-    _statusmsg("spacecraft = " + repr(spacecraft), verbose=verbose)
-    _statusmsg("ptp = " + repr(ptp), verbose=verbose)
-    _statusmsg("gzip = " + repr(gzip), verbose=verbose)
-    _statusmsg("apid = " + hex(apidreq), verbose=verbose)
-    _statusmsg("overwrite = " + repr(overwrite), verbose=verbose)
 
     # Make sure the L0 file exists and is readable
     try:
         l0file.open().close()
-        _statusmsg("L0 file exists and is readable")
     except OSError as exc:
         msg = f"Could not read L0 file: {l0file}"
-        _statusmsg(
-            f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}...exiting",
-            screen=True,
-            verbose=verbose,
-        )
         raise RuntimeError(msg) from exc
 
     # Load in Leap Second Kernel
-    _statusmsg("***INFO*** [swp_spc_l0_to_l05.py] Finding newest leap second kernel...")
     tls_path = _get_newest_kernel(tls=True)
     if not tls_path:
         msg = "Could not find leap second kernel"
-        _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            _statusmsg(f"***INFO*** [swp_spc_l0_to_l05.py] Using: {tls_path}")
+            logger.info("Using leap second kernel %s", tls_path)
             spiceypy.furnsh(tls_path)
         except Exception as exc:
             msg = f"Could not load leap second kernel: {tls_path}"
-            _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
             raise RuntimeError(msg) from exc
 
     # Load in S/C Clock Kernel
-    _statusmsg("***INFO*** [swp_spc_l0_to_l05.py] Finding newest S/C clock kernel...")
     sclk_path = _get_newest_kernel(sclk=True)
     if not sclk_path:
         msg = "Could not find SCLK kernel"
-        _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            _statusmsg(f"***INFO*** [swp_spc_l0_to_l05.py] Using: {sclk_path}")
+            logger.info("Using SCLK kernel %s", sclk_path)
             spiceypy.furnsh(sclk_path)
         except Exception as exc:
             msg = f"Could not load SCLK kernel: {sclk_path}"
-            _statusmsg(f"***ERROR*** [swp_spc_l0_to_l05.py] {msg}")
             raise RuntimeError(msg) from exc
 
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
-        _statusmsg("Event = Starting reading file: spacecraft")
+        logger.info("Reading spacecraft housekeeping packets")
         l0data = _read_file_sc(path=l0file, ptp=ptp, gzip=gzip)
     else:
-        _statusmsg("Event = Starting reading file: non-spacecraft (instrument)")
+        logger.info("Reading SWEAP instrument packets")
         l0data = _read_file(path=l0file, gzip=gzip)
-    _statusmsg("Event = Finished reading file")
 
     # Loop through the APIDs that we got
     for apid in l0data.keys():  # ruff:ignore[SIM118]
-        _statusmsg(f"Event = Beginning APID: {hex(apid)}")
+        logger.debug("Processing APID %s", hex(apid))
 
         if apid == 0x07B:  # ruff:ignore[PLR2004]
-            _statusmsg(
-                "***WARNING*** [swp_spc_l0_to_l05] APID 0x07B CDFs not yet implemented",
-                screen=True,
-                verbose=verbose,
-            )
+            logger.warning("Skipping APID 0x07b, because its CDFs are not implemented")
             continue
 
         # Make sure we need to do this apid
         if len(l0data[apid][list(l0data[apid].keys())[0]]) == 0:  # ruff:ignore[RUF015]
-            _statusmsg("No packets found for this apid.")
+            logger.info("No packets found for APID %s", hex(apid))
             continue  # skip this apid if there were no packets received
         if (apidreq != 0) & (apidreq != apid):
-            _statusmsg("This apid not requested by user")
+            logger.debug("Skipping APID %s, which was not requested", hex(apid))
             continue  # skip this apid if user only wanted one apid and this isn't it
 
         # Filename for the L0.5 file we're about to write for this apid
         l1path = (
             l05dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
         )
-        _statusmsg(f"About to write: {l1path}")
 
         # Make sure the skeleton file exists and is readable
         try:
             skeleton_filename = _get_newest_skeleton(apid)
             pathlib.Path(skeleton_filename).open().close()
-            _statusmsg("Skeleton to be used: " + skeleton_filename)
+            logger.info("Using skeleton %s for APID %s", skeleton_filename, hex(apid))
         except OSError:
-            _statusmsg(
-                "***ERROR*** [swp_spc_l0_to_l05.py] Skeleton file could not be read...moving to next apid",
-                screen=True,
-                verbose=verbose,
+            logger.error(  # ruff:ignore[TRY400]
+                "Could not read skeleton file %s for APID %s; skipping this APID",
+                skeleton_filename,
+                hex(apid),
             )
-            _statusmsg("Tried to use skeleton file: " + skeleton_filename)
             continue
         except TypeError:
-            _statusmsg(
-                f"***ERROR*** [swp_spc_l0_to_l05.py] Skeleton file for apid={hex(apid)} could not be found...moving to next apid",
-                screen=True,
-                verbose=verbose,
+            logger.error(  # ruff:ignore[TRY400]
+                "Could not find skeleton file for APID %s; skipping this APID",
+                hex(apid),
             )
             continue
 
         # See if the CDF file already exists
         try:
             # try to open and close it
-            _statusmsg(f"Using L0.5 path: {l1path}", screen=True, verbose=verbose)
             l1path.open().close()
 
             # if we get here, this file already exists; so delete it, if desired
-            _statusmsg(
-                f"***INFO*** [swp_spc_l0_to_l05] L0.5 CDF file ({l1path}) already exists",
-                screen=True,
-                verbose=verbose,
-            )
             if overwrite:
-                _statusmsg(
-                    "***INFO*** [swp_spc_l0_to_l05] Overwriting existing L0.5 CDF",
-                    screen=True,
-                    verbose=verbose,
-                )
+                logger.info("Overwriting existing L0.5 CDF file %s", l1path)
                 l1path.unlink()
             else:
                 msg = (
                     f"L0.5 CDF already exists and overwrite was not requested: {l1path}"
-                )
-                _statusmsg(
-                    f"***ERROR*** [swp_spc_l0_to_l05] {msg}",
-                    screen=True,
-                    verbose=verbose,
                 )
                 raise FileExistsError(msg)  # ruff:ignore[TRY301]
         except FileExistsError:
@@ -309,11 +250,6 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             pass  # Apparently the file did not exist already
         except Exception as exc:
             msg = f"Could not check existence of or delete L0.5 CDF file: {l1path}"
-            _statusmsg(
-                f"***ERROR*** [swp_spc_l0_to_l05] {msg}",
-                screen=True,
-                verbose=verbose,
-            )
             raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton, creating the
@@ -322,10 +258,11 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             cdf = pycdf.CDF(str(l1path), skeleton_filename)
         except pycdf.CDFError as exc:
-            _statusmsg(
-                f"***ERROR*** [swp_spc_l0_to_l05] Could not create new CDF (APID={hex(apid)}): {exc!r}...continuing to next APID",
-                screen=True,
-                verbose=verbose,
+            logger.error(  # ruff:ignore[TRY400]
+                "Could not create %s for APID %s (%r); skipping this APID",
+                l1path,
+                hex(apid),
+                exc,
             )
             continue
 
@@ -345,12 +282,13 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             0x35F: _cdf35e_35f,
         }
         try:
-            cdfproc[apid](cdf, l0data[apid], verbose=verbose)
+            cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
-            _statusmsg(
-                f"***WARNING*** [swp_spc_l0_to_l05] CDF not processed for APID={hex(apid)}: {exc!r}",
-                screen=True,
-                verbose=verbose,
+            logger.error(  # ruff:ignore[TRY400]
+                "Could not fill %s for APID %s (%r); skipping this APID",
+                l1path,
+                hex(apid),
+                exc,
             )
             continue
 
@@ -362,16 +300,12 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
                 "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
             )
             cdf.close()
+        logger.info("Wrote %s", l1path)
 
-    _statusmsg(
-        "***INFO*** [swp_spc_l0_to_l05] Script complete.", screen=True, verbose=verbose
-    )
-
-    # Close the log file
-    logfile.close()
+    logger.info("Finished converting %s", l0file)
 
 
-def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], *, verbose: bool = False) -> None:  # ruff:ignore[ARG001, C901]
+def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]
     """
     Fill a CDF with housekeeping data, one row per packet.
 
@@ -387,10 +321,6 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], *, verbose: bool = False) 
     dat : dict of str to list
         Decoded L0 data for one APID, with one entry per packet for
         each mnemonic.
-
-    verbose : bool, optional
-        Not currently used. Accepted so that `main` can call each CDF
-        writer with the same arguments.
 
     Raises
     ------
@@ -449,7 +379,7 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list], *, verbose: bool = False) 
         )
 
     else:
-        _statusmsg("Failed: could not create Epoch variable")
+        logger.error("Could not create the Epoch variable")
         return
 
     # Fill in values for each variable
@@ -472,7 +402,6 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     dat: dict[str, list],
     *,
     nocdf: bool = False,
-    verbose: bool = False,
 ) -> dict[str, list] | None:
     """
     Expand SPC science packets (APIDs 0x351, 0x353, 0x354) and write them to a CDF.
@@ -499,10 +428,6 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     nocdf : bool, optional
         If `True`, return the expanded data instead of writing it to
         ``cdf``.
-
-    verbose : bool, optional
-        If `True`, print warnings and errors to the screen as well as
-        to the log file.
 
     Returns
     -------
@@ -551,6 +476,7 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
 
     # Loop through each NYS
     itst_warned = False
+    nskipped = 0
     for i in range(len(scet)):
         this_scet = scet[i]
 
@@ -563,10 +489,10 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
             ticks_per_meas = 8
 
             if not itst_warned:
-                _statusmsg(
-                    "***WARNING*** [swp_spc_l0_to_l05] The reported IT+ST is not an even power of 2. Using IT=6,ST=2...",
-                    screen=True,
-                    verbose=verbose,
+                logger.warning(
+                    "The reported IT+ST for APID %s is not a power of 2; "
+                    "using IT=6, ST=2",
+                    hex(apid),
                 )
                 itst_warned = True
 
@@ -580,18 +506,12 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
                     & (dat["SW_SPC_SERVTIME"][i] != dat["SW_SPC_SERVTIME"][i - 1])
                     & (dat["SW_SPC_SERVTIME"][i] != dat["SW_SPC_SERVTIME"][i + 1])
                 ):
-                    _statusmsg(
-                        "***WARNING***IT+ST not 2^n, and not same as prev. and next values...so skipping this packet.",
-                        screen=True,
-                        verbose=verbose,
-                    )
+                    logger.debug("Skipping APID %s packet %d", hex(apid), i)
+                    nskipped += 1
                     continue
             except IndexError:
-                _statusmsg(
-                    "***WARNING***IT+ST not 2^n, and not same as prev. and next values...so skipping this packet.",
-                    screen=True,
-                    verbose=verbose,
-                )
+                logger.debug("Skipping APID %s packet %d", hex(apid), i)
+                nskipped += 1
                 continue
 
         # Time that each measurement took this NYS
@@ -646,6 +566,14 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
                 expanded = np.ones(nmeas) * dat[key][i]
                 dat_exp[key].extend(expanded)
 
+    if nskipped:
+        logger.warning(
+            "Skipped %d APID %s packets whose IT+ST was not a power of 2 and "
+            "differed from the packets before and after",
+            nskipped,
+            hex(apid),
+        )
+
     if nocdf:
         return dat_exp
     # Fill in the CDF
@@ -662,11 +590,9 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
             cdf[key] = dat_exp[key]
         except KeyError as exc:  # ruff:ignore[PERF203]
             msg = f"The CDF skeleton has variable {key!r}, but the L0 data does not"
-            _statusmsg(f"Failed : {msg}", screen=True, verbose=verbose)
             raise RuntimeError(msg) from exc
         except (pycdf.CDFError, TypeError, ValueError) as exc:
             msg = f"Could not write variable {key!r} to the CDF: {exc}"
-            _statusmsg(f"Failed : {msg}", screen=True, verbose=verbose)
             raise RuntimeError(msg) from exc
 
 
@@ -675,7 +601,6 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     dat: dict[str, list],
     *,
     nocdf: bool = False,
-    verbose: bool = False,
 ) -> dict[str, list] | tuple[()]:
     """
     Expand SPC time series (APID 0x352) packets into L0.5 data and write them to a CDF.
@@ -699,10 +624,6 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
     nocdf : bool, optional
         If `True`, return the expanded data instead of writing it to
         ``cdf``.
-
-    verbose : bool, optional
-        If `True`, print error messages to the screen as well as to the
-        log file.
 
     Returns
     -------
@@ -772,6 +693,7 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
         # Time that each measurement took this NYS
         tm_per_meas = 1.0 / 32.0 / 1171.875
 
+        nskipped = 0
         for i in range(len(dt)):
             # MET for this NY second
             thisdt = dt[i]
@@ -816,11 +738,9 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
                 dat_exp["VAR3"].extend(dat["G3_000"][i])
 
             except ValueError as exc:
-                _statusmsg(
-                    f"***ERROR*** Could not process 0x352 packet (probably it was a false positive ID of a 0x352 packet?): {exc}",
-                    screen=True,
-                    verbose=verbose,
-                )
+                # This was probably a false positive ID of a 0x352 packet
+                logger.debug("Skipping APID 0x352 packet %d: %s", i, exc)
+                nskipped += 1
                 continue
 
             # Extend the expanded dt
@@ -837,6 +757,11 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
                     expanded = np.ones(nmeas) * dat[key][i]
                     dat_exp[key].extend(expanded)
 
+        if nskipped:
+            logger.warning(
+                "Skipped %d APID 0x352 packets that could not be processed", nskipped
+            )
+
         if nocdf:
             return dat_exp
         # Fill in the CDF
@@ -851,17 +776,11 @@ def _cdf352(  # ruff:ignore[C901, PLR0912, PLR0915]
                 # insert data
                 cdf[key] = dat_exp[key]
             except KeyError:  # ruff:ignore[PERF203]
-                _statusmsg(
-                    f"Failed : The CDF skeleton has variable {key!r}, but the L0 data does not",
-                    screen=True,
-                    verbose=verbose,
+                logger.warning(
+                    "The CDF skeleton has variable %r, but the L0 data does not", key
                 )
             except (pycdf.CDFError, TypeError, ValueError) as exc:
-                _statusmsg(
-                    f"Failed : Could not write variable {key!r} to the CDF: {exc}",
-                    screen=True,
-                    verbose=verbose,
-                )
+                logger.warning("Could not write variable %r to the CDF: %s", key, exc)
     except Exception as exc:
         msg = "Could not process the APID 0x352 packets"
         raise RuntimeError(msg) from exc
@@ -923,46 +842,6 @@ def _secsubsec2scet(
     ephem_nanosec_j2000 = [np.round(1e9 * i) for i in ephem_sec_j2000]
 
     return ephem_nanosec_j2000  # ruff:ignore[RET504]
-
-
-def _statusmsg(
-    string: str,
-    *,
-    screen: bool = False,
-    file: bool = True,
-    verbose: bool = False,
-) -> None:
-    """
-    Write a timestamped status message to the log file and/or the screen.
-
-    Parameters
-    ----------
-    string : str
-        The message to write.
-
-    screen : bool, optional
-        If `True`, also print the message to the screen, but only when
-        ``verbose`` is also `True`.
-
-    file : bool, optional
-        If `True`, write the message to the log file.
-
-    verbose : bool, optional
-        Must be `True` for ``screen`` to have any effect.
-
-    Notes
-    -----
-    Messages written to the log file start with the current local time
-    in ISO format, followed by a comma. The log file is the global
-    ``logfile`` opened by `main`, so this function only works after
-    `main` has opened it.
-    """
-    nowdtstr = datetime.datetime.now().isoformat()  # ruff:ignore[DTZ005]
-    if file:
-        logfile.write(nowdtstr + ", " + string + "\n")
-    if screen:  # ruff:ignore[SIM102]
-        if verbose:
-            print(string)  # ruff:ignore[T201]
 
 
 def _get_newest_kernel(
@@ -1028,7 +907,6 @@ def _get_newest_kernel(
         maxind = np.argmax(versions)
     except ValueError as exc:
         msg = f"Could not find any kernel files matching {globstr} in {globdir}"
-        _statusmsg(f"***ERROR*** {msg}")
         raise RuntimeError(msg) from exc
 
     # return path to newest file

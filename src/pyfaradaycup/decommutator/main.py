@@ -4,11 +4,13 @@ from __future__ import annotations
 
 __all__ = ["pfc_decommutator"]
 
+import datetime
 import logging
 import pathlib
 
 import click
 
+from pyfaradaycup._logging import configure_logging
 from pyfaradaycup.decommutator import swp_spc_l0_to_l05
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,7 @@ def _warn_about_ineffective_options(
     ptp: bool,
     spacecraft: bool,
 ) -> None:
-    """Print a warning to standard error for each option that has little or no effect."""
+    """Log a warning for each option that has little or no effect."""
     warnings = []
     if batch:
         warnings.append(
@@ -54,7 +56,30 @@ def _warn_about_ineffective_options(
         warnings.append("-p/--ptp is ignored unless -sc/--spacecraft is also given")
 
     for warning in warnings:
-        click.echo(f"Warning: {warning}", err=True)
+        logger.warning(warning)
+
+
+def _console_level(*, verbose: int, quiet: bool) -> int:
+    """Return the minimum level of messages to print to standard error."""
+    if quiet:
+        return logging.ERROR
+    if verbose == 0:
+        return logging.WARNING
+    if verbose == 1:
+        return logging.INFO
+    return logging.DEBUG
+
+
+def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib.Path:
+    """
+    Return the path of the log file for converting ``l0file``.
+
+    The name contains the name of the L0 file and the current UTC time,
+    like ``swp_spc_l0_to_l05_0523462910_4_EA_20261029T142301Z.log``.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    name = f"swp_spc_l0_to_l05_{l0file.stem}_{now:%Y%m%dT%H%M%SZ}.log"
+    return pathlib.Path("." if logdir is None else logdir) / name
 
 
 @click.command(name="pfc_decommutator")
@@ -62,8 +87,18 @@ def _warn_about_ineffective_options(
 @click.option(
     "-v",
     "--verbose",
+    count=True,
+    help=(
+        "Print more messages to the screen: -v for progress, and -vv for "
+        "details. Without it, only warnings and errors are printed. The log "
+        "file always has every message."
+    ),
+)
+@click.option(
+    "-q",
+    "--quiet",
     is_flag=True,
-    help="Print messages to the screen as well as to the log file",
+    help="Only print errors to the screen.",
 )
 @click.option("-gz", "--gzip", is_flag=True, help="Read in L0 file as gzip")
 @click.option(
@@ -151,7 +186,8 @@ def _warn_about_ineffective_options(
 )
 def pfc_decommutator(  # ruff:ignore[PLR0913]
     *,
-    verbose: bool,
+    verbose: int,
+    quiet: bool,
     gzip: bool,
     spacecraft: bool,
     batch: bool,
@@ -168,8 +204,8 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     """
     Convert one SPC L0 file into L0.5 CDF files, one per APID.
 
-    To convert the L0 file 0523462910_4_EA, printing messages to the
-    screen as well as to the log file:
+    To convert the L0 file 0523462910_4_EA, printing progress messages
+    to the screen:
 
     \b
         pfc_decommutator \\
@@ -180,17 +216,12 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     This writes one L0.5 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
-    --l05dir, and a log file into the directory given by --logdir. If
-    --l05dir or --logdir is not given, the current directory is used.
+    --l05dir, and a log file, such as
+    swp_spc_l0_to_l05_0523462910_4_EA_20261029T142301Z.log, into the
+    directory given by --logdir. If --l05dir or --logdir is not given,
+    the current directory is used. The log file has every message, with
+    timestamps in UTC.
     """  # ruff:ignore[D301]
-    _warn_about_ineffective_options(
-        batch=batch,
-        recursive=recursive,
-        l0dir=l0dir,
-        ptp=ptp,
-        spacecraft=spacecraft,
-    )
-
     # Make sure we got a good argument set. Because -b and -r are not
     # implemented, --l0file is needed even when they are given.
     if (batch or recursive) and l0dir is None:
@@ -201,21 +232,43 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         raise click.UsageError(  # ruff:ignore[TRY003]
             "You must provide --l0file"  # ruff:ignore[EM101]
         )
+    if verbose and quiet:
+        raise click.UsageError(  # ruff:ignore[TRY003]
+            "-v/--verbose and -q/--quiet cannot be used together"  # ruff:ignore[EM101]
+        )
 
     if stcorrect:
         raise RuntimeError("--stcorrect has not been implemented.")  # ruff:ignore[EM101, TRY003]
 
-    swp_spc_l0_to_l05.main(
-        l0file=l0file,
-        l05dir=l05dir,
-        logdir=logdir,
-        spacecraft=spacecraft,
-        ptp=ptp,
-        gzip=gzip,
-        apidreq=apid,
-        overwrite=overwrite,
-        verbose=verbose,
-    )
+    log_file = _log_file_path(logdir, l0file)
+    with configure_logging(
+        level=_console_level(verbose=verbose, quiet=quiet),
+        log_file=log_file,
+        file_mode="x",
+        capture_warnings=True,
+    ):
+        logger.info("Writing log file %s", log_file)
+        _warn_about_ineffective_options(
+            batch=batch,
+            recursive=recursive,
+            l0dir=l0dir,
+            ptp=ptp,
+            spacecraft=spacecraft,
+        )
+        try:
+            swp_spc_l0_to_l05.main(
+                l0file=l0file,
+                l05dir=l05dir,
+                spacecraft=spacecraft,
+                ptp=ptp,
+                gzip=gzip,
+                apidreq=apid,
+                overwrite=overwrite,
+            )
+        except Exception:
+            # Record the traceback in the log file as well as on the screen
+            logger.exception("Could not convert %s", l0file)
+            raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

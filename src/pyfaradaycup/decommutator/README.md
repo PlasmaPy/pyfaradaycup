@@ -37,25 +37,15 @@ It would also be useful to return the kernels and skeleton files that were used.
 - **Decide what a retry should do.**
   Without `--overwrite`, a retry stops at the first L0.5 CDF file that already exists.
   A Dagster step should either always overwrite, or skip files that are already complete.
-- **Give each run its own log file name.**
-  The log file name contains the time to the nearest second, and the file is opened for writing.
-  Two runs that start in the same second with the same `--logdir` write to the same file.
-  Including the name of the L0 file in the log file name would fix this.
 - **Remove the global state.**
-  The log file is the module-level global `logfile`, which `_statusmsg` writes to.
   SPICE kernels are loaded with `spiceypy.furnsh` on every call and are never unloaded.
   This is safe when each step runs in its own process, but not when `main` is called more than once in the same process.
-  The log file is also left open when `main` raises an exception.
-  Pass the log file as an argument, close it in a `finally` block or with a `with` statement, and unload the kernels when the conversion finishes.
+  Unload the kernels when the conversion finishes.
 
 ### Make it callable from Python
 
 Calling the conversion as a function is better suited to Dagster than starting a subprocess, since Dagster can then capture exceptions, log messages, and return values.
 
-- **Use the `logging` module instead of `_statusmsg`, `print`, and `sys.stdout.write`.**
-  Dagster can then show the messages with their levels in its own logs.
-  `_read_file` and `_read_file_sc` write their progress and a packet summary to standard output even without `--verbose`.
-  The warnings that `pfc_decommutator` prints for options that have no effect should use `logging` too.
 - **Keep `pfc_decommutator` as a thin wrapper.**
   A click command ends the Python process when it finishes, so it should not be called from an asset or op.
   All checks that matter should be in the function that the asset calls.
