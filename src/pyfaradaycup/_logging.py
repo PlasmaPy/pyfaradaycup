@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 _PACKAGE_LOGGER_NAME = "pyfaradaycup"
 
+# The logger used by logging.captureWarnings
+_WARNINGS_LOGGER_NAME = "py.warnings"
+
 # Handlers added by configure_logging are named with this prefix, so
 # that a later call can find and replace them without touching handlers
 # added by anyone else.
@@ -47,6 +50,10 @@ class LoggingConfiguration:
     previous_level : int
         The level of the ``pyfaradaycup`` logger before the handlers
         were added, which is restored by `close`.
+
+    capture_warnings : bool
+        Whether the handlers were also added to the ``py.warnings``
+        logger, with warnings captured by `logging.captureWarnings`.
     """
 
     def __init__(
@@ -54,9 +61,12 @@ class LoggingConfiguration:
         handlers: list[logging.Handler],
         log_file: pathlib.Path | None,
         previous_level: int,
+        *,
+        capture_warnings: bool,
     ) -> None:
         self.handlers = handlers
         self.log_file = log_file
+        self.capture_warnings = capture_warnings
         self._previous_level = previous_level
 
     def close(self) -> None:
@@ -69,10 +79,16 @@ class LoggingConfiguration:
         once has no further effect.
         """
         logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
+        warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
         if any(handler in logger.handlers for handler in self.handlers):
             logger.setLevel(self._previous_level)
+        if self.capture_warnings and any(
+            handler in warnings_logger.handlers for handler in self.handlers
+        ):
+            logging.captureWarnings(False)  # ruff:ignore[FBT003]
         for handler in self.handlers:
             logger.removeHandler(handler)
+            warnings_logger.removeHandler(handler)
             handler.close()
 
     def __enter__(self) -> LoggingConfiguration:
@@ -87,13 +103,14 @@ class LoggingConfiguration:
         self.close()
 
 
-def configure_logging(
+def configure_logging(  # ruff:ignore[PLR0913]
     *,
     level: int | str = logging.INFO,
     log_file: str | os.PathLike[str] | None = None,
     file_level: int | str = logging.DEBUG,
     file_mode: Literal["a", "w", "x"] = "a",
     console: bool = True,
+    capture_warnings: bool = False,
 ) -> LoggingConfiguration:
     """
     Send log messages from pyfaradaycup to the console and a log file.
@@ -121,6 +138,13 @@ def configure_logging(
 
     console : bool, default: `True`
         If `True`, print messages to standard error.
+
+    capture_warnings : bool, default: `False`
+        If `True`, send warnings issued with `warnings.warn` to the same
+        console and log file, using `logging.captureWarnings`. This
+        changes how warnings are shown for the whole program until the
+        handlers are closed, so it is intended for applications such as
+        command line tools.
 
     Returns
     -------
@@ -166,27 +190,60 @@ def configure_logging(
 
     log_path = None if log_file is None else pathlib.Path(log_file)
     if log_path is not None:
-        # Check the level before creating the file, so that an invalid
-        # level does not leave an empty log file behind.
-        logging.Handler().setLevel(file_level)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_path, mode=file_mode, encoding="utf-8")
-        file_handler.set_name(f"{_HANDLER_NAME_PREFIX}file")
-        file_handler.setLevel(file_level)
-        file_formatter = logging.Formatter(_FILE_FORMAT, datefmt=_DATE_FORMAT)
-        file_formatter.converter = time.gmtime
-        file_handler.setFormatter(file_formatter)
-        handlers.append(file_handler)
+        handlers.append(_make_file_handler(log_path, file_level, file_mode))
 
+    _remove_configured_handlers(capture_warnings=capture_warnings)
+
+    warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
+    previous_level = logger.level
+    for handler in handlers:
+        logger.addHandler(handler)
+        if capture_warnings:
+            warnings_logger.addHandler(handler)
+    if handlers:
+        logger.setLevel(min(handler.level for handler in handlers))
+    if capture_warnings:
+        logging.captureWarnings(True)  # ruff:ignore[FBT003]
+
+    return LoggingConfiguration(
+        handlers, log_path, previous_level, capture_warnings=capture_warnings
+    )
+
+
+def _make_file_handler(
+    log_path: pathlib.Path,
+    level: int | str,
+    mode: Literal["a", "w", "x"],
+) -> logging.FileHandler:
+    """Create a handler that writes to a log file with UTC timestamps."""
+    # Check the level before creating the file, so that an invalid level
+    # does not leave an empty log file behind.
+    logging.Handler().setLevel(level)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_path, mode=mode, encoding="utf-8")
+    file_handler.set_name(f"{_HANDLER_NAME_PREFIX}file")
+    file_handler.setLevel(level)
+    file_formatter = logging.Formatter(_FILE_FORMAT, datefmt=_DATE_FORMAT)
+    file_formatter.converter = time.gmtime
+    file_handler.setFormatter(file_formatter)
+    return file_handler
+
+
+def _remove_configured_handlers(*, capture_warnings: bool) -> None:
+    """
+    Remove and close the handlers added by earlier calls to
+    `configure_logging`, and stop capturing warnings if they were
+    captured but ``capture_warnings`` is `False`.
+    """
+    warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
+    for handler in list(warnings_logger.handlers):
+        if (handler.name or "").startswith(_HANDLER_NAME_PREFIX):
+            warnings_logger.removeHandler(handler)
+            if not capture_warnings:
+                logging.captureWarnings(False)  # ruff:ignore[FBT003]
+
+    logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
     for handler in list(logger.handlers):
         if (handler.name or "").startswith(_HANDLER_NAME_PREFIX):
             logger.removeHandler(handler)
             handler.close()
-
-    previous_level = logger.level
-    for handler in handlers:
-        logger.addHandler(handler)
-    if handlers:
-        logger.setLevel(min(handler.level for handler in handlers))
-
-    return LoggingConfiguration(handlers, log_path, previous_level)

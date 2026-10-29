@@ -6,6 +6,7 @@ import datetime
 import importlib
 import logging
 import re
+import warnings
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -44,8 +45,12 @@ def test_module_logger(module_name: str) -> None:
 def _remove_configured_handlers() -> Iterator[None]:
     """Remove handlers added by configure_logging after each test."""
     logger = logging.getLogger("pyfaradaycup")
+    warnings_logger = logging.getLogger("py.warnings")
     level = logger.level
     yield
+    for handler in list(warnings_logger.handlers):
+        warnings_logger.removeHandler(handler)
+    logging.captureWarnings(False)  # ruff:ignore[FBT003]
     for handler in list(logger.handlers):
         if not isinstance(handler, logging.NullHandler):
             logger.removeHandler(handler)
@@ -202,3 +207,27 @@ def test_configure_logging_propagates(caplog: pytest.LogCaptureFixture) -> None:
     with pyfaradaycup.configure_logging(console=False):
         logging.getLogger("pyfaradaycup").warning("propagated")
     assert caplog.messages == ["propagated"]
+
+
+def test_configure_logging_capture_warnings(tmp_path: pathlib.Path) -> None:
+    """Test that warnings go to the log file only while captured."""
+    log_file = tmp_path / "run.log"
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        with pyfaradaycup.configure_logging(
+            log_file=log_file, console=False, capture_warnings=True
+        ) as config:
+            warnings.warn("captured", UserWarning, stacklevel=1)
+            assert logging.getLogger("py.warnings").handlers == config.handlers
+    assert "WARNING  py.warnings:" in log_file.read_text(encoding="utf-8")
+    assert "UserWarning: captured" in log_file.read_text(encoding="utf-8")
+    assert not logging.getLogger("py.warnings").handlers
+    assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+
+
+def test_configure_logging_replacement_stops_capturing_warnings() -> None:
+    """Test that replacing a configuration that captured warnings stops capturing."""
+    pyfaradaycup.configure_logging(capture_warnings=True)
+    pyfaradaycup.configure_logging()
+    assert not logging.getLogger("py.warnings").handlers
+    assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
