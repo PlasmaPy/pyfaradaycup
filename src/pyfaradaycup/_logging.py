@@ -218,7 +218,8 @@ def configure_logging(  # ruff:ignore[PLR0913]
         changes how warnings from all packages are shown for the whole
         program until the handlers are closed, so it is intended for
         applications such as command line tools rather than for
-        libraries.
+        libraries. This has no effect if ``console`` is `False` and
+        ``log_file`` is not provided.
 
     Returns
     -------
@@ -285,6 +286,8 @@ def configure_logging(  # ruff:ignore[PLR0913]
         # The logger filters messages before its handlers see them, so
         # its level must let through what the most verbose handler wants.
         logger.setLevel(min(handler.level for handler in handlers))
+    # Warnings stay as they are when there is nowhere to send them.
+    capture_warnings = capture_warnings and bool(handlers)
     if capture_warnings:
         logging.captureWarnings(True)  # ruff:ignore[FBT003]
 
