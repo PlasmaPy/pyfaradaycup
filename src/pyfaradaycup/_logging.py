@@ -316,7 +316,7 @@ def configure_logging(  # ruff:ignore[PLR0913]
     # Warnings stay as they are when there is nowhere to send them.
     capture_warnings = capture_warnings and bool(handlers)
     if capture_warnings:
-        logging.captureWarnings(True)  # ruff:ignore[FBT003]
+        logging.captureWarnings(capture=True)
 
     _latest_configuration = LoggingConfiguration(
         handlers, log_path, previous_level, capture_warnings=capture_warnings
