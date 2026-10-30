@@ -48,6 +48,7 @@ dev = [
 ]
 test = [
   "cdflib",
+  "dagster>=1.12.1",
   "pytest",
   "pytest-check>=2.9.1",
   "pytest-cov",
@@ -221,6 +222,7 @@ lint.ignore = [
 ]
 lint.extend-per-file-ignores."__init__.py" = [ "D104", "E402", "F401", "F402", "F403" ]  # ignore import errors
 lint.extend-per-file-ignores."docs/conf.py" = [ "D100", "D103", "E402", "EXE001", "EXE005", "F401" ]
+lint.extend-per-file-ignores."src/pyfaradaycup/_logging.py" = [ "TID251" ]  # configures logging handlers
 lint.extend-per-file-ignores."tests/**/__init__.py" = [ "D104" ]
 lint.extend-per-file-ignores."tests/**/test_*.py" = [
   "DOC201",
@@ -229,6 +231,7 @@ lint.extend-per-file-ignores."tests/**/test_*.py" = [
   "PLC2701",
   "S101",
   "SLF001",
+  "TID251",
 ]
 # Allow potentially ambiguous Unicode characters with valid uses in plasma science
 lint.allowed-confusables = [
@@ -259,6 +262,10 @@ lint.flake8-import-conventions.banned-from = [
   "warnings",
 ]
 lint.flake8-tidy-imports.ban-relative-imports = "all"
+lint.flake8-tidy-imports.banned-api."logging.basicConfig".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.FileHandler".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.handlers".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.StreamHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 lint.pylint.max-positional-args = 6
