@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 import pyfaradaycup
+from pyfaradaycup import _logging
 
 if TYPE_CHECKING:
     import pathlib
@@ -30,12 +31,11 @@ def test_package_logger_has_only_null_handler() -> None:
 def _remove_configured_handlers() -> Iterator[None]:
     """Remove handlers added by configure_logging after each test."""
     logger = logging.getLogger("pyfaradaycup")
-    warnings_logger = logging.getLogger("py.warnings")
     level = logger.level
     yield
-    for handler in list(warnings_logger.handlers):
-        warnings_logger.removeHandler(handler)
-    logging.captureWarnings(False)  # ruff:ignore[FBT003]
+    latest_configuration = _logging._latest_configuration
+    if latest_configuration is not None:
+        latest_configuration.close()
     for handler in list(logger.handlers):
         if not isinstance(handler, logging.NullHandler):
             logger.removeHandler(handler)
@@ -235,6 +235,25 @@ def test_configure_logging_replacement_without_handlers_restores_level() -> None
     logger.setLevel(logging.ERROR)
     pyfaradaycup.configure_logging(level=logging.DEBUG)
     pyfaradaycup.configure_logging(console=False)
+    assert logger.level == logging.ERROR
+
+
+def test_close_without_handlers_leaves_level() -> None:
+    """Test that closing a configuration with no handlers leaves the level alone."""
+    logger = logging.getLogger("pyfaradaycup")
+    config = pyfaradaycup.configure_logging(console=False)
+    logger.setLevel(logging.ERROR)
+    config.close()
+    assert logger.level == logging.ERROR
+
+
+def test_close_twice_leaves_level_set_after_first_close() -> None:
+    """Test that closing a second time does not restore the level again."""
+    logger = logging.getLogger("pyfaradaycup")
+    config = pyfaradaycup.configure_logging()
+    config.close()
+    logger.setLevel(logging.ERROR)
+    config.close()
     assert logger.level == logging.ERROR
 
 

@@ -151,19 +151,23 @@ class LoggingConfiguration:
         Closing a handler flushes any buffered messages and closes its
         log file, if it has one.
 
-        The level of the ``pyfaradaycup`` logger is restored only if
-        these handlers had not already been replaced by a later call to
-        `~pyfaradaycup.configure_logging`, so that this method does not
-        interfere with the newer handlers. Calling this method more than
-        once has no further effect.
+        The level of the ``pyfaradaycup`` logger is restored if there
+        are any handlers to remove. This method has no effect if these
+        handlers were already closed, or were replaced by a later call
+        to `~pyfaradaycup.configure_logging`, so that it does not
+        interfere with the newer handlers.
         """
+        global _latest_configuration  # ruff:ignore[PLW0603]
+
+        if self is not _latest_configuration:
+            return
+        _latest_configuration = None
+
         logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
         warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
-        if any(handler in logger.handlers for handler in self.handlers):
+        if self.handlers:
             logger.setLevel(self._previous_level)
-        if self.capture_warnings and any(
-            handler in warnings_logger.handlers for handler in self.handlers
-        ):
+        if self.capture_warnings:
             logging.captureWarnings(capture=False)
         for handler in self.handlers:
             logger.removeHandler(handler)
