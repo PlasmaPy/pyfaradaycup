@@ -64,10 +64,10 @@ _PACKAGE_LOGGER_NAME = "pyfaradaycup"
 # messages. It reports them to the logger with this name.
 _WARNINGS_LOGGER_NAME = "py.warnings"
 
-# Handlers added by configure_logging are named with this prefix, so
-# that a later call can find and replace them without touching handlers
-# added by anyone else, such as an application that uses this package.
-_HANDLER_NAME_PREFIX = "pyfaradaycup.configure_logging."
+# The result of the latest call to configure_logging, which the next call
+# closes. This leaves alone any handlers added by anyone else, such as an
+# application that uses this package.
+_latest_configuration: LoggingConfiguration | None = None
 
 # Templates for each line of output. Each %(...)s is filled in by the
 # logging module. For example, %(levelname)s becomes INFO, and %(name)s
@@ -187,7 +187,8 @@ def configure_logging(  # ruff:ignore[PLR0913]
     the *logger* named ``pyfaradaycup``, which is the object that
     receives all messages from this package. Logging for other packages
     is left unchanged. Calling this function again replaces the handlers
-    added by earlier calls.
+    added by earlier calls, and restores the logger to the level it had
+    before the first of those calls.
 
     Parameters
     ----------
@@ -254,12 +255,13 @@ def configure_logging(  # ruff:ignore[PLR0913]
     >>> with pyfaradaycup.configure_logging(log_file="run.log"):  # doctest: +SKIP
     ...     ...  # decommutate here
     """
+    global _latest_configuration  # ruff:ignore[PLW0603]
+
     logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
 
     handlers: list[logging.Handler] = []
     if console:
         console_handler = logging.StreamHandler()
-        console_handler.set_name(f"{_HANDLER_NAME_PREFIX}console")
         console_handler.setLevel(level)
         console_handler.setFormatter(logging.Formatter(_CONSOLE_FORMAT))
         handlers.append(console_handler)
@@ -268,7 +270,10 @@ def configure_logging(  # ruff:ignore[PLR0913]
     if log_path is not None:
         handlers.append(_make_file_handler(log_path, file_level, file_mode))
 
-    _remove_configured_handlers(capture_warnings=capture_warnings)
+    # Closing the earlier configuration restores the original level of the
+    # logger, which then becomes the level for this configuration to restore.
+    if _latest_configuration is not None:
+        _latest_configuration.close()
 
     warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
     previous_level = logger.level
@@ -283,9 +288,10 @@ def configure_logging(  # ruff:ignore[PLR0913]
     if capture_warnings:
         logging.captureWarnings(True)  # ruff:ignore[FBT003]
 
-    return LoggingConfiguration(
+    _latest_configuration = LoggingConfiguration(
         handlers, log_path, previous_level, capture_warnings=capture_warnings
     )
+    return _latest_configuration
 
 
 def _make_file_handler(
@@ -300,30 +306,9 @@ def _make_file_handler(
     logging.Handler().setLevel(level)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     file_handler = logging.FileHandler(log_path, mode=mode, encoding="utf-8")
-    file_handler.set_name(f"{_HANDLER_NAME_PREFIX}file")
     file_handler.setLevel(level)
     file_formatter = logging.Formatter(_FILE_FORMAT, datefmt=_DATE_FORMAT)
     # Formatters use local time unless told otherwise.
     file_formatter.converter = time.gmtime
     file_handler.setFormatter(file_formatter)
     return file_handler
-
-
-def _remove_configured_handlers(*, capture_warnings: bool) -> None:
-    """
-    Remove and close the handlers added by earlier calls to
-    `configure_logging`, and stop capturing warnings if they were
-    captured but ``capture_warnings`` is `False`.
-    """
-    warnings_logger = logging.getLogger(_WARNINGS_LOGGER_NAME)
-    for handler in list(warnings_logger.handlers):
-        if (handler.name or "").startswith(_HANDLER_NAME_PREFIX):
-            warnings_logger.removeHandler(handler)
-            if not capture_warnings:
-                logging.captureWarnings(False)  # ruff:ignore[FBT003]
-
-    logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
-    for handler in list(logger.handlers):
-        if (handler.name or "").startswith(_HANDLER_NAME_PREFIX):
-            logger.removeHandler(handler)
-            handler.close()
