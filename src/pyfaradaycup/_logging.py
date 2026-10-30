@@ -1,4 +1,49 @@
-"""Configure logging for pyfaradaycup from Python or the command line."""
+"""
+Configure logging for pyfaradaycup from Python or the command line.
+
+Python's `logging` module is an alternative to ``print`` for reporting
+what a program is doing. With ``print``, the code that reports a message
+also decides where the message goes. With `logging`, code only reports
+the message, and whoever runs the program separately decides which
+messages to keep and where to send them. This module makes those
+decisions for pyfaradaycup. Several terms are used throughout:
+
+logger
+    The object that code calls to report a message, as in
+    ``logger.info("Read 12 packets")``. Loggers are identified by name
+    and are created with `logging.getLogger`. Asking for the same name
+    always returns the same object, so changes to a logger apply to the
+    whole program.
+
+level
+    How important a message is. The standard levels, from least to most
+    important, are ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, and
+    ``CRITICAL``, each of which is also an integer. A logger or handler
+    with a level ignores messages below that level.
+
+handler
+    An object that sends messages to one destination. For example, a
+    `logging.StreamHandler` prints messages to the console, and a
+    `logging.FileHandler` appends them to a file. A logger can have any
+    number of handlers. A message is filtered twice: first by the level
+    of the logger where it was reported, and then by the level of each
+    handler. For example, a program can write ``DEBUG`` messages to a
+    file while printing only ``WARNING`` messages to the console.
+
+formatter
+    An object attached to a handler that turns a message into the line
+    of text that gets written, for example by adding a timestamp.
+
+propagation
+    Loggers form a hierarchy based on their dotted names, so
+    ``pyfaradaycup.decommutator`` is a child of ``pyfaradaycup``, and
+    every logger descends from the *root logger*. After a logger's own
+    handlers receive a message, the message is also passed to the
+    handlers of its ancestors. This is why code anywhere in the package
+    can report messages to its own logger while the handlers are added
+    only to the ``pyfaradaycup`` logger. The levels of the ancestor
+    loggers are not checked, but the levels of their handlers are.
+"""
 
 from __future__ import annotations
 
@@ -15,15 +60,19 @@ if TYPE_CHECKING:
 
 _PACKAGE_LOGGER_NAME = "pyfaradaycup"
 
-# The logger used by logging.captureWarnings
+# logging.captureWarnings reports warnings from warnings.warn as log
+# messages. It reports them to the logger with this name.
 _WARNINGS_LOGGER_NAME = "py.warnings"
 
 # Handlers added by configure_logging are named with this prefix, so
 # that a later call can find and replace them without touching handlers
-# added by anyone else.
+# added by anyone else, such as an application that uses this package.
 _HANDLER_NAME_PREFIX = "pyfaradaycup.configure_logging."
 
-# Timestamps are ISO 8601 in UTC, like 2026-10-29T14:23:01.123Z.
+# Templates for each line of output. Each %(...)s is filled in by the
+# logging module. For example, %(levelname)s becomes INFO, and %(name)s
+# becomes the name of the logger that reported the message. Timestamps
+# are ISO 8601 in UTC, like 2026-10-29T14:23:01.123Z.
 _FILE_FORMAT = "%(asctime)s.%(msecs)03dZ %(levelname)-8s %(name)s: %(message)s"
 _DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
@@ -32,12 +81,16 @@ _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
 @final
 class LoggingConfiguration:
     """
-    Handlers that `~pyfaradaycup.configure_logging` added to the
-    ``pyfaradaycup`` logger.
+    The logging setup created by `~pyfaradaycup.configure_logging`.
 
-    Use `close` or a ``with`` block to remove and close the handlers.
-    Instances should be created with `~pyfaradaycup.configure_logging`
-    rather than directly.
+    This object keeps track of the handlers that were added to the
+    ``pyfaradaycup`` logger, so that they can be undone later. A handler
+    is an object that sends log messages to one destination, such as the
+    console or a file.
+
+    Use `close` or a ``with`` block to stop sending messages to these
+    destinations and to close the log file. Instances should be created
+    with `~pyfaradaycup.configure_logging` rather than directly.
 
     Parameters
     ----------
@@ -49,11 +102,14 @@ class LoggingConfiguration:
 
     previous_level : int
         The level of the ``pyfaradaycup`` logger before the handlers
-        were added, which is restored by `close`.
+        were added, which is restored by `close`. A logger ignores
+        messages below its level.
 
     capture_warnings : bool
-        Whether the handlers were also added to the ``py.warnings``
-        logger, with warnings captured by `logging.captureWarnings`.
+        Whether warnings issued with `warnings.warn` are also being sent
+        to the handlers. If `True`, the handlers were also added to the
+        ``py.warnings`` logger, which receives these warnings after
+        calling `logging.captureWarnings`.
     """
 
     def __init__(
@@ -71,11 +127,15 @@ class LoggingConfiguration:
 
     def close(self) -> None:
         """
-        Remove and close the handlers.
+        Stop sending messages to these handlers, and close them.
+
+        Closing a handler flushes any buffered messages and closes its
+        log file, if it has one.
 
         The level of the ``pyfaradaycup`` logger is restored only if
         these handlers had not already been replaced by a later call to
-        `~pyfaradaycup.configure_logging`. Calling this method more than
+        `~pyfaradaycup.configure_logging`, so that this method does not
+        interfere with the newer handlers. Calling this method more than
         once has no further effect.
         """
         logger = logging.getLogger(_PACKAGE_LOGGER_NAME)
@@ -115,22 +175,34 @@ def configure_logging(  # ruff:ignore[PLR0913]
     """
     Send log messages from pyfaradaycup to the console and a log file.
 
-    Handlers are added to the ``pyfaradaycup`` logger only, so logging
-    for other packages and the root logger is left unchanged. Calling
-    this function again replaces the handlers added by earlier calls.
+    Log messages are progress reports and diagnostics that the package
+    creates with Python's `logging` module instead of ``print``. Each
+    message has a level that says how important it is. From least to
+    most important, the levels are ``DEBUG``, ``INFO``, ``WARNING``,
+    ``ERROR``, and ``CRITICAL``. Unless this function or the application
+    sets up somewhere for them to go, these messages are not shown.
+
+    This function adds *handlers*, which are objects that send messages
+    to one destination, such as the console or a file. They are added to
+    the *logger* named ``pyfaradaycup``, which is the object that
+    receives all messages from this package. Logging for other packages
+    is left unchanged. Calling this function again replaces the handlers
+    added by earlier calls.
 
     Parameters
     ----------
     level : int or str, default: ``logging.INFO``
         The minimum level of messages printed to standard error, such as
-        ``logging.DEBUG`` or ``"WARNING"``.
+        ``logging.DEBUG`` or ``"WARNING"``. Strings must be uppercase.
 
     log_file : path-like, optional
         The path to a log file. Missing parent directories are created.
         If not provided, no log file is written.
 
     file_level : int or str, default: ``logging.DEBUG``
-        The minimum level of messages written to ``log_file``.
+        The minimum level of messages written to ``log_file``. The
+        default keeps every message, so a log file can contain more
+        detail than is printed to the console.
 
     file_mode : {"a", "w", "x"}, default: ``"a"``
         Whether to append to ``log_file``, overwrite it, or require that
@@ -142,15 +214,17 @@ def configure_logging(  # ruff:ignore[PLR0913]
     capture_warnings : bool, default: `False`
         If `True`, send warnings issued with `warnings.warn` to the same
         console and log file, using `logging.captureWarnings`. This
-        changes how warnings are shown for the whole program until the
-        handlers are closed, so it is intended for applications such as
-        command line tools.
+        changes how warnings from all packages are shown for the whole
+        program until the handlers are closed, so it is intended for
+        applications such as command line tools rather than for
+        libraries.
 
     Returns
     -------
     `~pyfaradaycup._logging.LoggingConfiguration`
-        The added handlers. Use it in a ``with`` block, or call its
-        ``close`` method, to remove and close them.
+        An object that keeps track of the added handlers. Use it in a
+        ``with`` block, or call its ``close`` method, to stop sending
+        messages to the console and log file and to close the file.
 
     Raises
     ------
@@ -165,9 +239,11 @@ def configure_logging(  # ruff:ignore[PLR0913]
     Messages are written to the log file with timestamps in UTC, in
     ISO 8601 format.
 
-    Messages still propagate to the root logger. If the root logger also
-    prints to the console, as it does after `logging.basicConfig`, then
-    use ``console=False`` to avoid printing each message twice.
+    Messages are also passed along to the *root logger*, which is the
+    program-wide logger that applications often set up, and it may have
+    its own handlers. If the root logger also prints to the console, as
+    it does after `logging.basicConfig`, then use ``console=False`` to
+    avoid printing each message twice.
 
     Examples
     --------
@@ -201,6 +277,8 @@ def configure_logging(  # ruff:ignore[PLR0913]
         if capture_warnings:
             warnings_logger.addHandler(handler)
     if handlers:
+        # The logger filters messages before its handlers see them, so
+        # its level must let through what the most verbose handler wants.
         logger.setLevel(min(handler.level for handler in handlers))
     if capture_warnings:
         logging.captureWarnings(True)  # ruff:ignore[FBT003]
@@ -217,13 +295,15 @@ def _make_file_handler(
 ) -> logging.FileHandler:
     """Create a handler that writes to a log file with UTC timestamps."""
     # Check the level before creating the file, so that an invalid level
-    # does not leave an empty log file behind.
+    # does not leave an empty log file behind. Setting the level on a
+    # throwaway handler raises ValueError if the level is not valid.
     logging.Handler().setLevel(level)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     file_handler = logging.FileHandler(log_path, mode=mode, encoding="utf-8")
     file_handler.set_name(f"{_HANDLER_NAME_PREFIX}file")
     file_handler.setLevel(level)
     file_formatter = logging.Formatter(_FILE_FORMAT, datefmt=_DATE_FORMAT)
+    # Formatters use local time unless told otherwise.
     file_formatter.converter = time.gmtime
     file_handler.setFormatter(file_formatter)
     return file_handler
