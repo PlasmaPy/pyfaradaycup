@@ -247,6 +247,14 @@ def configure_logging(  # ruff:ignore[PLR0913]
     it does after `logging.basicConfig`, then use ``console=False`` to
     avoid printing each message twice.
 
+    The level of the ``pyfaradaycup`` logger is set to the lowest level
+    of its new handlers, so a log file lowers it to ``DEBUG`` by default.
+    Messages passed along to the root logger are filtered by the levels
+    of its handlers, but not by the level of the root logger itself. A
+    handler created by ``logging.basicConfig(level="WARNING")`` has no
+    level of its own, so it would print these ``DEBUG`` messages. To
+    prevent this, set a level on that handler or raise ``file_level``.
+
     Examples
     --------
     To print messages at the ``INFO`` level and above, and to write all
