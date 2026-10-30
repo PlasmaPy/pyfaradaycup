@@ -44,14 +44,19 @@ jobs:
       matrix:
         include:
 
-        - name: Tests, Python 3.14
+        - name: Tests, Python 3.15
           # Doctests are run only for most recent Python (see noxfile.py)
           os: macos-latest
+          python: '3.15'
+          nox_session: tests-3.15
+
+        - name: Tests, Python 3.14
+          os: windows-latest
           python: '3.14'
           nox_session: tests-3.14
 
         - name: Tests, Python 3.13
-          os: windows-latest
+          os: ubuntu-latest
           python: '3.13'
           nox_session: tests-3.13
 
@@ -61,12 +66,12 @@ jobs:
           nox_session: coverage-3.12
 
         - name: Tests, Python 3.11
-          os: macos-latest
+          os: windows-latest
           python: '3.11'
           nox_session: tests-3.11
 
         - name: Tests, Python 3.10
-          os: windows-latest
+          os: ubuntu-latest
           python: '3.10'
           nox_session: tests-3.10
 
