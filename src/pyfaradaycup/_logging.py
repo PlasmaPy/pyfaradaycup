@@ -164,7 +164,7 @@ class LoggingConfiguration:
         if self.capture_warnings and any(
             handler in warnings_logger.handlers for handler in self.handlers
         ):
-            logging.captureWarnings(False)  # ruff:ignore[FBT003]
+            logging.captureWarnings(capture=False)
         for handler in self.handlers:
             logger.removeHandler(handler)
             warnings_logger.removeHandler(handler)
