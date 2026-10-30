@@ -13,11 +13,29 @@ than checks to make sure that functions are behaving correctly.
 
 from __future__ import annotations
 
+import logging
+import pathlib
 import struct
 
 import pytest
 
-from pyfaradaycup.decommutator.ccsds_reader_pipeline import _parse_ccsds_head
+from pyfaradaycup.decommutator.ccsds_reader_pipeline import (
+    _parse_ccsds_head,
+    _read_bytestr,
+    _read_file,
+)
+
+_L0_FILE = (
+    pathlib.Path(__file__).parent.parent
+    / "data"
+    / "sci"
+    / "sweap"
+    / "raw"
+    / "ssr"
+    / "2026"
+    / "215"
+    / "0523462910_4_EA"
+)
 
 _FIELD_WIDTHS = {
     "CCSDS_Version": 3,
@@ -147,3 +165,62 @@ def test_parse_ccsds_head_too_short(length: int) -> None:
     header = _make_ccsds_head(_typical_fields)[:length]
     with pytest.raises(ValueError, match="not as long as expected"):
         _parse_ccsds_head(header)
+
+
+@pytest.mark.parametrize(
+    ("changes", "reason"),
+    [
+        ({"CCSDS_Version": 1}, "CCSDS version is invalid"),
+        ({"CCSDS_PacketType": 1}, "CCSDS type is invalid"),
+        ({"CCSDS_SecHdrFlag": 0}, "CCSDS secondary header flag is invalid"),
+        ({}, "full CCSDS packet not available at end of file"),
+    ],
+)
+def test_read_bytestr_rejects_packet(
+    changes: dict[str, int], reason: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test that an invalid packet is rejected, with the reason returned and
+    logged at the DEBUG level along with the byte offset of the packet.
+    """
+    bytestr = b"\x00" * 5 + _make_ccsds_head({**_typical_fields, **changes})
+    pktcnt: list[dict[int, int]] = [{}, {}]
+    with caplog.at_level(logging.DEBUG, logger="pyfaradaycup"):
+        result = _read_bytestr(bytestr, 5, {}, {}, pktcnt)
+    assert result == reason
+    assert caplog.messages == [f"Rejected packet at byte 5: {reason}"]
+    assert caplog.records[0].levelno == logging.DEBUG
+    assert pktcnt == [{}, {}]
+
+
+def test_read_bytestr_rejects_short_header(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that a packet cut off within its header is rejected."""
+    with caplog.at_level(logging.DEBUG, logger="pyfaradaycup"):
+        result = _read_bytestr(b"\x00" * 3, 0, {}, {}, [{}, {}])
+    assert result == "full CCSDS header not present"
+    assert caplog.messages == [
+        "Rejected packet at byte 0: full CCSDS header not present"
+    ]
+
+
+def test_read_bytestr_counts_unknown_apid() -> None:
+    """Test that a valid packet with no known layout is counted, not rejected."""
+    bytestr = _make_ccsds_head({**_typical_fields, "CCSDS_PacketLen": 3})
+    pktcnt: list[dict[int, int]] = [{}, {}]
+    assert _read_bytestr(bytestr, 0, {}, {}, pktcnt) is None
+    assert pktcnt == [{}, {0x352: 1}]
+
+
+def test_read_file_logs_packet_summary(
+    capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test that reading an L0 file logs how many packets were found for each
+    APID, and prints nothing.
+    """
+    with caplog.at_level(logging.INFO, logger="pyfaradaycup"):
+        data = _read_file(_L0_FILE)
+    assert capsys.readouterr() == ("", "")
+    for apid, values in data.items():
+        npackets = len(next(iter(values.values())))
+        assert f"APID {hex(apid)}: found {npackets} packets" in caplog.messages
