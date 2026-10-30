@@ -6,44 +6,45 @@ what a program is doing. With ``print``, the code that reports a message
 also decides where the message goes. With `logging`, code only reports
 the message, and whoever runs the program separately decides which
 messages to keep and where to send them. This module makes those
-decisions for pyfaradaycup. Several terms are used throughout:
-
-logger
-    The object that code calls to report a message, as in
-    ``logger.info("Read 12 packets")``. Loggers are identified by name
-    and are created with `logging.getLogger`. Asking for the same name
-    always returns the same object, so changes to a logger apply to the
-    whole program.
-
-level
-    How important a message is. The standard levels, from least to most
-    important, are ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, and
-    ``CRITICAL``, each of which is also an integer. A logger or handler
-    with a level ignores messages below that level.
-
-handler
-    An object that sends messages to one destination. For example, a
-    `logging.StreamHandler` prints messages to the console, and a
-    `logging.FileHandler` appends them to a file. A logger can have any
-    number of handlers. A message is filtered twice: first by the level
-    of the logger where it was reported, and then by the level of each
-    handler. For example, a program can write ``DEBUG`` messages to a
-    file while printing only ``WARNING`` messages to the console.
-
-formatter
-    An object attached to a handler that turns a message into the line
-    of text that gets written, for example by adding a timestamp.
-
-propagation
-    Loggers form a hierarchy based on their dotted names, so
-    ``pyfaradaycup.decommutator`` is a child of ``pyfaradaycup``, and
-    every logger descends from the *root logger*. After a logger's own
-    handlers receive a message, the message is also passed to the
-    handlers of its ancestors. This is why code anywhere in the package
-    can report messages to its own logger while the handlers are added
-    only to the ``pyfaradaycup`` logger. The levels of the ancestor
-    loggers are not checked, but the levels of their handlers are.
+decisions for pyfaradaycup.
 """
+
+# logger
+#     The object that code calls to report a message, as in
+#     ``logger.info("Read 12 packets")``. Loggers are identified by name
+#     and are created with `logging.getLogger`. Asking for the same name
+#     always returns the same object, so changes to a logger apply to the
+#     whole program.
+#
+# level
+#     How important a message is. The standard levels, from least to most
+#     important, are ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, and
+#     ``CRITICAL``, each of which is also an integer. A logger or handler
+#     with a level ignores messages below that level.
+#
+# handler
+#     An object that sends messages to one destination. For example, a
+#     `logging.StreamHandler` prints messages to the console, and a
+#     `logging.FileHandler` appends them to a file. A logger can have any
+#     number of handlers. A message is filtered twice: first by the level
+#     of the logger where it was reported, and then by the level of each
+#     handler. For example, a program can write ``DEBUG`` messages to a
+#     file while printing only ``WARNING`` messages to the console.
+#
+# formatter
+#     An object attached to a handler that turns a message into the line
+#     of text that gets written, for example by adding a timestamp.
+#
+# propagation
+#     Loggers form a hierarchy based on their dotted names, so
+#     ``pyfaradaycup.decommutator`` is a child of ``pyfaradaycup``, and
+#     every logger descends from the *root logger*. After a logger's own
+#     handlers receive a message, the message is also passed to the
+#     handlers of its ancestors. This is why code anywhere in the package
+#     can report messages to its own logger while the handlers are added
+#     only to the ``pyfaradaycup`` logger. The levels of the ancestor
+#     loggers are not checked, but the levels of their handlers are.
+
 
 from __future__ import annotations
 
