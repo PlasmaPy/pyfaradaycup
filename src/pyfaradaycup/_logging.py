@@ -51,8 +51,9 @@ __all__ = ["LoggingConfiguration", "configure_logging"]
 
 import logging
 import pathlib
+import sys
 import time
-from typing import TYPE_CHECKING, Literal, final
+from typing import TYPE_CHECKING, Literal, TextIO, final
 
 if TYPE_CHECKING:
     import os
@@ -76,6 +77,24 @@ _latest_configuration: LoggingConfiguration | None = None
 _FILE_FORMAT = "%(asctime)s.%(msecs)03dZ %(levelname)-8s %(name)s: %(message)s"
 _DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
+
+
+class _StderrHandler(logging.StreamHandler):
+    """
+    A handler that prints messages to the current value of `sys.stderr`.
+
+    A `logging.StreamHandler` keeps using the stream that it was created
+    with, even after `sys.stderr` is replaced and that stream is closed.
+    Tools such as pytest and click's test runner replace `sys.stderr`.
+    """
+
+    def __init__(self) -> None:
+        # Skip StreamHandler.__init__, which would assign to stream.
+        logging.Handler.__init__(self)
+
+    @property
+    def stream(self) -> TextIO:
+        return sys.stderr
 
 
 @final
@@ -270,7 +289,7 @@ def configure_logging(  # ruff:ignore[PLR0913]
 
     handlers: list[logging.Handler] = []
     if console:
-        console_handler = logging.StreamHandler()
+        console_handler = _StderrHandler()
         console_handler.setLevel(level)
         console_handler.setFormatter(logging.Formatter(_CONSOLE_FORMAT))
         handlers.append(console_handler)
