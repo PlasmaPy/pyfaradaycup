@@ -246,7 +246,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     with configure_logging(
         level=_console_level(verbose=verbose, quiet=quiet),
         log_file=log_file,
-        file_mode="x",
+        file_mode="exclusive",
         capture_warnings=True,
     ):
         ctx = click.get_current_context()
