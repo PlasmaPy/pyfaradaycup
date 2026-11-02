@@ -67,8 +67,10 @@ class _StderrHandler(logging.StreamHandler):
         # Skip StreamHandler.__init__, which would assign to stream.
         logging.Handler.__init__(self)
 
+    # A read-only property is intended, so that the handler cannot be
+    # given a fixed stream, even though StreamHandler.stream is writable.
     @property
-    def stream(self) -> TextIO:
+    def stream(self) -> TextIO:  # ty: ignore[invalid-property-type-override]
         return sys.stderr
 
 

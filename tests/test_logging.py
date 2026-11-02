@@ -160,7 +160,10 @@ def test_configure_logging_invalid_file_mode(
     """Test that an unknown ``file_mode`` raises ValueError and creates no file."""
     log_file = tmp_path / "run.log"
     with pytest.raises(ValueError, match="file_mode must be one of"):
-        pyfaradaycup.configure_logging(log_file=log_file, file_mode=file_mode)  # type: ignore[arg-type]
+        pyfaradaycup.configure_logging(
+            log_file=log_file,
+            file_mode=file_mode,  # ty: ignore[invalid-argument-type]
+        )
     assert not log_file.exists()
     assert not _configured_handlers()
 
