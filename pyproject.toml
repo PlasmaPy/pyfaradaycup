@@ -267,7 +267,11 @@ lint.flake8-import-conventions.banned-from = [
 lint.flake8-tidy-imports.ban-relative-imports = "all"
 lint.flake8-tidy-imports.banned-api."logging.basicConfig".msg = "Use pyfaradaycup.configure_logging."
 lint.flake8-tidy-imports.banned-api."logging.FileHandler".msg = "Use pyfaradaycup.configure_logging."
-lint.flake8-tidy-imports.banned-api."logging.handlers".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.handlers.RotatingFileHandler".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.handlers.TimedRotatingFileHandler".msg = """\
+  Use pyfaradaycup.configure_logging.\
+  """
+lint.flake8-tidy-imports.banned-api."logging.handlers.WatchedFileHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.flake8-tidy-imports.banned-api."logging.StreamHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
