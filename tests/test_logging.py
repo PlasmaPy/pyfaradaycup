@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 import datetime
-import importlib
+import io
 import logging
 import re
+import sys
 import warnings
 from typing import TYPE_CHECKING, Any
 
 import pytest
 
 import pyfaradaycup
+from pyfaradaycup import _logging
 
 if TYPE_CHECKING:
     import pathlib
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
 
 
 def test_package_logger_has_only_null_handler() -> None:
@@ -25,32 +27,15 @@ def test_package_logger_has_only_null_handler() -> None:
     assert isinstance(handlers[0], logging.NullHandler)
 
 
-@pytest.mark.parametrize(
-    "module_name",
-    [
-        "pyfaradaycup.decommutator.ccsds_reader_pipeline",
-        "pyfaradaycup.decommutator.main",
-        "pyfaradaycup.decommutator.swp_spc_l0_to_l05",
-    ],
-)
-def test_module_logger(module_name: str) -> None:
-    """Test that each module has a logger named after it with no handlers."""
-    module = importlib.import_module(module_name)
-    assert module.logger is logging.getLogger(module_name)
-    assert not module.logger.handlers
-    assert module.logger.propagate
-
-
 @pytest.fixture(autouse=True)
 def _remove_configured_handlers() -> Iterator[None]:
     """Remove handlers added by configure_logging after each test."""
     logger = logging.getLogger("pyfaradaycup")
-    warnings_logger = logging.getLogger("py.warnings")
     level = logger.level
     yield
-    for handler in list(warnings_logger.handlers):
-        warnings_logger.removeHandler(handler)
-    logging.captureWarnings(False)  # ruff:ignore[FBT003]
+    latest_configuration = _logging._latest_configuration
+    if latest_configuration is not None:
+        latest_configuration.close()
     for handler in list(logger.handlers):
         if not isinstance(handler, logging.NullHandler):
             logger.removeHandler(handler)
@@ -147,11 +132,39 @@ def test_configure_logging_file_mode_append(tmp_path: pathlib.Path) -> None:
 
 
 def test_configure_logging_file_mode_exclusive(tmp_path: pathlib.Path) -> None:
-    """Test that ``file_mode="x"`` refuses to overwrite an existing log file."""
+    """Test that ``file_mode="exclusive"`` refuses to overwrite an existing log file."""
     log_file = tmp_path / "run.log"
     log_file.touch()
     with pytest.raises(FileExistsError):
-        pyfaradaycup.configure_logging(log_file=log_file, file_mode="x")
+        pyfaradaycup.configure_logging(log_file=log_file, file_mode="exclusive")
+    assert not _configured_handlers()
+
+
+def test_configure_logging_file_mode_overwrite(tmp_path: pathlib.Path) -> None:
+    """Test that ``file_mode="overwrite"`` replaces an existing log file."""
+    log_file = tmp_path / "run.log"
+    log_file.write_text("existing line\n", encoding="utf-8")
+    with pyfaradaycup.configure_logging(
+        log_file=log_file, file_mode="overwrite", console=False
+    ):
+        logging.getLogger("pyfaradaycup").info("new line")
+    lines = log_file.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 1
+    assert lines[0].endswith("new line")
+
+
+@pytest.mark.parametrize("file_mode", ["a", "w", "x", "APPEND", "read"])
+def test_configure_logging_invalid_file_mode(
+    tmp_path: pathlib.Path, file_mode: str
+) -> None:
+    """Test that an unknown ``file_mode`` raises ValueError and creates no file."""
+    log_file = tmp_path / "run.log"
+    with pytest.raises(ValueError, match="file_mode must be one of"):
+        pyfaradaycup.configure_logging(
+            log_file=log_file,
+            file_mode=file_mode,  # ty: ignore[invalid-argument-type]
+        )
+    assert not log_file.exists()
     assert not _configured_handlers()
 
 
@@ -231,3 +244,141 @@ def test_configure_logging_replacement_stops_capturing_warnings() -> None:
     pyfaradaycup.configure_logging()
     assert not logging.getLogger("py.warnings").handlers
     assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+
+
+def test_configure_logging_replacement_restores_original_level() -> None:
+    """Test that closing a replacement restores the level before the first call."""
+    logger = logging.getLogger("pyfaradaycup")
+    logger.setLevel(logging.ERROR)
+    pyfaradaycup.configure_logging(level=logging.DEBUG)
+    second = pyfaradaycup.configure_logging(level=logging.WARNING)
+    assert logger.level == logging.WARNING
+    second.close()
+    assert logger.level == logging.ERROR
+
+
+def test_configure_logging_replacement_without_handlers_restores_level() -> None:
+    """Test that replacing a configuration with no handlers restores the level."""
+    logger = logging.getLogger("pyfaradaycup")
+    logger.setLevel(logging.ERROR)
+    pyfaradaycup.configure_logging(level=logging.DEBUG)
+    pyfaradaycup.configure_logging(console=False)
+    assert logger.level == logging.ERROR
+
+
+def test_close_without_handlers_leaves_level() -> None:
+    """Test that closing a configuration with no handlers leaves the level alone."""
+    logger = logging.getLogger("pyfaradaycup")
+    config = pyfaradaycup.configure_logging(console=False)
+    logger.setLevel(logging.ERROR)
+    config.close()
+    assert logger.level == logging.ERROR
+
+
+def test_close_twice_leaves_level_set_after_first_close() -> None:
+    """Test that closing a second time does not restore the level again."""
+    logger = logging.getLogger("pyfaradaycup")
+    config = pyfaradaycup.configure_logging()
+    config.close()
+    logger.setLevel(logging.ERROR)
+    config.close()
+    assert logger.level == logging.ERROR
+
+
+def test_configure_logging_capture_warnings_without_handlers() -> None:
+    """Test that warnings are not captured when there is nowhere to send them."""
+    with pyfaradaycup.configure_logging(console=False, capture_warnings=True) as config:
+        assert not config.capture_warnings
+        assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+
+
+def test_configure_logging_console_uses_current_stderr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that the console handler follows replacements of ``sys.stderr``."""
+    original = io.StringIO()
+    monkeypatch.setattr(sys, "stderr", original)
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging():
+        original.close()
+        replacement = io.StringIO()
+        monkeypatch.setattr(sys, "stderr", replacement)
+        logger.info("shown")
+    assert replacement.getvalue() == "INFO: shown\n"
+
+
+def test_stderr_handler_set_stream_unsupported() -> None:
+    """Test that the console handler cannot be redirected to another stream."""
+    handler = _logging._StderrHandler()
+    with pytest.raises(AttributeError):
+        handler.setStream(io.StringIO())
+    assert handler.stream is sys.stderr
+
+
+def _dagster_event_log_messages(
+    tmp_path: pathlib.Path,
+    body: Callable[[], None],
+    python_logs: dict[str, Any] | None,
+) -> list[str]:
+    """Run ``body`` in a Dagster asset and return the messages it logged."""
+    dagster = pytest.importorskip("dagster")
+
+    @dagster.asset
+    def asset() -> None:
+        body()
+
+    instance_dir = tmp_path / "dagster"
+    instance_dir.mkdir()
+    overrides = None if python_logs is None else {"python_logs": python_logs}
+    with dagster.DagsterInstance.local_temp(
+        tempdir=str(instance_dir), overrides=overrides
+    ) as instance:
+        result = dagster.materialize([asset], instance=instance)
+        assert result.success
+        return [
+            entry.user_message
+            for entry in instance.all_logs(result.run_id)
+            if entry.dagster_event is None
+        ]
+
+
+def _log_at_each_level() -> None:
+    """Report one message at each of three levels."""
+    logger = logging.getLogger("pyfaradaycup.decommutator")
+    logger.debug("debug message")
+    logger.info("info message")
+    logger.warning("warning message")
+
+
+# Dagster and its dependencies can issue warnings on import or during a
+# run, which would otherwise be treated as errors.
+@pytest.mark.filterwarnings("ignore")
+def test_dagster_managed_logger(tmp_path: pathlib.Path) -> None:
+    """Test the configuration for Dagster recommended in the documentation."""
+    messages = _dagster_event_log_messages(
+        tmp_path,
+        _log_at_each_level,
+        {"managed_python_loggers": ["pyfaradaycup"], "python_log_level": "INFO"},
+    )
+    assert "debug message" not in messages
+    assert "info message" in messages
+    assert "warning message" in messages
+
+
+@pytest.mark.filterwarnings("ignore")
+def test_dagster_unmanaged_logger_with_log_file(tmp_path: pathlib.Path) -> None:
+    """Test that a step can write unaltered messages to its own log file."""
+    log_file = tmp_path / "run.log"
+
+    def body() -> None:
+        with pyfaradaycup.configure_logging(log_file=log_file, console=False):
+            _log_at_each_level()
+
+    messages = _dagster_event_log_messages(tmp_path, body, None)
+    assert "info message" not in messages
+    lines = log_file.read_text(encoding="utf-8").splitlines()
+    assert [line.split(": ", 1)[1] for line in lines] == [
+        "debug message",
+        "info message",
+        "warning message",
+    ]

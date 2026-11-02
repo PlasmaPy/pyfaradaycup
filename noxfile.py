@@ -65,6 +65,18 @@ def tests(session: nox.Session) -> None:
     session.run("pytest", *doctest_options, *session.posargs)
 
 
+@nox_uv.session(uv_groups=["test", "dagster"], python=MAXPYTHON)
+def dagster(session: nox.Session) -> None:
+    """
+    Run the tests of logging with Dagster.
+
+    Dagster has many dependencies, so it is installed only for this
+    session. The ``tests`` session skips these tests.
+    """
+    session.install(".")
+    session.run("pytest", "tests/test_logging.py", "-k", "dagster", *session.posargs)
+
+
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
 def coverage(session: nox.Session) -> None:
     """

@@ -39,6 +39,7 @@ scripts.pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
 
 [dependency-groups]
 dev = [
+  { include-group = "dagster" },
   { include-group = "docs" },
   { include-group = "lint" },
   { include-group = "nox" },
@@ -61,6 +62,9 @@ docs = [
   "sphinx-click",
   "sphinx-copybutton",
   "sphinx-notfound-page",
+]
+dagster = [
+  "dagster>=1.12.1",
 ]
 lint = [
   "pre-commit",
@@ -263,7 +267,11 @@ lint.flake8-import-conventions.banned-from = [
 lint.flake8-tidy-imports.ban-relative-imports = "all"
 lint.flake8-tidy-imports.banned-api."logging.basicConfig".msg = "Use pyfaradaycup.configure_logging."
 lint.flake8-tidy-imports.banned-api."logging.FileHandler".msg = "Use pyfaradaycup.configure_logging."
-lint.flake8-tidy-imports.banned-api."logging.handlers".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.handlers.RotatingFileHandler".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."logging.handlers.TimedRotatingFileHandler".msg = """\
+  Use pyfaradaycup.configure_logging.\
+  """
+lint.flake8-tidy-imports.banned-api."logging.handlers.WatchedFileHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.flake8-tidy-imports.banned-api."logging.StreamHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
