@@ -78,6 +78,9 @@ _FILE_FORMAT = "%(asctime)s.%(msecs)03dZ %(levelname)-8s %(name)s: %(message)s"
 _DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
 
+# The mode used to open the log file for each allowed value of file_mode.
+_FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
+
 
 class _StderrHandler(logging.StreamHandler):
     """
@@ -191,7 +194,7 @@ def configure_logging(  # ruff:ignore[PLR0913]
     level: int | str = logging.INFO,
     log_file: str | os.PathLike[str] | None = None,
     file_level: int | str = logging.DEBUG,
-    file_mode: Literal["a", "w", "x"] = "a",
+    file_mode: Literal["append", "overwrite", "exclusive"] = "append",
     console: bool = True,
     capture_warnings: bool = False,
 ) -> LoggingConfiguration:
@@ -228,7 +231,7 @@ def configure_logging(  # ruff:ignore[PLR0913]
         default keeps every message, so a log file can contain more
         detail than is printed to the console.
 
-    file_mode : {"a", "w", "x"}, default: ``"a"``
+    file_mode : {"append", "overwrite", "exclusive"}, default: ``"append"``
         Whether to append to ``log_file``, overwrite it, or require that
         it does not already exist.
 
@@ -254,10 +257,11 @@ def configure_logging(  # ruff:ignore[PLR0913]
     Raises
     ------
     ValueError
-        If ``level`` or ``file_level`` is not a known logging level.
+        If ``level`` or ``file_level`` is not a known logging level, or
+        if ``file_mode`` is not one of the allowed values.
 
     FileExistsError
-        If ``file_mode`` is ``"x"`` and ``log_file`` already exists.
+        If ``file_mode`` is ``"exclusive"`` and ``log_file`` already exists.
 
     Notes
     -----
@@ -331,15 +335,21 @@ def configure_logging(  # ruff:ignore[PLR0913]
 def _make_file_handler(
     log_path: pathlib.Path,
     level: int | str,
-    mode: Literal["a", "w", "x"],
+    file_mode: Literal["append", "overwrite", "exclusive"],
 ) -> logging.FileHandler:
     """Create a handler that writes to a log file with UTC timestamps."""
+    if file_mode not in _FILE_MODES:
+        allowed = ", ".join(repr(mode) for mode in _FILE_MODES)
+        msg = f"file_mode must be one of {allowed}, not {file_mode!r}."
+        raise ValueError(msg)
     # Check the level before creating the file, so that an invalid level
     # does not leave an empty log file behind. Setting the level on a
     # throwaway handler raises ValueError if the level is not valid.
     logging.Handler().setLevel(level)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = logging.FileHandler(log_path, mode=mode, encoding="utf-8")
+    file_handler = logging.FileHandler(
+        log_path, mode=_FILE_MODES[file_mode], encoding="utf-8"
+    )
     file_handler.setLevel(level)
     file_formatter = logging.Formatter(_FILE_FORMAT, datefmt=_DATE_FORMAT)
     # Formatters use local time unless told otherwise.

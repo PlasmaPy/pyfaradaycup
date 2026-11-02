@@ -59,5 +59,6 @@ Handlers belong to a single process, and each call to
 `~pyfaradaycup.configure_logging` replaces the handlers from the previous
 call in that process. Steps should therefore not call it while running
 concurrently in threads of the same process. Steps should also use a
-different log file for each step, since a ``file_mode`` of ``"w"`` would
-overwrite the log of another step and ``"x"`` would raise an exception.
+different log file for each step, since a ``file_mode`` of ``"overwrite"``
+would overwrite the log of another step and ``"exclusive"`` would raise
+an exception.

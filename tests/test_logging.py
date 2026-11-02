@@ -132,11 +132,36 @@ def test_configure_logging_file_mode_append(tmp_path: pathlib.Path) -> None:
 
 
 def test_configure_logging_file_mode_exclusive(tmp_path: pathlib.Path) -> None:
-    """Test that ``file_mode="x"`` refuses to overwrite an existing log file."""
+    """Test that ``file_mode="exclusive"`` refuses to overwrite an existing log file."""
     log_file = tmp_path / "run.log"
     log_file.touch()
     with pytest.raises(FileExistsError):
-        pyfaradaycup.configure_logging(log_file=log_file, file_mode="x")
+        pyfaradaycup.configure_logging(log_file=log_file, file_mode="exclusive")
+    assert not _configured_handlers()
+
+
+def test_configure_logging_file_mode_overwrite(tmp_path: pathlib.Path) -> None:
+    """Test that ``file_mode="overwrite"`` replaces an existing log file."""
+    log_file = tmp_path / "run.log"
+    log_file.write_text("existing line\n", encoding="utf-8")
+    with pyfaradaycup.configure_logging(
+        log_file=log_file, file_mode="overwrite", console=False
+    ):
+        logging.getLogger("pyfaradaycup").info("new line")
+    lines = log_file.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 1
+    assert lines[0].endswith("new line")
+
+
+@pytest.mark.parametrize("file_mode", ["a", "w", "x", "APPEND", "read"])
+def test_configure_logging_invalid_file_mode(
+    tmp_path: pathlib.Path, file_mode: str
+) -> None:
+    """Test that an unknown ``file_mode`` raises ValueError and creates no file."""
+    log_file = tmp_path / "run.log"
+    with pytest.raises(ValueError, match="file_mode must be one of"):
+        pyfaradaycup.configure_logging(log_file=log_file, file_mode=file_mode)  # type: ignore[arg-type]
+    assert not log_file.exists()
     assert not _configured_handlers()
 
 
