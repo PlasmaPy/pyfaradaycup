@@ -89,6 +89,11 @@ class _StderrHandler(logging.StreamHandler):
     A `logging.StreamHandler` keeps using the stream that it was created
     with, even after `sys.stderr` is replaced and that stream is closed.
     Tools such as pytest and click's test runner replace `sys.stderr`.
+
+    The approach follows CPython's private ``logging._StderrHandler``,
+    which is used for `logging.lastResort`. Because ``stream`` is a
+    read-only property, ``setStream`` is not supported and raises
+    `AttributeError`.
     """
 
     def __init__(self) -> None:

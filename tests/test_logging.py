@@ -304,6 +304,14 @@ def test_configure_logging_console_uses_current_stderr(
     assert replacement.getvalue() == "INFO: shown\n"
 
 
+def test_stderr_handler_set_stream_unsupported() -> None:
+    """Test that the console handler cannot be redirected to another stream."""
+    handler = _logging._StderrHandler()
+    with pytest.raises(AttributeError):
+        handler.setStream(io.StringIO())
+    assert handler.stream is sys.stderr
+
+
 def _dagster_event_log_messages(
     tmp_path: pathlib.Path,
     body: Callable[[], None],
