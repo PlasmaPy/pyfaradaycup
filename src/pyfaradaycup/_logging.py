@@ -45,7 +45,6 @@ decisions for pyfaradaycup.
 #     only to the ``pyfaradaycup`` logger. The levels of the ancestor
 #     loggers are not checked, but the levels of their handlers are.
 
-
 from __future__ import annotations
 
 __all__ = ["LoggingConfiguration", "configure_logging"]
