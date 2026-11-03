@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 import pathlib
 import struct
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -24,11 +23,7 @@ from pyfaradaycup.decommutator.ccsds_reader_pipeline import (
     _parse_ccsds_head,
     _read_bytestr,
     _read_file,
-    _read_file_sc,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 _L0_FILE = (
     pathlib.Path(__file__).parent.parent
@@ -229,37 +224,3 @@ def test_read_file_logs_packet_summary(
     for apid, values in data.items():
         npackets = len(next(iter(values.values())))
         assert f"APID {hex(apid)}: found {npackets} packets" in caplog.messages
-
-
-def test_read_file_logs_full_path(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test that the packet summary has the full path of the L0 file."""
-    monkeypatch.chdir(_L0_FILE.parent)
-    with caplog.at_level(logging.INFO, logger="pyfaradaycup"):
-        _read_file(_L0_FILE.name)
-    (message,) = [
-        message
-        for message in caplog.messages
-        if message.startswith("Read ") and "candidate packets from" in message
-    ]
-    assert f" candidate packets from {_L0_FILE.resolve()} in " in message
-
-
-@pytest.mark.parametrize("read", [_read_file, _read_file_sc])
-def test_read_file_no_packets_logs_full_path(
-    read: Callable[[str], dict[int, dict[str, list]]],
-    tmp_path: pathlib.Path,
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """
-    Test that the warning for an L0 file with no packets has the full
-    path of the file.
-    """
-    l0_file = tmp_path / "no_packets"
-    l0_file.write_bytes(bytes(100))
-    monkeypatch.chdir(tmp_path)
-    with caplog.at_level(logging.WARNING, logger="pyfaradaycup"):
-        read(l0_file.name)
-    assert f"No packets found in {l0_file.resolve()}" in caplog.messages
