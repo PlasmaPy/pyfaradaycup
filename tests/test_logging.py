@@ -452,8 +452,8 @@ def test_highlighter_processing_levels(message: str, expected: list[str]) -> Non
     [
         ("0523462910_4_EA_APID351_L1.cdf", ["0523462910_4_EA_APID351_L1.cdf"]),
         (
-            "Writing to swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log",
-            ["swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log"],
+            "Writing to l0_to_l05_0523462910_4_EA_20261103T193538Z.log",
+            ["l0_to_l05_0523462910_4_EA_20261103T193538Z.log"],
         ),
         (
             "Using naif0012.tls and spp_sclk_2000.tsc",

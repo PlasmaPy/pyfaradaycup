@@ -57,9 +57,7 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
     # With -v, progress is printed to the screen as well as the log file
     assert "INFO: Wrote" in result.output
     (log_file,) = tmp_path.glob("*.log")
-    assert re.fullmatch(
-        rf"swp_spc_l0_to_l05_{tag}_\d{{8}}T\d{{6}}Z\.log", log_file.name
-    )
+    assert re.fullmatch(rf"l0_to_l05_{tag}_\d{{8}}T\d{{6}}Z\.log", log_file.name)
     log = log_file.read_text(encoding="utf-8")
     for apid in apids:
         assert f"_APID{apid}_L1.cdf" in log
