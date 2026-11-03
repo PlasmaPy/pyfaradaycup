@@ -330,6 +330,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         skeletons[apid] = pathlib.Path(skeleton_filename)
 
         # See if the CDF file already exists
+        overwritten = False
         try:
             # try to open and close it
             l1path.open().close()
@@ -338,6 +339,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             if overwrite:
                 logger.info("Overwriting existing L0.5 CDF file %s", l1path)
                 l1path.unlink()
+                overwritten = True
             else:
                 msg = (
                     f"L0.5 CDF already exists and overwrite was not requested: {l1path}"
@@ -402,7 +404,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             )
             cdf.close()
         cdf_files[apid] = l1path
-        logger.info("Wrote %s", l1path)
+        # The message about overwriting the file is enough for the
+        # console, so the message about writing it is only for the log file.
+        logger.log(logging.DEBUG if overwritten else logging.INFO, "Wrote %s", l1path)
 
     result = DecommutationResult(
         l0file=l0file,
