@@ -503,14 +503,44 @@ def test_configure_logging_console_processing_level_color(
         (handler,) = config.handlers
         assert isinstance(handler, RichHandler)
         logger.warning("Converting L0 file to L0.5")
-    # Parsing the output gives the color as a number, such as color(2)
-    # rather than green, so compare the color numbers.
-    expected = Style.parse(_logging._PROCESSING_LEVEL_STYLE)
-    assert expected.color is not None
     output = Text.from_ansi(terminal_stderr.getvalue())
     levels = list(re.finditer(r"L0\.5|L0(?= )", output.plain))
     assert [match.group() for match in levels] == ["L0", "L0.5"]
-    for match in levels:
+    _assert_styled_not_bold(output, levels, _logging._PROCESSING_LEVEL_STYLE)
+
+
+def test_configure_logging_console_filename_color(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """
+    Test that every character of a filename, with or without a
+    directory, is colored with the filename style in a terminal, and is
+    not bold even when the filename starts with digits.
+    """
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        logger.warning("Using 20261103.tls and /data/20261103.tsc")
+    output = Text.from_ansi(terminal_stderr.getvalue())
+    filenames = list(re.finditer(r"20261103\.t(?:ls|sc)", output.plain))
+    assert [match.group() for match in filenames] == ["20261103.tls", "20261103.tsc"]
+    _assert_styled_not_bold(output, filenames, _logging._FILENAME_STYLE)
+
+
+def _assert_styled_not_bold(
+    output: Text, matches: list[re.Match[str]], style_definition: str
+) -> None:
+    """
+    Assert that every character of each match in ``output`` has the
+    color of ``style_definition`` and is not bold.
+    """
+    # Parsing the output gives the color as a number, such as color(2)
+    # rather than green, so compare the color numbers.
+    expected = Style.parse(style_definition)
+    assert expected.color is not None
+    for match in matches:
         for offset in range(match.start(), match.end()):
             style = Style.combine(
                 [

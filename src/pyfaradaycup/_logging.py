@@ -59,6 +59,12 @@ _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
 # "not bold" overrides the bold that rich's number rule adds to the 5 in L0.5.
 _PROCESSING_LEVEL_STYLE = "green not bold"
 
+# The style of filenames in messages printed to a terminal. This is the
+# color that rich uses for the filename of a path, and "not bold"
+# overrides the bold that rich's number rule adds to leading digits, as
+# in 20261103.tls or /data/20261103.tls.
+_FILENAME_STYLE = "bright_magenta not bold"
+
 # The extensions of files that are highlighted in messages printed to a
 # terminal even without a directory: CDF files, log files, SPICE leap
 # second and SCLK kernels, housekeeping definitions, and gzipped files.
@@ -380,7 +386,12 @@ def _make_console_handler(level: int | str) -> logging.Handler:
         console_handler = RichHandler(
             console=Console(
                 stderr=True,
-                theme=Theme({"repr.processing_level": _PROCESSING_LEVEL_STYLE}),
+                theme=Theme(
+                    {
+                        "repr.filename": _FILENAME_STYLE,
+                        "repr.processing_level": _PROCESSING_LEVEL_STYLE,
+                    }
+                ),
             ),
             highlighter=_Highlighter(),
             show_time=False,
