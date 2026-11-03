@@ -65,6 +65,11 @@ jobs:
           python: '3.12'
           nox_session: coverage-3.12
 
+        - name: Tests with Dagster
+          os: ubuntu-latest
+          python: '3.14'
+          nox_session: dagster
+
         - name: Tests, Python 3.11
           os: windows-latest
           python: '3.11'

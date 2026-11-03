@@ -10,4 +10,6 @@ documentation for details.
    :caption: Contents:
 
    cli
+   logging
    api/modules
+   glossary

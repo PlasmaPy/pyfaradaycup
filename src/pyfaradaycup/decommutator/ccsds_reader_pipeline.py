@@ -9,15 +9,14 @@ from __future__ import annotations
 
 __all__ = [
     "apid_obj",
-    "read_file",
-    "read_file_sc",
 ]
 
+import collections
 import datetime
+import logging
 import pathlib
 import re
 import struct
-import sys
 import time
 import warnings
 from typing import TYPE_CHECKING
@@ -30,10 +29,13 @@ from pyfaradaycup._paths import data_dir
 if TYPE_CHECKING:
     import os
 
+logger = logging.getLogger(__name__)
+
 
 def _file2bytestr(
     path: str | os.PathLike[str],
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    gzip: bool = False,
 ) -> bytes:
     """
     Read the entire contents of a file into a bytes object.
@@ -104,8 +106,9 @@ def _choose_file(path: str | os.PathLike[str]) -> str:
 
 def _wrapper_status(
     path: str | os.PathLike[str],
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
-    spconly: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    gzip: bool = False,
+    spconly: bool = False,
 ) -> dict[str, list[int]]:
     """
     Read CCSDS headers from SWEM wrapper packets and the packets inside them.
@@ -196,10 +199,10 @@ def _wrapper_status(
     return data
 
 
-def read_file(  # ruff:ignore[C901]
+def _read_file(
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    gzip: bool = False,
 ) -> dict[int, dict[str, list]]:
     """
     Read SPC instrument packets from an L0 file.
@@ -208,10 +211,6 @@ def read_file(  # ruff:ignore[C901]
     ----------
     path : str or path-like
         Path to the L0 file to read.
-
-    verbose : bool, optional
-        If `True`, print status messages, including why a packet was
-        skipped.
 
     gzip : bool, optional
         If `True`, read the file as gzip-compressed.
@@ -233,8 +232,9 @@ def read_file(  # ruff:ignore[C901]
     Packets are found by searching the raw bytes for a SWEM wrapper
     header (APID 0x348-0x350) followed by an SPC instrument header.
     The packet layouts are read from ``sweap_tlm.blk`` in the package
-    data directory. Progress and a summary of the number of packets
-    found for each APID are written to standard output.
+    data directory. A summary of the number of packets found for each
+    APID is logged, and the reason each packet was rejected is logged
+    at the ``DEBUG`` level.
     """
     # make sure the file can be read
     path = _choose_file(path)
@@ -252,7 +252,7 @@ def read_file(  # ruff:ignore[C901]
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid] = _get_layout(apid, verbose=verbose)
+        apidformat[apid] = _get_layout(apid)
         if apidformat[apid]:
             data[apid] = {}
             for name in apidformat[apid].names:  # ty: ignore[unresolved-attribute]
@@ -285,50 +285,30 @@ def read_file(  # ruff:ignore[C901]
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
 
-    npackets = len(pkt_starts)
-
-    # Some variables so we can display progress
-    updatetime = 0.0
-    starttime = time.time()
-
     # Loop through each packet beginning and decommutate it
-    for i_pointer, pointer in enumerate(pkt_starts):
-        _ = _read_bytestr(
-            bytestr, pointer + 12, data, apidformat, pktcnt, verbose=verbose
-        )
+    starttime = time.perf_counter()
+    rejections: collections.Counter[str] = collections.Counter()
+    for pointer in pkt_starts:
+        rejection = _read_bytestr(bytestr, pointer + 12, data, apidformat, pktcnt)
+        if rejection is not None:
+            rejections[rejection] += 1
 
-        # Update status
-        nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:  # ruff:ignore[PLR2004]
-            sys.stdout.write(
-                "\b" * 40
-                + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
-            )
-            updatetime = nowtime
-
-    # write out a summary of how things went
-    nowtime = time.time()
-    sys.stdout.write(
-        "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
+    _log_packet_summary(
+        path, len(pkt_starts), pktcnt, rejections, time.perf_counter() - starttime
     )
-    sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():  # ruff:ignore[SIM118]
-        sys.stdout.write(
-            f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
-        )
-    sys.stdout.write("\n")
 
     return data
 
 
-def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
+def _read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     path: str | os.PathLike[str],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-    ptp: bool = False,  # ruff:ignore[FBT001, FBT002]
-    gzip: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
+    ptp: bool = False,
+    gzip: bool = False,
 ) -> dict[int, dict[str, list]]:
     """
     Read spacecraft housekeeping packets from an L0 file.
@@ -337,10 +317,6 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     ----------
     path : str or path-like
         Path to the L0 file to read.
-
-    verbose : bool, optional
-        If `True`, print status messages, including why a packet was
-        skipped.
 
     ptp : bool, optional
         If `True`, the file is a PTP file, in which each packet is
@@ -372,8 +348,9 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     and their dates are listed in ``sc_hsk/L1/APID257_combined.txt`` in
     the package data directory.
 
-    Progress and a summary of the number of packets found for each
-    APID are written to standard output.
+    A summary of the number of packets found for each APID is logged,
+    and the reason each packet was rejected is logged at the ``DEBUG``
+    level.
     """
     # make sure the file can be read
     path = _choose_file(path)
@@ -426,10 +403,11 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
             good_time = 0
         sc_hk_filename = sc_hk_filenames[versions[good_time]]
     except (ValueError, KeyError) as exc:
-        print(  # ruff:ignore[T201]
-            f"Could not find which SC_HK file to use based on packet header: {exc!r}"
+        logger.warning(
+            "Could not find which SC_HK file to use from the packet header (%r); "
+            "trying the date in the file path",
+            exc,
         )
-        print("Attempting to find correct date based on filename/path")  # ruff:ignore[T201]
         try:
             # Look for .../<year>/<day of year>/... in the path
             parts = pathlib.Path(path).parts
@@ -450,10 +428,12 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         except (StopIteration, KeyError):
             # StopIteration: no <year>/<day of year> in the path
             # KeyError: no SC_HK file for that flight software version
-            print(  # ruff:ignore[T201]
-                "***WARNING*** Could not find date based on filename...using most recent"
-            )
             sc_hk_filename = list(sc_hk_filenames.values())[-1]
+            logger.warning(
+                "Could not find the date in the file path; using the newest "
+                "SC_HK file, %s",
+                sc_hk_filename,
+            )
 
     # define the apids that are ok
     ok_apids = [0x081, 0x262, 0x07B, 0x254, 0x257, 0x256]
@@ -466,7 +446,6 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
     for apid in ok_apids:
         apidformat[apid], lengths[apid] = _get_layout_sc(
             apid,
-            verbose=verbose,
             filename=data_dir / "sc_hk_def" / sc_hk_filename,
         )  # ty: ignore[not-iterable]
         if apidformat[apid]:
@@ -531,84 +510,91 @@ def read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
-    npackets = len(pkt_starts)
-
-    # Some variables so we can display progress
-    updatetime = 0.0
-    starttime = time.time()
 
     # Loop through each packet beginning and decommutate it
-    for i_pointer, pointer in enumerate(pkt_starts):
-        foo = _read_bytestr(  # ruff:ignore[F841]
-            bytestr, pointer + offset_bytes, data, apidformat, pktcnt, verbose=verbose
+    starttime = time.perf_counter()
+    rejections: collections.Counter[str] = collections.Counter()
+    for pointer in pkt_starts:
+        rejection = _read_bytestr(
+            bytestr, pointer + offset_bytes, data, apidformat, pktcnt
         )
+        if rejection is not None:
+            rejections[rejection] += 1
 
-        # Update status
-        nowtime = time.time()
-        if (nowtime - updatetime) > 0.5:  # ruff:ignore[PLR2004]
-            sys.stdout.write(
-                "\b" * 40
-                + f"{(np.double(i_pointer)) / npackets * 100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec."
-            )
-            updatetime = nowtime
-
-    # write out a summary of how things went
-    nowtime = time.time()
-    sys.stdout.write(
-        "\b" * 40 + f"{100.0:5.1f}% Complete.  ET={nowtime - starttime:6.2f} sec.\n\n"
+    _log_packet_summary(
+        path, len(pkt_starts), pktcnt, rejections, time.perf_counter() - starttime
     )
-    sys.stdout.write("Packet Summary\n")
-    for thisapid in pktcnt[0].keys():  # ruff:ignore[SIM118]
-        sys.stdout.write(
-            f"\tAPID {hex(thisapid)}: found {pktcnt[0][thisapid]:7.0f} packets\n"
-        )
-    sys.stdout.write("\n")
 
     return data
 
 
-def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
+def _log_packet_summary(
+    path: str | os.PathLike[str],
+    npackets: int,
+    pktcnt: list[dict[int, int]],
+    rejections: collections.Counter[str],
+    elapsed: float,
+) -> None:
+    """
+    Log how many packets were read for each APID, and how many were
+    rejected for each reason.
+
+    The full path of the L0 file is logged, even if ``path`` is relative.
+    """
+    logger.info(
+        "Read %d candidate packets from %s in %.2f s",
+        npackets,
+        pathlib.Path(path).resolve(),
+        elapsed,
+    )
+    for apid, count in pktcnt[0].items():
+        logger.info("APID %s: found %d packets", hex(apid), count)
+    for apid, count in pktcnt[1].items():
+        logger.info(
+            "APID %s: skipped %d packets with no known layout", hex(apid), count
+        )
+    for reason, count in rejections.items():
+        logger.info("Rejected %d packets: %s", count, reason)
+
+
+def _read_bytestr(
     bytestr: bytes,
     pointer,  # ruff:ignore[ANN001]
     data: dict[int, dict[str, list]],
     apidformat,  # ruff:ignore[ANN001]
     pktcnt: list[dict[int, int]],
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
-) -> tuple[()]:
-    """Take a hex string and find packets"""  # ruff:ignore[D400]
+) -> str | None:
+    """
+    Decode the packet that starts at ``pointer`` and add it to ``data``.
+
+    Returns the reason the packet was rejected, or `None` if it was not.
+    Packets with an APID that has no layout are counted in ``pktcnt``
+    rather than rejected.
+    """
     # Parse the CCSDS header
     try:
         ccsds_head = _parse_ccsds_head(bytestr[pointer : pointer + 10])
     except ValueError:
-        if verbose:
-            print("Full CCSDS Header Not Present")  # ruff:ignore[T201]
-        return ()
+        return _reject_packet(pointer, "full CCSDS header not present")
     apid = ccsds_head["CCSDS_ApID"]
     pkt_len = ccsds_head["CCSDS_PacketLen"]
 
     # Verify that the CCSDS header is valid
     if ccsds_head["CCSDS_Version"] != 0:
-        if verbose:
-            print("CCSDS Version is invalid")  # ruff:ignore[T201]
-        return ()
+        return _reject_packet(pointer, "CCSDS version is invalid")
 
     if ccsds_head["CCSDS_PacketType"] != 0:
-        if verbose:
-            print("CCSDS Type is invalid")  # ruff:ignore[T201]
-        return ()
+        return _reject_packet(pointer, "CCSDS type is invalid")
 
     if ccsds_head["CCSDS_SecHdrFlag"] != 1:
-        if verbose:
-            print("CCSDS Secondary Header flag is invalid")  # ruff:ignore[T201]
-        return ()
+        return _reject_packet(pointer, "CCSDS secondary header flag is invalid")
 
     # Make sure the full packet is here
     if pointer + pkt_len + 7 > len(bytestr):
-        if verbose:
-            print("Full CCSDS packet not available at end of bytestr")  # ruff:ignore[T201]
-        return ()
+        return _reject_packet(pointer, "full CCSDS packet not available at end of file")
 
     # This packet only (no PTP header and no wrapper header (if they existed))
     thispkt = bytestr[pointer : pointer + pkt_len + 7]
@@ -628,7 +614,13 @@ def _read_bytestr(  # ruff:ignore[C901, PLR0912, PLR0913]
     else:
         pktcnt[1][apid] = 1
 
-    return ()
+    return None
+
+
+def _reject_packet(pointer: int, reason: str) -> str:
+    """Log at the ``DEBUG`` level why a packet was rejected, and return the reason."""
+    logger.debug("Rejected packet at byte %d: %s", pointer, reason)
+    return reason
 
 
 def _parse_ccsds_head(bytestr: bytes) -> dict[str, int]:
@@ -755,7 +747,7 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
 
     # If the full packet isn't here, then don't bother parsing
     if len(bytearr) * 8.0 < sum(form.bits):
-        print(f"short packet: {hex(apid)}")  # ruff:ignore[T201]
+        logger.debug("Skipped short APID %s packet", hex(apid))
         return
 
     for i_bit, bit in enumerate(form.bits[0 : len(form.bits) - sw_data_vars_len]):
@@ -853,7 +845,7 @@ class apid_obj:  # ruff:ignore[N801]
         self.startbit: list[int] = []
 
 
-def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ignore[C901, FBT001, FBT002]
+def _get_layout(apid: int) -> apid_obj | None:
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -861,9 +853,6 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
     ----------
     apid : int
         The APID to look up, such as ``0x352``.
-
-    verbose : bool, optional
-        If `True`, print status messages.
 
     Returns
     -------
@@ -891,8 +880,7 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
         raise RuntimeError(msg) from exc
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
-            if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
+            logger.debug("Found layout for APID %s in %s", hex(apid), blk_path)
             thisapid = apid_obj()
             thisapid.apid = apid
             line = (  #  ruff:ignore[PLW2901]
@@ -934,15 +922,13 @@ def _get_layout(apid: int, verbose: bool = False) -> apid_obj | None:  # ruff:ig
             return thisapid
 
     # if we didn't find that APID
-    print(  # ruff:ignore[T201]
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
-    )
+    logger.error("Did not find APID %s in %s", hex(apid), blk_path)
     return None
 
 
 def _get_layout_sc(  # ruff:ignore[C901]
     apid: int,
-    verbose: bool = False,  # ruff:ignore[FBT001, FBT002]
+    *,
     filename: str | os.PathLike[str] | None = None,
 ) -> tuple[apid_obj, int] | None:
     """
@@ -953,13 +939,10 @@ def _get_layout_sc(  # ruff:ignore[C901]
     apid : int
         The APID to look up.
 
-    verbose : bool, optional
-        If `True`, print a message when the APID is found.
-
     filename : str or path-like
         Path to the spacecraft housekeeping telemetry definition
-        (``.blk``) file. Although it has a default of `None` (so that it
-        can follow ``verbose``), it must be provided.
+        (``.blk``) file. Although it has a default of `None`, it must be
+        provided.
 
     Returns
     -------
@@ -992,12 +975,11 @@ def _get_layout_sc(  # ruff:ignore[C901]
     except OSError as exc:
         msg = f"Unable to read the spacecraft housekeeping definition file {filename}"
         raise RuntimeError(msg) from exc
-    print(f"using sc_hk file: {filename}")  # ruff:ignore[T201]
+    logger.debug("Using spacecraft housekeeping definition file %s", filename)
 
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
-            if verbose:
-                print(f"APID {hex(apid)[2:]} Format Found".upper())  # ruff:ignore[FURB116, T201]
+            logger.debug("Found layout for APID %s in %s", hex(apid), filename)
             thisapid = apid_obj()
             thisapid.apid = apid
 
@@ -1026,7 +1008,5 @@ def _get_layout_sc(  # ruff:ignore[C901]
                     raise RuntimeError(msg) from exc
             return (thisapid, length)
     # if we didn't find that APID
-    print(  # ruff:ignore[T201]
-        f"***ERROR*** [ccsds_reader_pipeline] Did not find APID {hex(apid)[2:]}".upper()  # ruff:ignore[FURB116]
-    )
+    logger.error("Did not find APID %s in %s", hex(apid), filename)
     return None

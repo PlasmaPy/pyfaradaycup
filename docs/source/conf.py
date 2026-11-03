@@ -51,8 +51,11 @@ napoleon_type_aliases = {
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
+    "rich": ("https://rich.readthedocs.io/en/stable/", None),
     "spacepy": ("https://spacepy.github.io/", None),
 }
+
+intersphinx_timeout = 60
 
 # Do not convert "--" into an en dash, so that command line options
 # like --l0file are shown correctly
