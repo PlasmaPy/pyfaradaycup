@@ -792,7 +792,7 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
             thisdat[key].append(newdat[key])
 
 
-class APID:  # ruff:ignore[N801]
+class APID:
     """
     Store the bit layout of one packet type (APID).
 
