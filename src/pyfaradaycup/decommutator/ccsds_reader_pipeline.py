@@ -285,7 +285,7 @@ def _read_file(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
-        logger.warning("No packets found in %s", path)
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
 
@@ -510,7 +510,7 @@ def _read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
-        logger.warning("No packets found in %s", path)
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
 
