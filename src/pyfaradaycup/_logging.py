@@ -22,6 +22,12 @@ import sys
 import time
 from typing import TYPE_CHECKING, Literal, TextIO, final
 
+import click
+from rich.console import Console
+from rich.highlighter import ReprHighlighter
+from rich.logging import RichHandler
+from rich.theme import Theme
+
 if TYPE_CHECKING:
     import os
     import types
@@ -47,6 +53,63 @@ _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
 
 # The mode used to open the log file for each allowed value of file_mode.
 _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
+
+# The style of data processing levels, like L0 and L0.5, in messages
+# printed to a terminal.
+# "not bold" overrides the bold that rich's number rule adds to the 5 in L0.5.
+_PROCESSING_LEVEL_STYLE = "green not bold"
+
+# The style of filenames in messages printed to a terminal. This is the
+# color that rich uses for the filename of a path, and "not bold"
+# overrides the bold that rich's number rule adds to leading digits, as
+# in 20261103.tls or /data/20261103.tls.
+_FILENAME_STYLE = "bright_magenta not bold"
+
+# The extensions of files that are highlighted in messages printed to a
+# terminal even without a directory: CDF files, log files, SPICE leap
+# second and SCLK kernels, housekeeping definitions, and gzipped files.
+_FILENAME_EXTENSIONS = ("cdf", "gz", "log", "tls", "tsc", "txt")
+
+
+class _Highlighter(ReprHighlighter):
+    """
+    Highlight what rich highlights by default, and also data processing
+    levels like L0 and L0.5, and filenames without a directory.
+
+    A processing level is an ``L`` followed by an integer or a decimal
+    number. It is highlighted only when it is a separate word: when the
+    characters before and after it, if any, are whitespace, commas,
+    periods, colons, semicolons, or parentheses. For example, ``L0`` is
+    highlighted in ``L0 file``, ``L0, L0.5.``, and ``(L0):``, but not in
+    ``APID351_L1.cdf`` or ``L0.5x``.
+
+    Rich highlights a filename only when it follows a directory, as in
+    ``/data/file.cdf``. A filename without a directory, like
+    ``0523462910_4_EA_APID351_L1.cdf``, is highlighted with the same
+    style when it ends with one of the extensions in
+    ``_FILENAME_EXTENSIONS`` and is a separate word, as for a
+    processing level.
+    """
+
+    # ClassVar is not used, because rich declares highlights without it.
+    highlights = [  # ruff:ignore[RUF012]
+        *ReprHighlighter.highlights,
+        # (?<![^\s,.:;()]) and (?![^\s,.:;()]) require a separator or the
+        # start or end of the message. (?!\.\d) stops a match of just L0 in
+        # L0.5x, once L0.5 has been rejected.
+        (
+            r"(?<![^\s,.:;()])(?P<processing_level>L\d+(?:\.\d+)?)"
+            r"(?![^\s,.:;()])(?!\.\d)"
+        ),
+        # The characters allowed in the name are those that rich allows in
+        # the filename of a path. (?!\.\w) stops a match of just a.cdf in
+        # a.cdf.bak.
+        (
+            r"(?<![^\s,.:;()])(?P<filename>[-\w.+]*\w"
+            rf"\.(?:{'|'.join(_FILENAME_EXTENSIONS)}))"
+            r"(?![^\s,.:;()])(?!\.\w)"
+        ),
+    ]
 
 
 class _StderrHandler(logging.StreamHandler):
@@ -210,7 +273,11 @@ def configure_logging(  # ruff:ignore[PLR0913]
         it does not already exist.
 
     console : bool, default: `True`
-        If `True`, print messages to standard error.
+        If `True`, print messages to standard error. When standard
+        error is a terminal, messages are formatted with
+        `~rich.logging.RichHandler`. Otherwise, such as when the output
+        is redirected to a file or captured by Dagster, each message is
+        printed as one plain line, like ``WARNING: message``.
 
     capture_warnings : bool, default: `False`
         If `True`, send warnings issued with `warnings.warn` to the same
@@ -271,10 +338,7 @@ def configure_logging(  # ruff:ignore[PLR0913]
 
     handlers: list[logging.Handler] = []
     if console:
-        console_handler = _StderrHandler()
-        console_handler.setLevel(level)
-        console_handler.setFormatter(logging.Formatter(_CONSOLE_FORMAT))
-        handlers.append(console_handler)
+        handlers.append(_make_console_handler(level))
 
     log_path = None if log_file is None else pathlib.Path(log_file)
     if log_path is not None:
@@ -304,6 +368,52 @@ def configure_logging(  # ruff:ignore[PLR0913]
         handlers, log_path, previous_level, capture_warnings=capture_warnings
     )
     return _latest_configuration
+
+
+def _make_console_handler(level: int | str) -> logging.Handler:
+    """
+    Create a handler that prints messages to standard error.
+
+    Messages are formatted with rich only when standard error is a
+    terminal. Elsewhere, rich would pad each line to the console width
+    and wrap long messages, including paths, onto more lines.
+    """
+    console_handler: logging.Handler
+    if _stderr_is_terminal():
+        # Without a file, a rich Console looks up sys.stderr each time it
+        # prints, like _StderrHandler. Frames inside click are hidden from
+        # tracebacks, since they only show how pfc_decommutator was called.
+        console_handler = RichHandler(
+            console=Console(
+                stderr=True,
+                theme=Theme(
+                    {
+                        "repr.filename": _FILENAME_STYLE,
+                        "repr.processing_level": _PROCESSING_LEVEL_STYLE,
+                    }
+                ),
+            ),
+            highlighter=_Highlighter(),
+            show_time=False,
+            show_path=False,
+            rich_tracebacks=True,
+            tracebacks_suppress=[click],
+        )
+    else:
+        console_handler = _StderrHandler()
+        console_handler.setFormatter(logging.Formatter(_CONSOLE_FORMAT))
+    console_handler.setLevel(level)
+    return console_handler
+
+
+def _stderr_is_terminal() -> bool:
+    """Return whether `sys.stderr` is a terminal."""
+    try:
+        return sys.stderr.isatty()
+    except (AttributeError, ValueError):
+        # AttributeError: sys.stderr is None or has no isatty
+        # ValueError: sys.stderr is closed
+        return False
 
 
 def _make_file_handler(

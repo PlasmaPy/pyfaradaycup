@@ -11,7 +11,11 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Any
 
+import click
 import pytest
+from rich.logging import RichHandler
+from rich.style import Style
+from rich.text import Text
 
 import pyfaradaycup
 from pyfaradaycup import _logging
@@ -330,6 +334,272 @@ def test_stderr_handler_set_stream_unsupported() -> None:
     with pytest.raises(AttributeError):
         handler.setStream(io.StringIO())
     assert handler.stream is sys.stderr
+
+
+class _TerminalStream(io.StringIO):
+    """An in-memory stream that says it is a terminal."""
+
+    def isatty(self) -> bool:
+        return True
+
+
+@pytest.fixture
+def use_terminal_stderr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[], _TerminalStream]:
+    """
+    Return a function that replaces `sys.stderr` with a stream that rich
+    treats as a color terminal, and returns that stream.
+
+    The replacement is made when the test calls the function, because
+    pytest replaces `sys.stderr` again after fixtures are set up. The
+    environment variables that rich reads are set so that the output is
+    the same everywhere.
+    """
+    monkeypatch.setenv("TERM", "xterm-256color")
+    monkeypatch.setenv("COLUMNS", "100")
+    for name in ("FORCE_COLOR", "NO_COLOR", "TTY_COMPATIBLE", "TTY_INTERACTIVE"):
+        monkeypatch.delenv(name, raising=False)
+
+    def use() -> _TerminalStream:
+        stream = _TerminalStream()
+        monkeypatch.setattr(sys, "stderr", stream)
+        return stream
+
+    return use
+
+
+def test_configure_logging_console_plain_when_not_terminal() -> None:
+    """Test that messages are not formatted with rich outside a terminal."""
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, _logging._StderrHandler)
+
+
+def test_configure_logging_console_rich_in_terminal(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """
+    Test that messages are formatted with rich in a terminal, and that
+    frames inside click are hidden from tracebacks.
+    """
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        assert handler.console.file is terminal_stderr
+        assert click in handler.tracebacks_suppress
+        logger.warning("shown")
+    output = terminal_stderr.getvalue()
+    assert "\x1b[" in output
+    assert Text.from_ansi(output).plain.split() == ["WARNING", "shown"]
+
+
+def _highlighted(message: str, style: str) -> list[str]:
+    """Return the parts of ``message`` highlighted with ``style``."""
+    text = Text(message)
+    _logging._Highlighter().highlight(text)
+    return [
+        text.plain[span.start : span.end] for span in text.spans if span.style == style
+    ]
+
+
+def _processing_levels(message: str) -> list[str]:
+    """Return the parts of ``message`` highlighted as processing levels."""
+    return _highlighted(message, "repr.processing_level")
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("L0", ["L0"]),
+        ("L0.5", ["L0.5"]),
+        ("L12", ["L12"]),
+        ("Converting L0 file to L0.5 files", ["L0", "L0.5"]),
+        ("L0,L0.5", ["L0", "L0.5"]),
+        ("L0, L0.5.", ["L0", "L0.5"]),
+        ("Wrote L0.5.", ["L0.5"]),
+        ("L0\tL1\nL2", ["L0", "L1", "L2"]),
+        ("0523462910_4_EA_APID351_L1.cdf", []),
+        ("/data/L0/file", []),
+        ("(L0)", ["L0"]),
+        ("L0:", ["L0"]),
+        ("L0; L0.5", ["L0", "L0.5"]),
+        ("(L0.5):", ["L0.5"]),
+        ("[L0]", []),
+        ("L0-L1", []),
+        ("xL0", []),
+        ("L0x", []),
+        ("L0.5x", []),
+        ("L0.5.6", []),
+        ("L", []),
+        ("L.5", []),
+        ("l0", []),
+    ],
+)
+def test_highlighter_processing_levels(message: str, expected: list[str]) -> None:
+    """
+    Test that processing levels like L0 and L0.5 are highlighted only
+    when separated from other text by whitespace, commas, periods,
+    colons, semicolons, or parentheses.
+    """
+    assert _processing_levels(message) == expected
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("0523462910_4_EA_APID351_L1.cdf", ["0523462910_4_EA_APID351_L1.cdf"]),
+        (
+            "Writing to swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log",
+            ["swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log"],
+        ),
+        (
+            "Using naif0012.tls and spp_sclk_2000.tsc",
+            ["naif0012.tls", "spp_sclk_2000.tsc"],
+        ),
+        ("Wrote a.cdf, b.cdf.", ["a.cdf", "b.cdf"]),
+        ("(a.cdf):", ["a.cdf"]),
+        ("a.cdf;b.txt", ["a.cdf", "b.txt"]),
+        ("0523462910_4_EA.gz", ["0523462910_4_EA.gz"]),
+        ("a.cdf.gz", ["a.cdf.gz"]),
+        ("APID257_combined.txt", ["APID257_combined.txt"]),
+        ("/data/a.cdf", ["a.cdf"]),
+        ("a.cdf.bak", []),
+        ("a.cdfx", []),
+        ("a.CDF", []),
+        (".cdf", []),
+        ("[a.cdf]", []),
+        ("'a.cdf'", []),
+        ("x-a.cdf", ["x-a.cdf"]),
+        ("pyfaradaycup.decommutator", []),
+        ("0523462910_4_EA", []),
+    ],
+)
+def test_highlighter_filenames(message: str, expected: list[str]) -> None:
+    """
+    Test that filenames with known extensions are highlighted like the
+    filename of a path, even without a directory.
+    """
+    assert _highlighted(message, "repr.filename") == expected
+
+
+def test_highlighter_filename_not_processing_level() -> None:
+    """Test that a processing level inside a filename is not highlighted."""
+    assert _processing_levels("Wrote 0523462910_4_EA_APID351_L1.cdf") == []
+
+
+def test_configure_logging_console_processing_level_color(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """
+    Test that every character of a processing level is colored with the
+    processing level style in a terminal, and is not bold.
+    """
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        logger.warning("Converting L0 file to L0.5")
+    output = Text.from_ansi(terminal_stderr.getvalue())
+    levels = list(re.finditer(r"L0\.5|L0(?= )", output.plain))
+    assert [match.group() for match in levels] == ["L0", "L0.5"]
+    _assert_styled_not_bold(output, levels, _logging._PROCESSING_LEVEL_STYLE)
+
+
+def test_configure_logging_console_filename_color(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """
+    Test that every character of a filename, with or without a
+    directory, is colored with the filename style in a terminal, and is
+    not bold even when the filename starts with digits.
+    """
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        logger.warning("Using 20261103.tls and /data/20261103.tsc")
+    output = Text.from_ansi(terminal_stderr.getvalue())
+    filenames = list(re.finditer(r"20261103\.t(?:ls|sc)", output.plain))
+    assert [match.group() for match in filenames] == ["20261103.tls", "20261103.tsc"]
+    _assert_styled_not_bold(output, filenames, _logging._FILENAME_STYLE)
+
+
+def _assert_styled_not_bold(
+    output: Text, matches: list[re.Match[str]], style_definition: str
+) -> None:
+    """
+    Assert that every character of each match in ``output`` has the
+    color of ``style_definition`` and is not bold.
+    """
+    # Parsing the output gives the color as a number, such as color(2)
+    # rather than green, so compare the color numbers.
+    expected = Style.parse(style_definition)
+    assert expected.color is not None
+    for match in matches:
+        for offset in range(match.start(), match.end()):
+            style = Style.combine(
+                [
+                    Style.parse(str(span.style))
+                    for span in output.spans
+                    if span.start <= offset < span.end
+                ]
+            )
+            assert not style.bold, (match.group(), offset)
+            assert style.color is not None
+            assert style.color.number == expected.color.number
+
+
+def test_configure_logging_console_traceback_in_terminal(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """Test that an exception is printed with its traceback in a terminal."""
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging():
+        try:
+            raise ValueError("the cause")  # ruff:ignore[EM101, TRY003, TRY301]
+        except ValueError:
+            logger.exception("failed")
+    output = Text.from_ansi(terminal_stderr.getvalue()).plain
+    assert "ERROR" in output
+    assert "failed" in output
+    assert "Traceback" in output
+    assert "ValueError: the cause" in output
+
+
+def test_configure_logging_file_plain_in_terminal(
+    tmp_path: pathlib.Path, use_terminal_stderr: Callable[[], _TerminalStream]
+) -> None:
+    """Test that the log file is not formatted with rich, even in a terminal."""
+    terminal_stderr = use_terminal_stderr()
+    log_file = tmp_path / "run.log"
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging(log_file=log_file):
+        logger.warning("shown")
+    assert "\x1b[" in terminal_stderr.getvalue()
+    log = log_file.read_text(encoding="utf-8")
+    assert "\x1b[" not in log
+    assert re.fullmatch(r"\S+Z WARNING  pyfaradaycup: shown\n", log)
+
+
+@pytest.mark.parametrize(
+    "stderr",
+    [None, object(), pytest.param("closed", id="closed")],
+)
+def test_stderr_is_terminal_unusable_stream(
+    monkeypatch: pytest.MonkeyPatch, stderr: object
+) -> None:
+    """Test that a missing, unusual, or closed stderr is not a terminal."""
+    if stderr == "closed":
+        stderr = io.StringIO()
+        stderr.close()
+    monkeypatch.setattr(sys, "stderr", stderr)
+    assert not _logging._stderr_is_terminal()
 
 
 def _dagster_event_log_messages(

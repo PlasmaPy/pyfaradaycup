@@ -32,6 +32,7 @@ dependencies = [
   # pyparsing's parseString, which pyparsing 3.3 deprecates.
   "pyparsing<3.3; python_version<'3.11'",
   "python-dateutil>=2.9",
+  "rich>=13",
   "spacepy>=0.7",
   "spiceypy>=6",
 ]
@@ -273,6 +274,7 @@ lint.flake8-tidy-imports.banned-api."logging.handlers.TimedRotatingFileHandler".
   """
 lint.flake8-tidy-imports.banned-api."logging.handlers.WatchedFileHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.flake8-tidy-imports.banned-api."logging.StreamHandler".msg = "Use pyfaradaycup.configure_logging."
+lint.flake8-tidy-imports.banned-api."rich.logging.RichHandler".msg = "Use pyfaradaycup.configure_logging."
 lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 lint.pylint.max-positional-args = 6

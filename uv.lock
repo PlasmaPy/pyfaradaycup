@@ -4752,6 +4752,7 @@ dependencies = [
     { name = "pyparsing", version = "3.2.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "python-dateutil", version = "3.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "python-dateutil", version = "4.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "rich" },
     { name = "spacepy" },
     { name = "spiceypy", version = "6.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "spiceypy", version = "8.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -4848,6 +4849,7 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version >= '3.11'", specifier = ">=1.23.2" },
     { name = "pyparsing", marker = "python_full_version < '3.11'", specifier = "<3.3" },
     { name = "python-dateutil", specifier = ">=2.9" },
+    { name = "rich", specifier = ">=13" },
     { name = "spacepy", specifier = ">=0.7" },
     { name = "spiceypy", specifier = ">=6" },
 ]

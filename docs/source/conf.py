@@ -51,6 +51,7 @@ napoleon_type_aliases = {
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
+    "rich": ("https://rich.readthedocs.io/en/stable/", None),
     "spacepy": ("https://spacepy.github.io/", None),
 }
 
