@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 __all__ = [
-    "apid_obj",
+    "APID",
 ]
 
 import collections
@@ -792,7 +792,7 @@ def _parse_pkt(  # ruff:ignore[C901, PLR0912]
             thisdat[key].append(newdat[key])
 
 
-class apid_obj:  # ruff:ignore[N801]
+class APID:  # ruff:ignore[N801]
     """
     Store the bit layout of one packet type (APID).
 
@@ -845,7 +845,7 @@ class apid_obj:  # ruff:ignore[N801]
         self.startbit: list[int] = []
 
 
-def _get_layout(apid: int) -> apid_obj | None:
+def _get_layout(apid: int) -> APID | None:
     """
     Read the bit layout for one SWEAP APID from ``sweap_tlm.blk``.
 
@@ -881,7 +881,7 @@ def _get_layout(apid: int) -> apid_obj | None:
     for i, line in enumerate(lines):
         if line[0:8] == f"APID_{hex(apid)[2:].zfill(3)}".upper():  # ruff:ignore[FURB116]
             logger.debug("Found layout for APID %s in %s", hex(apid), blk_path)
-            thisapid = apid_obj()
+            thisapid = APID()
             thisapid.apid = apid
             line = (  #  ruff:ignore[PLW2901]
                 ""  # so that the while loop will start out ok
@@ -930,7 +930,7 @@ def _get_layout_sc(  # ruff:ignore[C901]
     apid: int,
     *,
     filename: str | os.PathLike[str] | None = None,
-) -> tuple[apid_obj, int] | None:
+) -> tuple[APID, int] | None:
     """
     Read the bit layout for one spacecraft housekeeping APID.
 
@@ -980,7 +980,7 @@ def _get_layout_sc(  # ruff:ignore[C901]
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
             logger.debug("Found layout for APID %s in %s", hex(apid), filename)
-            thisapid = apid_obj()
+            thisapid = APID()
             thisapid.apid = apid
 
             line = ""  # ruff:ignore[PLW2901]
