@@ -420,8 +420,12 @@ def _processing_levels(message: str) -> list[str]:
         ("L0\tL1\nL2", ["L0", "L1", "L2"]),
         ("0523462910_4_EA_APID351_L1.cdf", []),
         ("/data/L0/file", []),
-        ("(L0)", []),
-        ("L0:", []),
+        ("(L0)", ["L0"]),
+        ("L0:", ["L0"]),
+        ("L0; L0.5", ["L0", "L0.5"]),
+        ("(L0.5):", ["L0.5"]),
+        ("[L0]", []),
+        ("L0-L1", []),
         ("xL0", []),
         ("L0x", []),
         ("L0.5x", []),
@@ -434,7 +438,8 @@ def _processing_levels(message: str) -> list[str]:
 def test_highlighter_processing_levels(message: str, expected: list[str]) -> None:
     """
     Test that processing levels like L0 and L0.5 are highlighted only
-    when separated from other text by whitespace, commas, or periods.
+    when separated from other text by whitespace, commas, periods,
+    colons, semicolons, or parentheses.
     """
     assert _processing_levels(message) == expected
 
@@ -442,27 +447,35 @@ def test_highlighter_processing_levels(message: str, expected: list[str]) -> Non
 def test_configure_logging_console_processing_level_color(
     use_terminal_stderr: Callable[[], _TerminalStream],
 ) -> None:
-    """Test that processing levels are colored in a terminal."""
+    """
+    Test that every character of a processing level is colored with the
+    processing level style in a terminal, and is not bold.
+    """
     terminal_stderr = use_terminal_stderr()
     logger = logging.getLogger("pyfaradaycup")
     with pyfaradaycup.configure_logging() as config:
         (handler,) = config.handlers
         assert isinstance(handler, RichHandler)
-        logger.warning("Converting L0 file")
+        logger.warning("Converting L0 file to L0.5")
     # Parsing the output gives the color as a number, such as color(2)
     # rather than green, so compare the color numbers.
     expected = Style.parse(_logging._PROCESSING_LEVEL_STYLE)
-    output = Text.from_ansi(terminal_stderr.getvalue())
-    (style,) = [
-        span.style
-        for span in output.spans
-        if output.plain[span.start : span.end] == "L0"
-    ]
-    assert isinstance(style, Style)
-    assert style.bold == expected.bold
-    assert style.color is not None
     assert expected.color is not None
-    assert style.color.number == expected.color.number
+    output = Text.from_ansi(terminal_stderr.getvalue())
+    levels = list(re.finditer(r"L0\.5|L0(?= )", output.plain))
+    assert [match.group() for match in levels] == ["L0", "L0.5"]
+    for match in levels:
+        for offset in range(match.start(), match.end()):
+            style = Style.combine(
+                [
+                    Style.parse(str(span.style))
+                    for span in output.spans
+                    if span.start <= offset < span.end
+                ]
+            )
+            assert not style.bold, (match.group(), offset)
+            assert style.color is not None
+            assert style.color.number == expected.color.number
 
 
 def test_configure_logging_console_traceback_in_terminal(

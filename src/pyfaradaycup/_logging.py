@@ -56,7 +56,8 @@ _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
 
 # The style of data processing levels, like L0 and L0.5, in messages
 # printed to a terminal.
-_PROCESSING_LEVEL_STYLE = "bold green"
+# "not bold" overrides the bold that rich's number rule adds to the 5 in L0.5.
+_PROCESSING_LEVEL_STYLE = "green not bold"
 
 
 class _Highlighter(ReprHighlighter):
@@ -66,18 +67,22 @@ class _Highlighter(ReprHighlighter):
 
     A processing level is an ``L`` followed by an integer or a decimal
     number. It is highlighted only when it is a separate word: when the
-    characters before and after it, if any, are whitespace, commas, or
-    periods. For example, ``L0`` is highlighted in ``L0 file`` and in
-    ``L0, L0.5.``, but not in ``APID351_L1.cdf`` or ``L0.5x``.
+    characters before and after it, if any, are whitespace, commas,
+    periods, colons, semicolons, or parentheses. For example, ``L0`` is
+    highlighted in ``L0 file``, ``L0, L0.5.``, and ``(L0):``, but not in
+    ``APID351_L1.cdf`` or ``L0.5x``.
     """
 
     # ClassVar is not used, because rich declares highlights without it.
     highlights = [  # ruff:ignore[RUF012]
         *ReprHighlighter.highlights,
-        # (?<![^\s,.]) and (?![^\s,.]) require a separator or the start or
-        # end of the message. (?!\.\d) stops a match of just L0 in L0.5x,
-        # once L0.5 has been rejected.
-        r"(?<![^\s,.])(?P<processing_level>L\d+(?:\.\d+)?)(?![^\s,.])(?!\.\d)",
+        # (?<![^\s,.:;()]) and (?![^\s,.:;()]) require a separator or the
+        # start or end of the message. (?!\.\d) stops a match of just L0 in
+        # L0.5x, once L0.5 has been rejected.
+        (
+            r"(?<![^\s,.:;()])(?P<processing_level>L\d+(?:\.\d+)?)"
+            r"(?![^\s,.:;()])(?!\.\d)"
+        ),
     ]
 
 
