@@ -21,6 +21,7 @@ import pathlib
 import time
 from typing import TYPE_CHECKING, Literal, final
 
+import click
 from rich.console import Console
 from rich.logging import RichHandler
 
@@ -186,8 +187,9 @@ def configure_logging(  # ruff:ignore[PLR0913]
         it does not already exist.
 
     console : bool, default: `True`
-        If `True`, print messages to standard error, formatted with
-        ``rich``, which colors them when printing to a terminal.
+        If `True`, print messages to standard error with
+        `~rich.logging.RichHandler`, which colors them when printing to
+        a terminal.
 
     capture_warnings : bool, default: `False`
         If `True`, send warnings issued with `warnings.warn` to the same
@@ -284,12 +286,14 @@ def _make_console_handler(level: int | str) -> RichHandler:
     """Create a handler that prints messages to standard error with rich."""
     # Without a file, a rich Console looks up sys.stderr each time it
     # prints, so it keeps working after tools such as pytest and click's
-    # test runner replace sys.stderr.
+    # test runner replace sys.stderr. Frames inside click are hidden from
+    # tracebacks, since they only show how pfc_decommutator was called.
     console_handler = RichHandler(
         console=Console(stderr=True),
         show_time=False,
         show_path=False,
         rich_tracebacks=True,
+        tracebacks_suppress=[click],
     )
     console_handler.setLevel(level)
     return console_handler

@@ -11,6 +11,7 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Any
 
+import click
 import pytest
 from rich.logging import RichHandler
 
@@ -331,6 +332,14 @@ def test_configure_logging_console_is_rich() -> None:
         (handler,) = config.handlers
         assert isinstance(handler, RichHandler)
         assert handler.console.file is sys.stderr
+
+
+def test_configure_logging_console_hides_click_frames() -> None:
+    """Test that frames inside click are hidden from console tracebacks."""
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        assert click in handler.tracebacks_suppress
 
 
 def test_configure_logging_console_traceback(
