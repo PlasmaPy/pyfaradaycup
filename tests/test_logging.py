@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import click
 import pytest
 from rich.logging import RichHandler
+from rich.text import Text
 
 import pyfaradaycup
 from pyfaradaycup import _logging
@@ -79,7 +80,7 @@ def test_configure_logging_console(capsys: pytest.CaptureFixture[str]) -> None:
         logger.info("shown")
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert captured.err.split() == ["INFO", "shown"]
+    assert captured.err == "INFO: shown\n"
 
 
 def test_configure_logging_level_as_string(capsys: pytest.CaptureFixture[str]) -> None:
@@ -88,7 +89,7 @@ def test_configure_logging_level_as_string(capsys: pytest.CaptureFixture[str]) -
     with pyfaradaycup.configure_logging(level="WARNING"):
         logger.info("hidden")
         logger.warning("shown")
-    assert capsys.readouterr().err.split() == ["WARNING", "shown"]
+    assert capsys.readouterr().err == "WARNING: shown\n"
 
 
 @pytest.mark.parametrize("kwargs", [{"level": "LOUD"}, {"file_level": "LOUD"}])
@@ -323,40 +324,123 @@ def test_configure_logging_console_uses_current_stderr(
         replacement = io.StringIO()
         monkeypatch.setattr(sys, "stderr", replacement)
         logger.info("shown")
-    assert replacement.getvalue().split() == ["INFO", "shown"]
+    assert replacement.getvalue() == "INFO: shown\n"
 
 
-def test_configure_logging_console_is_rich() -> None:
-    """Test that messages are printed to the console with rich."""
+def test_stderr_handler_set_stream_unsupported() -> None:
+    """Test that the console handler cannot be redirected to another stream."""
+    handler = _logging._StderrHandler()
+    with pytest.raises(AttributeError):
+        handler.setStream(io.StringIO())
+    assert handler.stream is sys.stderr
+
+
+class _TerminalStream(io.StringIO):
+    """An in-memory stream that says it is a terminal."""
+
+    def isatty(self) -> bool:
+        return True
+
+
+@pytest.fixture
+def use_terminal_stderr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[], _TerminalStream]:
+    """
+    Return a function that replaces `sys.stderr` with a stream that rich
+    treats as a color terminal, and returns that stream.
+
+    The replacement is made when the test calls the function, because
+    pytest replaces `sys.stderr` again after fixtures are set up. The
+    environment variables that rich reads are set so that the output is
+    the same everywhere.
+    """
+    monkeypatch.setenv("TERM", "xterm-256color")
+    monkeypatch.setenv("COLUMNS", "100")
+    for name in ("FORCE_COLOR", "NO_COLOR", "TTY_COMPATIBLE", "TTY_INTERACTIVE"):
+        monkeypatch.delenv(name, raising=False)
+
+    def use() -> _TerminalStream:
+        stream = _TerminalStream()
+        monkeypatch.setattr(sys, "stderr", stream)
+        return stream
+
+    return use
+
+
+def test_configure_logging_console_plain_when_not_terminal() -> None:
+    """Test that messages are not formatted with rich outside a terminal."""
     with pyfaradaycup.configure_logging() as config:
         (handler,) = config.handlers
-        assert isinstance(handler, RichHandler)
-        assert handler.console.file is sys.stderr
+        assert isinstance(handler, _logging._StderrHandler)
 
 
-def test_configure_logging_console_hides_click_frames() -> None:
-    """Test that frames inside click are hidden from console tracebacks."""
-    with pyfaradaycup.configure_logging() as config:
-        (handler,) = config.handlers
-        assert isinstance(handler, RichHandler)
-        assert click in handler.tracebacks_suppress
-
-
-def test_configure_logging_console_traceback(
-    capsys: pytest.CaptureFixture[str],
+def test_configure_logging_console_rich_in_terminal(
+    use_terminal_stderr: Callable[[], _TerminalStream],
 ) -> None:
-    """Test that an exception is printed to the console with its traceback."""
+    """
+    Test that messages are formatted with rich in a terminal, and that
+    frames inside click are hidden from tracebacks.
+    """
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        assert handler.console.file is terminal_stderr
+        assert click in handler.tracebacks_suppress
+        logger.warning("shown")
+    output = terminal_stderr.getvalue()
+    assert "\x1b[" in output
+    assert Text.from_ansi(output).plain.split() == ["WARNING", "shown"]
+
+
+def test_configure_logging_console_traceback_in_terminal(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """Test that an exception is printed with its traceback in a terminal."""
+    terminal_stderr = use_terminal_stderr()
     logger = logging.getLogger("pyfaradaycup")
     with pyfaradaycup.configure_logging():
         try:
             raise ValueError("the cause")  # ruff:ignore[EM101, TRY003, TRY301]
         except ValueError:
             logger.exception("failed")
-    err = capsys.readouterr().err
-    assert "ERROR" in err
-    assert "failed" in err
-    assert "Traceback" in err
-    assert "ValueError: the cause" in err
+    output = Text.from_ansi(terminal_stderr.getvalue()).plain
+    assert "ERROR" in output
+    assert "failed" in output
+    assert "Traceback" in output
+    assert "ValueError: the cause" in output
+
+
+def test_configure_logging_file_plain_in_terminal(
+    tmp_path: pathlib.Path, use_terminal_stderr: Callable[[], _TerminalStream]
+) -> None:
+    """Test that the log file is not formatted with rich, even in a terminal."""
+    terminal_stderr = use_terminal_stderr()
+    log_file = tmp_path / "run.log"
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging(log_file=log_file):
+        logger.warning("shown")
+    assert "\x1b[" in terminal_stderr.getvalue()
+    log = log_file.read_text(encoding="utf-8")
+    assert "\x1b[" not in log
+    assert re.fullmatch(r"\S+Z WARNING  pyfaradaycup: shown\n", log)
+
+
+@pytest.mark.parametrize(
+    "stderr",
+    [None, object(), pytest.param("closed", id="closed")],
+)
+def test_stderr_is_terminal_unusable_stream(
+    monkeypatch: pytest.MonkeyPatch, stderr: object
+) -> None:
+    """Test that a missing, unusual, or closed stderr is not a terminal."""
+    if stderr == "closed":
+        stderr = io.StringIO()
+        stderr.close()
+    monkeypatch.setattr(sys, "stderr", stderr)
+    assert not _logging._stderr_is_terminal()
 
 
 def _dagster_event_log_messages(

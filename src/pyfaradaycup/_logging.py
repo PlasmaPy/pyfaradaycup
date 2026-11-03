@@ -18,8 +18,9 @@ __all__ = ["LoggingConfiguration", "configure_logging"]
 
 import logging
 import pathlib
+import sys
 import time
-from typing import TYPE_CHECKING, Literal, final
+from typing import TYPE_CHECKING, Literal, TextIO, final
 
 import click
 from rich.console import Console
@@ -46,9 +47,35 @@ _latest_configuration: LoggingConfiguration | None = None
 # are ISO 8601 in UTC, like 2026-10-29T14:23:01.123Z.
 _FILE_FORMAT = "%(asctime)s.%(msecs)03dZ %(levelname)-8s %(name)s: %(message)s"
 _DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+_CONSOLE_FORMAT = "%(levelname)s: %(message)s"
 
 # The mode used to open the log file for each allowed value of file_mode.
 _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
+
+
+class _StderrHandler(logging.StreamHandler):
+    """
+    A handler that prints messages to the current value of `sys.stderr`.
+
+    A `logging.StreamHandler` keeps using the stream that it was created
+    with, even after `sys.stderr` is replaced and that stream is closed.
+    Tools such as pytest and click's test runner replace `sys.stderr`.
+
+    The approach follows CPython's private ``logging._StderrHandler``,
+    which is used for `logging.lastResort`. Because ``stream`` is a
+    read-only property, ``setStream`` is not supported and raises
+    `AttributeError`.
+    """
+
+    def __init__(self) -> None:
+        # Skip StreamHandler.__init__, which would assign to stream.
+        logging.Handler.__init__(self)
+
+    # A read-only property is intended, so that the handler cannot be
+    # given a fixed stream, even though StreamHandler.stream is writable.
+    @property
+    def stream(self) -> TextIO:  # ty: ignore[invalid-property-type-override]
+        return sys.stderr
 
 
 @final
@@ -187,9 +214,11 @@ def configure_logging(  # ruff:ignore[PLR0913]
         it does not already exist.
 
     console : bool, default: `True`
-        If `True`, print messages to standard error with
-        `~rich.logging.RichHandler`, which colors them when printing to
-        a terminal.
+        If `True`, print messages to standard error. When standard
+        error is a terminal, messages are formatted with
+        `~rich.logging.RichHandler`. Otherwise, such as when the output
+        is redirected to a file or captured by Dagster, each message is
+        printed as one plain line, like ``WARNING: message``.
 
     capture_warnings : bool, default: `False`
         If `True`, send warnings issued with `warnings.warn` to the same
@@ -282,21 +311,41 @@ def configure_logging(  # ruff:ignore[PLR0913]
     return _latest_configuration
 
 
-def _make_console_handler(level: int | str) -> RichHandler:
-    """Create a handler that prints messages to standard error with rich."""
-    # Without a file, a rich Console looks up sys.stderr each time it
-    # prints, so it keeps working after tools such as pytest and click's
-    # test runner replace sys.stderr. Frames inside click are hidden from
-    # tracebacks, since they only show how pfc_decommutator was called.
-    console_handler = RichHandler(
-        console=Console(stderr=True),
-        show_time=False,
-        show_path=False,
-        rich_tracebacks=True,
-        tracebacks_suppress=[click],
-    )
+def _make_console_handler(level: int | str) -> logging.Handler:
+    """
+    Create a handler that prints messages to standard error.
+
+    Messages are formatted with rich only when standard error is a
+    terminal. Elsewhere, rich would pad each line to the console width
+    and wrap long messages, including paths, onto more lines.
+    """
+    console_handler: logging.Handler
+    if _stderr_is_terminal():
+        # Without a file, a rich Console looks up sys.stderr each time it
+        # prints, like _StderrHandler. Frames inside click are hidden from
+        # tracebacks, since they only show how pfc_decommutator was called.
+        console_handler = RichHandler(
+            console=Console(stderr=True),
+            show_time=False,
+            show_path=False,
+            rich_tracebacks=True,
+            tracebacks_suppress=[click],
+        )
+    else:
+        console_handler = _StderrHandler()
+        console_handler.setFormatter(logging.Formatter(_CONSOLE_FORMAT))
     console_handler.setLevel(level)
     return console_handler
+
+
+def _stderr_is_terminal() -> bool:
+    """Return whether `sys.stderr` is a terminal."""
+    try:
+        return sys.stderr.isatty()
+    except (AttributeError, ValueError):
+        # AttributeError: sys.stderr is None or has no isatty
+        # ValueError: sys.stderr is closed
+        return False
 
 
 def _make_file_handler(

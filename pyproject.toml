@@ -228,7 +228,6 @@ lint.extend-per-file-ignores."__init__.py" = [ "D104", "E402", "F401", "F402", "
 lint.extend-per-file-ignores."docs/conf.py" = [ "D100", "D103", "E402", "EXE001", "EXE005", "F401" ]
 lint.extend-per-file-ignores."src/pyfaradaycup/_logging.py" = [ "TID251" ]  # configures logging handlers
 lint.extend-per-file-ignores."tests/**/__init__.py" = [ "D104" ]
-lint.extend-per-file-ignores."tests/**/conftest.py" = [ "INP001" ]
 lint.extend-per-file-ignores."tests/**/test_*.py" = [
   "DOC201",
   "DOC501",
