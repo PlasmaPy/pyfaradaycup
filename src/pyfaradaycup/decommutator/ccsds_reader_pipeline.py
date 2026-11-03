@@ -975,7 +975,7 @@ def _get_layout_sc(  # ruff:ignore[C901]
     except OSError as exc:
         msg = f"Unable to read the spacecraft housekeeping definition file {filename}"
         raise RuntimeError(msg) from exc
-    logger.info("Using spacecraft housekeeping definition file %s", filename)
+    logger.debug("Using spacecraft housekeeping definition file %s", filename)
 
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
