@@ -12,7 +12,7 @@ import pytest_check
 import xarray
 from click.testing import CliRunner
 
-from pyfaradaycup.decommutator import swp_spc_l0_to_l05
+from pyfaradaycup.decommutator import l0_to_l05
 from pyfaradaycup.decommutator.main import (
     _console_level,
     _warn_about_ineffective_options,
@@ -148,7 +148,7 @@ def test_main_returns_result(
     when logging is not configured.
     """
     monkeypatch.chdir(tmp_path)
-    result = swp_spc_l0_to_l05.main(l0file, tmp_path / "l05")
+    result = l0_to_l05.main(l0file, tmp_path / "l05")
 
     assert capsys.readouterr() == ("", "")
     assert not list(tmp_path.rglob("*.log"))
@@ -182,10 +182,10 @@ def test_main_overwrite_messages(
     INFO message that it is being overwritten, but the message that it
     was written is logged only at the DEBUG level.
     """
-    result = swp_spc_l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
+    result = l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
     (cdf_file,) = result.cdf_files.values()
     with caplog.at_level(logging.DEBUG, logger="pyfaradaycup"):
-        swp_spc_l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
+        l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
 
     def messages(level: int) -> list[str]:
         return [r.getMessage() for r in caplog.records if r.levelno == level]
@@ -197,7 +197,7 @@ def test_main_overwrite_messages(
     caplog.clear()
     cdf_file.unlink()
     with caplog.at_level(logging.DEBUG, logger="pyfaradaycup"):
-        swp_spc_l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
+        l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
     assert f"Wrote {cdf_file}" in messages(logging.INFO)
     assert not [m for m in caplog.messages if m.startswith("Overwriting")]
 
@@ -211,7 +211,7 @@ def test_pfc_decommutator_failed_apid(
     """
     missing_skeleton = str(tmp_path / "missing_skeleton.cdf")
     monkeypatch.setattr(
-        swp_spc_l0_to_l05, "_get_newest_skeleton", lambda _apid: missing_skeleton
+        l0_to_l05, "_get_newest_skeleton", lambda _apid: missing_skeleton
     )
     result = CliRunner().invoke(
         pfc_decommutator,

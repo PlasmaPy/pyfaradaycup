@@ -4,7 +4,7 @@ This directory contains the code that converts Parker Solar Probe SPC L0 files i
 For historical reasons, the output files are named `*_L1.cdf`.
 
 - `main.py` defines the `pfc_decommutator` command line tool.
-- `swp_spc_l0_to_l05.py` defines `main`, which does the conversion for one L0 file.
+- `l0_to_l05.py` defines `main`, which does the conversion for one L0 file.
 - `ccsds_reader_pipeline.py` reads the CCSDS packets from an L0 file.
 
 > [!NOTE]
