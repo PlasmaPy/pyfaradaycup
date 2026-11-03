@@ -24,7 +24,9 @@ from typing import TYPE_CHECKING, Literal, TextIO, final
 
 import click
 from rich.console import Console
+from rich.highlighter import ReprHighlighter
 from rich.logging import RichHandler
+from rich.theme import Theme
 
 if TYPE_CHECKING:
     import os
@@ -51,6 +53,32 @@ _CONSOLE_FORMAT = "%(levelname)s: %(message)s"
 
 # The mode used to open the log file for each allowed value of file_mode.
 _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
+
+# The style of data processing levels, like L0 and L0.5, in messages
+# printed to a terminal.
+_PROCESSING_LEVEL_STYLE = "bold green"
+
+
+class _Highlighter(ReprHighlighter):
+    """
+    Highlight what rich highlights by default, and also data processing
+    levels like L0 and L0.5.
+
+    A processing level is an ``L`` followed by an integer or a decimal
+    number. It is highlighted only when it is a separate word: when the
+    characters before and after it, if any, are whitespace, commas, or
+    periods. For example, ``L0`` is highlighted in ``L0 file`` and in
+    ``L0, L0.5.``, but not in ``APID351_L1.cdf`` or ``L0.5x``.
+    """
+
+    # ClassVar is not used, because rich declares highlights without it.
+    highlights = [  # ruff:ignore[RUF012]
+        *ReprHighlighter.highlights,
+        # (?<![^\s,.]) and (?![^\s,.]) require a separator or the start or
+        # end of the message. (?!\.\d) stops a match of just L0 in L0.5x,
+        # once L0.5 has been rejected.
+        r"(?<![^\s,.])(?P<processing_level>L\d+(?:\.\d+)?)(?![^\s,.])(?!\.\d)",
+    ]
 
 
 class _StderrHandler(logging.StreamHandler):
@@ -325,7 +353,11 @@ def _make_console_handler(level: int | str) -> logging.Handler:
         # prints, like _StderrHandler. Frames inside click are hidden from
         # tracebacks, since they only show how pfc_decommutator was called.
         console_handler = RichHandler(
-            console=Console(stderr=True),
+            console=Console(
+                stderr=True,
+                theme=Theme({"repr.processing_level": _PROCESSING_LEVEL_STYLE}),
+            ),
+            highlighter=_Highlighter(),
             show_time=False,
             show_path=False,
             rich_tracebacks=True,

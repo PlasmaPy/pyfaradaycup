@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import click
 import pytest
 from rich.logging import RichHandler
+from rich.style import Style
 from rich.text import Text
 
 import pyfaradaycup
@@ -393,6 +394,75 @@ def test_configure_logging_console_rich_in_terminal(
     output = terminal_stderr.getvalue()
     assert "\x1b[" in output
     assert Text.from_ansi(output).plain.split() == ["WARNING", "shown"]
+
+
+def _processing_levels(message: str) -> list[str]:
+    """Return the parts of ``message`` highlighted as processing levels."""
+    text = Text(message)
+    _logging._Highlighter().highlight(text)
+    return [
+        text.plain[span.start : span.end]
+        for span in text.spans
+        if span.style == "repr.processing_level"
+    ]
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("L0", ["L0"]),
+        ("L0.5", ["L0.5"]),
+        ("L12", ["L12"]),
+        ("Converting L0 file to L0.5 files", ["L0", "L0.5"]),
+        ("L0,L0.5", ["L0", "L0.5"]),
+        ("L0, L0.5.", ["L0", "L0.5"]),
+        ("Wrote L0.5.", ["L0.5"]),
+        ("L0\tL1\nL2", ["L0", "L1", "L2"]),
+        ("0523462910_4_EA_APID351_L1.cdf", []),
+        ("/data/L0/file", []),
+        ("(L0)", []),
+        ("L0:", []),
+        ("xL0", []),
+        ("L0x", []),
+        ("L0.5x", []),
+        ("L0.5.6", []),
+        ("L", []),
+        ("L.5", []),
+        ("l0", []),
+    ],
+)
+def test_highlighter_processing_levels(message: str, expected: list[str]) -> None:
+    """
+    Test that processing levels like L0 and L0.5 are highlighted only
+    when separated from other text by whitespace, commas, or periods.
+    """
+    assert _processing_levels(message) == expected
+
+
+def test_configure_logging_console_processing_level_color(
+    use_terminal_stderr: Callable[[], _TerminalStream],
+) -> None:
+    """Test that processing levels are colored in a terminal."""
+    terminal_stderr = use_terminal_stderr()
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        logger.warning("Converting L0 file")
+    # Parsing the output gives the color as a number, such as color(2)
+    # rather than green, so compare the color numbers.
+    expected = Style.parse(_logging._PROCESSING_LEVEL_STYLE)
+    output = Text.from_ansi(terminal_stderr.getvalue())
+    (style,) = [
+        span.style
+        for span in output.spans
+        if output.plain[span.start : span.end] == "L0"
+    ]
+    assert isinstance(style, Style)
+    assert style.bold == expected.bold
+    assert style.color is not None
+    assert expected.color is not None
+    assert style.color.number == expected.color.number
 
 
 def test_configure_logging_console_traceback_in_terminal(
