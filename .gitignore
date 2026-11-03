@@ -220,3 +220,7 @@ __marimo__/
 
 # Miscellaneous
 Untitled*.ipynb
+
+# CDF files written to the top-level directory, such as by running
+# pfc_decommutator from there
+/*.cdf
