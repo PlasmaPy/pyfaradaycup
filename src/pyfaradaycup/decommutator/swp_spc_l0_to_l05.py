@@ -211,7 +211,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         l0file_noext = pathlib.Path(l0file_noext).stem
 
     logger.info("Converting L0 file %s", l0file)
-    logger.info(
+    logger.debug(
         "Options: l05dir=%s, spacecraft=%s, ptp=%s, gzip=%s, apid=%s, overwrite=%s",
         l05dir,
         spacecraft,
@@ -232,12 +232,12 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     software_versions = _software_versions()
     hostname = socket.gethostname()
     l0file_sha256 = _sha256(l0file)
-    logger.info(
+    logger.debug(
         "Software versions: %s",
         ", ".join(f"{name} {version}" for name, version in software_versions.items()),
     )
-    logger.info("Host: %s, working directory: %s", hostname, pathlib.Path.cwd())
-    logger.info(
+    logger.debug("Host: %s, working directory: %s", hostname, pathlib.Path.cwd())
+    logger.debug(
         "L0 file: %s, %d bytes, SHA-256 %s",
         l0file.resolve(),
         l0file.stat().st_size,
@@ -251,7 +251,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            logger.info("Using leap second kernel %s", tls_path)
+            logger.debug("Using leap second kernel %s", tls_path)
             spiceypy.furnsh(tls_path)
         except Exception as exc:
             msg = f"Could not load leap second kernel: {tls_path}"
@@ -264,7 +264,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         raise RuntimeError(msg)
     else:  # ruff:ignore[RET506]
         try:
-            logger.info("Using SCLK kernel %s", sclk_path)
+            logger.debug("Using SCLK kernel %s", sclk_path)
             spiceypy.furnsh(sclk_path)
         except Exception as exc:
             msg = f"Could not load SCLK kernel: {sclk_path}"
@@ -272,10 +272,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
 
     # Read in the L0 file into a python SPC data structure
     if spacecraft:
-        logger.info("Reading spacecraft housekeeping packets")
+        logger.debug("Reading spacecraft housekeeping packets")
         l0data = _read_file_sc(path=l0file, ptp=ptp, gzip=gzip)
     else:
-        logger.info("Reading SWEAP instrument packets")
+        logger.debug("Reading SWEAP instrument packets")
         l0data = _read_file(path=l0file, gzip=gzip)
 
     packet_counts = {
@@ -311,7 +311,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             skeleton_filename = _get_newest_skeleton(apid)
             pathlib.Path(skeleton_filename).open().close()
-            logger.info("Using skeleton %s for APID %s", skeleton_filename, hex(apid))
+            logger.debug("Using skeleton %s for APID %s", skeleton_filename, hex(apid))
         except OSError:
             failures[apid] = f"Could not read skeleton file {skeleton_filename}"
             logger.error(  # ruff:ignore[TRY400]

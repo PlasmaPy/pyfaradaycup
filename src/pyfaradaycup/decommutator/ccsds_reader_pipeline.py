@@ -285,7 +285,7 @@ def _read_file(
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
-        logger.warning("No packets found in %s", path)
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
 
@@ -510,7 +510,7 @@ def _read_file_sc(  # ruff:ignore[C901, PLR0912, PLR0915]
         [(m.start(0), m.end(0)) for m in re.finditer(pattern, bytestr, re.DOTALL)]
     )
     if pkt_inds.size == 0:
-        logger.warning("No packets found in %s", path)
+        logger.warning("No packets found in %s", pathlib.Path(path).resolve())
         return data
     pkt_starts = pkt_inds[:, 0]
 
@@ -541,8 +541,15 @@ def _log_packet_summary(
     """
     Log how many packets were read for each APID, and how many were
     rejected for each reason.
+
+    The full path of the L0 file is logged, even if ``path`` is relative.
     """
-    logger.info("Read %d candidate packets from %s in %.2f s", npackets, path, elapsed)
+    logger.info(
+        "Read %d candidate packets from %s in %.2f s",
+        npackets,
+        pathlib.Path(path).resolve(),
+        elapsed,
+    )
     for apid, count in pktcnt[0].items():
         logger.info("APID %s: found %d packets", hex(apid), count)
     for apid, count in pktcnt[1].items():
@@ -968,7 +975,7 @@ def _get_layout_sc(  # ruff:ignore[C901]
     except OSError as exc:
         msg = f"Unable to read the spacecraft housekeeping definition file {filename}"
         raise RuntimeError(msg) from exc
-    logger.info("Using spacecraft housekeeping definition file %s", filename)
+    logger.debug("Using spacecraft housekeeping definition file %s", filename)
 
     for i, line in enumerate(lines):
         if line[0:11] == f"SC_HK_0x{hex(apid)[2:].zfill(3).upper()}":  # ruff:ignore[FURB116]
