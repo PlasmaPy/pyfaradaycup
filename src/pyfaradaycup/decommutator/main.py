@@ -11,7 +11,7 @@ import pathlib
 import click
 
 from pyfaradaycup._logging import configure_logging
-from pyfaradaycup.decommutator import swp_spc_l0_to_l05
+from pyfaradaycup.decommutator import l0_to_l05
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +260,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             spacecraft=spacecraft,
         )
         try:
-            result = swp_spc_l0_to_l05.main(
+            result = l0_to_l05.main(
                 l0file=l0file,
                 l05dir=l05dir,
                 spacecraft=spacecraft,
