@@ -627,7 +627,10 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
     dat_exp["Epoch"] = []
 
     # Loop through each NYS
-    itst_warned = False
+    # The number of packets timed with the default IT and ST because the
+    # reported IT+ST was not a power of 2, and the reported (IT, ST) pairs
+    n_default_itst = 0
+    reported_itst = set()
     nskipped = 0
     for i in range(len(scet)):
         this_scet = scet[i]
@@ -639,14 +642,6 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
         if (math.log(ticks_per_meas, 2)) % 1 != 0:  # ruff:ignore[FURB163]
             # the SPC FPGA will default to IT=6, ST=2 (the power-on defaults) if a non-integer power of 2 IT+ST is requested
             ticks_per_meas = 8
-
-            if not itst_warned:
-                logger.warning(
-                    "The reported IT+ST for APID %s is not a power of 2; "
-                    "using IT=6, ST=2",
-                    hex(apid),
-                )
-                itst_warned = True
 
             # throw out packets if the IT and ST are different than both previous and next packets
             # this is almost surely an improperly identified packet that probably
@@ -665,6 +660,11 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
                 logger.debug("Skipping APID %s packet %d", hex(apid), i)
                 nskipped += 1
                 continue
+
+            n_default_itst += 1
+            reported_itst.add(
+                (int(dat["SW_SPC_INTTIME"][i]), int(dat["SW_SPC_SERVTIME"][i]))
+            )
 
         # Time that each measurement took this NYS
         tm_per_meas = (1.0 / 1171.875) * ticks_per_meas
@@ -717,6 +717,16 @@ def _cdf351_353_354(  # ruff:ignore[C901, PLR0912, PLR0915, RET503]
             except TypeError:  # ruff:ignore[PERF203]
                 expanded = np.ones(nmeas) * dat[key][i]
                 dat_exp[key].extend(expanded)
+
+    if n_default_itst:
+        logger.warning(
+            "%d APID %s packets report an invalid IT+ST that is not a power "
+            "of 2 (IT/ST: %s), so the FPGA should have used its defaults. Their "
+            "times assume IT=6, ST=2; the CDF keeps the reported values.",
+            n_default_itst,
+            hex(apid),
+            ", ".join(f"{it}/{st}" for it, st in sorted(reported_itst)),
+        )
 
     if nskipped:
         logger.warning(
