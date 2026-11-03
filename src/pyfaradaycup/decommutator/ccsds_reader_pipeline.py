@@ -541,8 +541,15 @@ def _log_packet_summary(
     """
     Log how many packets were read for each APID, and how many were
     rejected for each reason.
+
+    The full path of the L0 file is logged, even if ``path`` is relative.
     """
-    logger.info("Read %d candidate packets from %s in %.2f s", npackets, path, elapsed)
+    logger.info(
+        "Read %d candidate packets from %s in %.2f s",
+        npackets,
+        pathlib.Path(path).resolve(),
+        elapsed,
+    )
     for apid, count in pktcnt[0].items():
         logger.info("APID %s: found %d packets", hex(apid), count)
     for apid, count in pktcnt[1].items():

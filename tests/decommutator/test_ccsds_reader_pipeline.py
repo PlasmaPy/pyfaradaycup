@@ -224,3 +224,18 @@ def test_read_file_logs_packet_summary(
     for apid, values in data.items():
         npackets = len(next(iter(values.values())))
         assert f"APID {hex(apid)}: found {npackets} packets" in caplog.messages
+
+
+def test_read_file_logs_full_path(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the packet summary has the full path of the L0 file."""
+    monkeypatch.chdir(_L0_FILE.parent)
+    with caplog.at_level(logging.INFO, logger="pyfaradaycup"):
+        _read_file(_L0_FILE.name)
+    (message,) = [
+        message
+        for message in caplog.messages
+        if message.startswith("Read ") and "candidate packets from" in message
+    ]
+    assert f" candidate packets from {_L0_FILE.resolve()} in " in message
