@@ -173,6 +173,38 @@ def test_main_returns_result(
     assert result.elapsed > 0
 
 
+def test_main_logs_details_at_debug(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test that provenance details like software versions and kernel paths
+    are logged at the DEBUG level rather than the INFO level.
+    """
+    with caplog.at_level(logging.DEBUG, logger="pyfaradaycup"):
+        swp_spc_l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
+
+    info_messages = [
+        r.getMessage() for r in caplog.records if r.levelno >= logging.INFO
+    ]
+    debug_messages = [
+        r.getMessage() for r in caplog.records if r.levelno == logging.DEBUG
+    ]
+    detail_prefixes = (
+        "Options:",
+        "Software versions:",
+        "Host:",
+        "L0 file:",
+        "Using leap second kernel",
+        "Using SCLK kernel",
+        "Reading SWEAP instrument packets",
+        "Using skeleton",
+    )
+    assert f"Converting L0 file {l0file}" in info_messages
+    assert not [m for m in info_messages if m.startswith(detail_prefixes)]
+    for prefix in detail_prefixes:
+        assert any(m.startswith(prefix) for m in debug_messages), prefix
+
+
 def test_pfc_decommutator_failed_apid(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
