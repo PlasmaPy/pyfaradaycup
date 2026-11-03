@@ -26,6 +26,11 @@ l05_dir = data_dir / "sci" / "sweap" / "spc" / "L05"
 l0file = ssr_dir / "2026" / "215" / "0523462910_4_EA"
 
 
+def _collapse(text: str) -> str:
+    """Replace each run of whitespace in console output with one space."""
+    return " ".join(text.split())
+
+
 def _sha256(path: Path) -> str:
     """Return the SHA-256 checksum of a file, computed independently of the package."""
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -55,7 +60,7 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
     apids = ["351", "352", "353", "354", "35E", "35F"]
 
     # With -v, progress is printed to the screen as well as the log file
-    assert "INFO: Wrote" in result.output
+    assert "INFO Wrote" in _collapse(result.output)
     (log_file,) = tmp_path.glob("*.log")
     assert re.fullmatch(
         rf"swp_spc_l0_to_l05_{tag}_\d{{8}}T\d{{6}}Z\.log", log_file.name
@@ -93,7 +98,7 @@ def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
         catch_exceptions=False,
     )
     assert result.exit_code == 1
-    assert f"ERROR: Could not convert {missing_file}" in result.output
+    assert f"ERROR Could not convert {missing_file}" in _collapse(result.output)
     (log_file,) = tmp_path.glob("*.log")
     log = log_file.read_text(encoding="utf-8")
     assert "Traceback" in log
@@ -195,6 +200,7 @@ def test_pfc_decommutator_failed_apid(
         catch_exceptions=False,
     )
     assert result.exit_code == 1
-    assert f"ERROR: Could not read skeleton file {missing_skeleton}" in result.output
-    assert "WARNING: Could not convert 1 APIDs: 0x352" in result.output
+    output = _collapse(result.output)
+    assert f"ERROR Could not read skeleton file {missing_skeleton}" in output
+    assert "WARNING Could not convert 1 APIDs: 0x352" in output
     assert not list(tmp_path.glob("*.cdf"))

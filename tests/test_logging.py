@@ -12,6 +12,7 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from rich.logging import RichHandler
 
 import pyfaradaycup
 from pyfaradaycup import _logging
@@ -77,7 +78,7 @@ def test_configure_logging_console(capsys: pytest.CaptureFixture[str]) -> None:
         logger.info("shown")
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert captured.err == "INFO: shown\n"
+    assert captured.err.split() == ["INFO", "shown"]
 
 
 def test_configure_logging_level_as_string(capsys: pytest.CaptureFixture[str]) -> None:
@@ -86,7 +87,7 @@ def test_configure_logging_level_as_string(capsys: pytest.CaptureFixture[str]) -
     with pyfaradaycup.configure_logging(level="WARNING"):
         logger.info("hidden")
         logger.warning("shown")
-    assert capsys.readouterr().err == "WARNING: shown\n"
+    assert capsys.readouterr().err.split() == ["WARNING", "shown"]
 
 
 @pytest.mark.parametrize("kwargs", [{"level": "LOUD"}, {"file_level": "LOUD"}])
@@ -321,15 +322,32 @@ def test_configure_logging_console_uses_current_stderr(
         replacement = io.StringIO()
         monkeypatch.setattr(sys, "stderr", replacement)
         logger.info("shown")
-    assert replacement.getvalue() == "INFO: shown\n"
+    assert replacement.getvalue().split() == ["INFO", "shown"]
 
 
-def test_stderr_handler_set_stream_unsupported() -> None:
-    """Test that the console handler cannot be redirected to another stream."""
-    handler = _logging._StderrHandler()
-    with pytest.raises(AttributeError):
-        handler.setStream(io.StringIO())
-    assert handler.stream is sys.stderr
+def test_configure_logging_console_is_rich() -> None:
+    """Test that messages are printed to the console with rich."""
+    with pyfaradaycup.configure_logging() as config:
+        (handler,) = config.handlers
+        assert isinstance(handler, RichHandler)
+        assert handler.console.file is sys.stderr
+
+
+def test_configure_logging_console_traceback(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test that an exception is printed to the console with its traceback."""
+    logger = logging.getLogger("pyfaradaycup")
+    with pyfaradaycup.configure_logging():
+        try:
+            raise ValueError("the cause")  # ruff:ignore[EM101, TRY003, TRY301]
+        except ValueError:
+            logger.exception("failed")
+    err = capsys.readouterr().err
+    assert "ERROR" in err
+    assert "failed" in err
+    assert "Traceback" in err
+    assert "ValueError: the cause" in err
 
 
 def _dagster_event_log_messages(
