@@ -396,15 +396,18 @@ def test_configure_logging_console_rich_in_terminal(
     assert Text.from_ansi(output).plain.split() == ["WARNING", "shown"]
 
 
-def _processing_levels(message: str) -> list[str]:
-    """Return the parts of ``message`` highlighted as processing levels."""
+def _highlighted(message: str, style: str) -> list[str]:
+    """Return the parts of ``message`` highlighted with ``style``."""
     text = Text(message)
     _logging._Highlighter().highlight(text)
     return [
-        text.plain[span.start : span.end]
-        for span in text.spans
-        if span.style == "repr.processing_level"
+        text.plain[span.start : span.end] for span in text.spans if span.style == style
     ]
+
+
+def _processing_levels(message: str) -> list[str]:
+    """Return the parts of ``message`` highlighted as processing levels."""
+    return _highlighted(message, "repr.processing_level")
 
 
 @pytest.mark.parametrize(
@@ -442,6 +445,49 @@ def test_highlighter_processing_levels(message: str, expected: list[str]) -> Non
     colons, semicolons, or parentheses.
     """
     assert _processing_levels(message) == expected
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("0523462910_4_EA_APID351_L1.cdf", ["0523462910_4_EA_APID351_L1.cdf"]),
+        (
+            "Writing to swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log",
+            ["swp_spc_l0_to_l05_0523462910_4_EA_20261103T193538Z.log"],
+        ),
+        (
+            "Using naif0012.tls and spp_sclk_2000.tsc",
+            ["naif0012.tls", "spp_sclk_2000.tsc"],
+        ),
+        ("Wrote a.cdf, b.cdf.", ["a.cdf", "b.cdf"]),
+        ("(a.cdf):", ["a.cdf"]),
+        ("a.cdf;b.txt", ["a.cdf", "b.txt"]),
+        ("0523462910_4_EA.gz", ["0523462910_4_EA.gz"]),
+        ("a.cdf.gz", ["a.cdf.gz"]),
+        ("APID257_combined.txt", ["APID257_combined.txt"]),
+        ("/data/a.cdf", ["a.cdf"]),
+        ("a.cdf.bak", []),
+        ("a.cdfx", []),
+        ("a.CDF", []),
+        (".cdf", []),
+        ("[a.cdf]", []),
+        ("'a.cdf'", []),
+        ("x-a.cdf", ["x-a.cdf"]),
+        ("pyfaradaycup.decommutator", []),
+        ("0523462910_4_EA", []),
+    ],
+)
+def test_highlighter_filenames(message: str, expected: list[str]) -> None:
+    """
+    Test that filenames with known extensions are highlighted like the
+    filename of a path, even without a directory.
+    """
+    assert _highlighted(message, "repr.filename") == expected
+
+
+def test_highlighter_filename_not_processing_level() -> None:
+    """Test that a processing level inside a filename is not highlighted."""
+    assert _processing_levels("Wrote 0523462910_4_EA_APID351_L1.cdf") == []
 
 
 def test_configure_logging_console_processing_level_color(

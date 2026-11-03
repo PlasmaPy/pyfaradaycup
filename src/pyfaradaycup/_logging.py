@@ -59,11 +59,16 @@ _FILE_MODES = {"append": "a", "overwrite": "w", "exclusive": "x"}
 # "not bold" overrides the bold that rich's number rule adds to the 5 in L0.5.
 _PROCESSING_LEVEL_STYLE = "green not bold"
 
+# The extensions of files that are highlighted in messages printed to a
+# terminal even without a directory: CDF files, log files, SPICE leap
+# second and SCLK kernels, housekeeping definitions, and gzipped files.
+_FILENAME_EXTENSIONS = ("cdf", "gz", "log", "tls", "tsc", "txt")
+
 
 class _Highlighter(ReprHighlighter):
     """
     Highlight what rich highlights by default, and also data processing
-    levels like L0 and L0.5.
+    levels like L0 and L0.5, and filenames without a directory.
 
     A processing level is an ``L`` followed by an integer or a decimal
     number. It is highlighted only when it is a separate word: when the
@@ -71,6 +76,13 @@ class _Highlighter(ReprHighlighter):
     periods, colons, semicolons, or parentheses. For example, ``L0`` is
     highlighted in ``L0 file``, ``L0, L0.5.``, and ``(L0):``, but not in
     ``APID351_L1.cdf`` or ``L0.5x``.
+
+    Rich highlights a filename only when it follows a directory, as in
+    ``/data/file.cdf``. A filename without a directory, like
+    ``0523462910_4_EA_APID351_L1.cdf``, is highlighted with the same
+    style when it ends with one of the extensions in
+    ``_FILENAME_EXTENSIONS`` and is a separate word, as for a
+    processing level.
     """
 
     # ClassVar is not used, because rich declares highlights without it.
@@ -82,6 +94,14 @@ class _Highlighter(ReprHighlighter):
         (
             r"(?<![^\s,.:;()])(?P<processing_level>L\d+(?:\.\d+)?)"
             r"(?![^\s,.:;()])(?!\.\d)"
+        ),
+        # The characters allowed in the name are those that rich allows in
+        # the filename of a path. (?!\.\w) stops a match of just a.cdf in
+        # a.cdf.bak.
+        (
+            r"(?<![^\s,.:;()])(?P<filename>[-\w.+]*\w"
+            rf"\.(?:{'|'.join(_FILENAME_EXTENSIONS)}))"
+            r"(?![^\s,.:;()])(?!\.\w)"
         ),
     ]
 
