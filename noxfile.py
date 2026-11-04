@@ -65,7 +65,7 @@ def tests(session: nox.Session) -> None:
     session.run("pytest", *doctest_options, *session.posargs)
 
 
-@nox_uv.session(uv_groups=["test", "coverage", "dagster"], python=MAXPYTHON)
+@nox_uv.session(uv_groups=["test", "dagster"], python=MAXPYTHON)
 def dagster_with_coverage(session: nox.Session) -> None:
     """
     Run all tests, including Dagster tests, with code coverage.
@@ -76,6 +76,10 @@ def dagster_with_coverage(session: nox.Session) -> None:
     The project is installed in editable mode (by ``uv sync``) so that
     file paths in the coverage report point to ``src/``, which is
     needed for the report uploaded to Codecov to map onto the source.
+
+    In CI, reports are uploaded by ``codecov/codecov-action``. To upload
+    a report locally, set the ``CODECOV_TOKEN`` environment variable and
+    run ``uvx --from codecov-cli codecovcli upload-process``.
 
     Configuration: ``[tool.coverage]`` in pyproject.toml
     """
