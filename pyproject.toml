@@ -40,6 +40,8 @@ scripts.pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
 
 [dependency-groups]
 dev = [
+  { include-group = "codecov" },
+  { include-group = "coverage" },
   { include-group = "dagster" },
   { include-group = "docs" },
   { include-group = "lint" },
@@ -52,7 +54,6 @@ test = [
   "cdflib",
   "pytest",
   "pytest-check>=2.9.1",
-  "pytest-cov",
   "pytest-filter-subpackage",
   "xarray>=2022.6,<2023.10; python_version<'3.11'",
   "xarray>=2024.6; python_version>='3.11'",
@@ -63,6 +64,13 @@ docs = [
   "sphinx-click",
   "sphinx-copybutton",
   "sphinx-notfound-page",
+]
+codecov = [
+  "codecov-cli>=11.3.1",
+]
+coverage = [
+  "coverage[toml]>=7.10.7",
+  "pytest-cov>=7.1",
 ]
 dagster = [
   "dagster>=1.12.1",
