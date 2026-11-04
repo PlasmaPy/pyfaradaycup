@@ -75,10 +75,10 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     Return the path of the log file for converting ``l0file``.
 
     The name contains the name of the L0 file and the current UTC time,
-    like ``swp_spc_l0_to_l05_0523462910_4_EA_20261029T142301Z.log``.
+    like ``l0_to_l05_0523462910_4_EA_20261029T142301Z.log``.
     """
     now = datetime.datetime.now(datetime.timezone.utc)
-    name = f"swp_spc_l0_to_l05_{l0file.stem}_{now:%Y%m%dT%H%M%SZ}.log"
+    name = f"l0_to_l05_{l0file.stem}_{now:%Y%m%dT%H%M%SZ}.log"
     return pathlib.Path("." if logdir is None else logdir) / name
 
 
@@ -217,7 +217,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     This writes one L0.5 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
     --l05dir, and a log file, such as
-    swp_spc_l0_to_l05_0523462910_4_EA_20261029T142301Z.log, into the
+    l0_to_l05_0523462910_4_EA_20261029T142301Z.log, into the
     directory given by --logdir. If --l05dir or --logdir is not given,
     the current directory is used. The log file has every message, with
     timestamps in UTC.
