@@ -66,25 +66,20 @@ def tests(session: nox.Session) -> None:
 
 
 @nox_uv.session(uv_groups=["test", "dagster"], python=MAXPYTHON)
-def dagster(session: nox.Session) -> None:
+def dagster_with_coverage(session: nox.Session) -> None:
     """
-    Run the tests of logging with Dagster.
+    Run all tests, including Dagster tests, with code coverage.
 
     Dagster has many dependencies, so it is installed only for this
-    session. The ``tests`` session skips these tests.
-    """
-    session.install(".")
-    session.run("pytest", "tests/test_logging.py", "-k", "dagster", *session.posargs)
-
-
-@nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
-def coverage(session: nox.Session) -> None:
-    """
-    Run tests with pytest and measure code coverage.
+    session. The ``tests`` session skips the Dagster tests.
 
     The project is installed in editable mode (by ``uv sync``) so that
     file paths in the coverage report point to ``src/``, which is
     needed for the report uploaded to Codecov to map onto the source.
+
+    In CI, reports are uploaded by ``codecov/codecov-action``. To upload
+    a report locally, set the ``CODECOV_TOKEN`` environment variable and
+    run ``uvx --from codecov-cli codecovcli upload-process``.
 
     Configuration: ``[tool.coverage]`` in pyproject.toml
     """

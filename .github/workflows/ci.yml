@@ -55,15 +55,10 @@ jobs:
           python: '3.13'
           nox_session: tests-3.13
 
-        - name: Tests with code coverage, Python 3.12
-          os: ubuntu-latest
-          python: '3.12'
-          nox_session: coverage-3.12
-
-        - name: Tests with Dagster
+        - name: Tests with code coverage and Dagster, Python 3.14
           os: ubuntu-latest
           python: '3.14'
-          nox_session: dagster
+          nox_session: dagster_with_coverage
 
         - name: Tests, Python 3.11
           os: macos-latest
@@ -124,7 +119,7 @@ jobs:
       run: uv run noxfile.py --session '${{ matrix.nox_session }}'
 
     - name: Upload coverage reports to Codecov
-      if: ${{ contains(matrix.nox_session, 'cov') }}
+      if: ${{ matrix.nox_session == 'dagster_with_coverage' }}
       uses: codecov/codecov-action@v7.0.0
       with:
         files: ./coverage.xml
