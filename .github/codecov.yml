@@ -7,10 +7,11 @@ coverage:
   status:
     project:
       default:
-        informational: true  # report coverage without failing checks
+        target: auto  # compare against the coverage of the base commit
+        threshold: 0.1%  # allowed decrease before the check fails
     patch:
       default:
-        informational: true
+        target: 95%  # minimum coverage of lines changed in a PR
 
 comment:
   layout: diff, flags, files
