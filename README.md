@@ -1,5 +1,7 @@
 # pyFaradayCup
 
+[![codecov](https://codecov.io/gh/PlasmaPy/pyfaradaycup/graph/badge.svg)](https://codecov.io/gh/PlasmaPy/pyfaradaycup)
+
 An open source Python package for data reduction and analysis of Faraday Cup measurements of heliospheric plasma, in the early stages of development.
 
 ## Installation from source into a virtual environment
