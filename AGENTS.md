@@ -9,7 +9,7 @@ Faraday cups. Source code is in `src/pyfaradaycup/`, tests are in
 `tests/`, and documentation is in `docs/`.
 
 The `pyfaradaycup.decommutator` subpackage converts binary Level 0 (L0)
-files into Level 0.5 (L0.5) CDF files:
+files into Level 0.5 (L0.5 or L05) CDF files:
 
 - `ccsds_reader_pipeline` reads CCSDS packets.
 - `l0_to_l05` performs the conversion from L0 to L0.5. Older code and
@@ -29,9 +29,7 @@ files into Level 0.5 (L0.5) CDF files:
     tests, with code coverage (the `tests` sessions skip Dagster tests)
   - `nox -s zizmor`: find security issues in GitHub workflows
 - Run both `nox -s tests-3.9` and `nox -s tests-3.14` when changing Python functionality.
-- Lint files with `uvx prek --quiet`, where prek is an alternative to pre-commit.
-- The minimum supported Python version is given by `requires-python` in
-  `pyproject.toml`.
+- Lint files with `uvx prek --quiet`.
 
 ## Python compatibility
 
