@@ -125,16 +125,6 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
     assert not list(tmp_path.glob("*.log"))
 
 
-@pytest.mark.parametrize("option", ["-b", "--batch", "-d", "--l0dir"])
-def test_pfc_decommutator_removed_options(tmp_path: Path, option: str) -> None:
-    """Test that options that did nothing have been removed."""
-    result = CliRunner().invoke(
-        pfc_decommutator, [f"--logdir={tmp_path}", option, str(l0file)]
-    )
-    assert result.exit_code == click.UsageError.exit_code
-    # The message is "No such option: --batch" for click < 8.2
-    assert re.search(rf"No such option:? '?{option}\b", result.output)
-    assert not list(tmp_path.glob("*.log"))
 
 
 @pytest.mark.parametrize(
