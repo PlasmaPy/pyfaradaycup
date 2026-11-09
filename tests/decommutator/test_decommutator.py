@@ -125,8 +125,6 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
     assert not list(tmp_path.glob("*.log"))
 
 
-
-
 @pytest.mark.parametrize(
     ("verbose", "quiet", "expected"),
     [
