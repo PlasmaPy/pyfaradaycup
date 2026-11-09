@@ -120,7 +120,8 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
         pfc_decommutator, [f"--logdir={tmp_path}", f"--l0file={l0file}"]
     )
     assert result.exit_code == click.UsageError.exit_code
-    assert "No such option '--l0file'" in result.output
+    # The message is "No such option: --l0file" for click < 8.2
+    assert re.search(r"No such option:? '?--l0file", result.output)
     assert not list(tmp_path.glob("*.log"))
 
 
