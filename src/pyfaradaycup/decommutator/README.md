@@ -82,7 +82,7 @@ Calling the conversion as a function is better suited to Dagster than starting a
 
 ### Remove options that do nothing
 
-- `--batch`, `--recursive`, and `--l0dir` do not convert any additional files, and `--stcorrect` raises an error.
+- `--recursive` and `--l0dir` do not convert any additional files, and `--stcorrect` raises an error.
   Dagster should start one step for each L0 file, for example with partitions, so batch processing is not needed in this tool.
 - `--ptp` only has an effect together with `--spacecraft`.
 
@@ -162,7 +162,7 @@ Most of these can be tested with `monkeypatch`, without new data files.
 
 ### Command line options
 
-- **Test the usage errors from `pfc_decommutator`**: an `--apid` that is not hexadecimal, `-b` or `-r` without `--l0dir`, and `--stcorrect`.
+- **Test the usage errors from `pfc_decommutator`**: an `--apid` that is not hexadecimal, `-r` without `--l0dir`, and `--stcorrect`.
 
 ### Comparing CDF files
 

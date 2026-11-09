@@ -125,6 +125,18 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
     assert not list(tmp_path.glob("*.log"))
 
 
+@pytest.mark.parametrize("option", ["-b", "--batch"])
+def test_pfc_decommutator_removed_options(tmp_path: Path, option: str) -> None:
+    """Test that options that did nothing have been removed."""
+    result = CliRunner().invoke(
+        pfc_decommutator, [f"--logdir={tmp_path}", option, str(l0file)]
+    )
+    assert result.exit_code == click.UsageError.exit_code
+    # The message is "No such option: --batch" for click < 8.2
+    assert re.search(rf"No such option:? '?{option}\b", result.output)
+    assert not list(tmp_path.glob("*.log"))
+
+
 @pytest.mark.parametrize(
     ("verbose", "quiet", "expected"),
     [
@@ -144,10 +156,10 @@ def test_warn_about_ineffective_options(caplog: pytest.LogCaptureFixture) -> Non
     """Test that options with no effect are logged as warnings."""
     with caplog.at_level(logging.WARNING, logger="pyfaradaycup"):
         _warn_about_ineffective_options(
-            batch=True, recursive=False, l0dir=None, ptp=True, spacecraft=False
+            recursive=True, l0dir=None, ptp=True, spacecraft=False
         )
     assert caplog.messages == [
-        "-b/--batch is not implemented; only L0FILE will be converted",
+        "-r/--recursive is not implemented; only L0FILE will be converted",
         "-p/--ptp is ignored unless -sc/--spacecraft is also given",
     ]
 
