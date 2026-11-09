@@ -796,7 +796,7 @@ class APID:
     """
     Store the bit layout of one packet type (APID).
 
-    An empty instance is created by `_get_layout` or `_get_layout_sc`,
+    An empty instance is created by ``_get_layout`` or ``_get_layout_sc``,
     which then fill in the attributes from a telemetry definition file.
 
     Attributes
@@ -809,23 +809,23 @@ class APID:
 
     bytestart, bitstart : list or numpy.ndarray of int
         Byte and bit position where each field starts. Set by
-        `_get_layout`.
+        ``_get_layout``.
 
     byteend, bitend : list or numpy.ndarray of int
         Byte and bit position where each field ends. Set by
-        `_get_layout`.
+        ``_get_layout``.
 
     startbyte, startbit : list of int
         Byte and bit position where each field starts, as listed in the
-        spacecraft housekeeping definition file. Set by `_get_layout_sc`.
+        spacecraft housekeeping definition file. Set by ``_get_layout_sc``.
 
     data : dict of str to list
-        An empty list for each mnemonic. Set by `_get_layout`.
+        An empty list for each mnemonic. Set by ``_get_layout``.
 
     Notes
     -----
-    `_get_layout` and `_get_layout_sc` also add an ``apid`` attribute
-    (the APID as an int). `_get_layout` adds a ``sw_data_vars``
+    ``_get_layout`` and ``_get_layout_sc`` also add an ``apid`` attribute
+    (the APID as an int). ``_get_layout`` adds a ``sw_data_vars``
     attribute (a list of mnemonics in the science data block) for
     packets that have one.
     """

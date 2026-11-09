@@ -61,6 +61,11 @@ intersphinx_timeout = 60
 # like --l05dir are shown correctly
 smartquotes_action = "qe"
 
+# Treat text in single backticks, like `~pyfaradaycup.configure_logging`,
+# as a cross-reference to a Python object, so that it becomes a link and
+# is checked by nitpicky mode
+default_role = "py:obj"
+
 templates_path = ["_templates"]
 exclude_patterns = []
 
