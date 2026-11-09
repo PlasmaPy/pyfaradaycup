@@ -41,12 +41,10 @@ def _warn_about_ineffective_options(
     """Log a warning for each option that has little or no effect."""
     warnings = []
     if batch:
-        warnings.append(
-            "-b/--batch is not implemented; only --l0file will be converted"
-        )
+        warnings.append("-b/--batch is not implemented; only L0FILE will be converted")
     if recursive:
         warnings.append(
-            "-r/--recursive is not implemented; only --l0file will be converted"
+            "-r/--recursive is not implemented; only L0FILE will be converted"
         )
     if l0dir is not None:
         warnings.append(
@@ -113,7 +111,7 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     is_flag=True,
     help=(
         "Convert all L0 files in same directory as selected. "
-        "Not implemented: only --l0file is converted."
+        "Not implemented: only L0FILE is converted."
     ),
 )
 @click.option(
@@ -122,7 +120,7 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     is_flag=True,
     help=(
         "Convert all L0 files in given directory and in all subdirectories. "
-        "Not implemented: only --l0file is converted."
+        "Not implemented: only L0FILE is converted."
     ),
 )
 @click.option(
@@ -158,12 +156,6 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     help="APID to create L0.5 CDF file for, in hexadecimal (e.g., 35E) [0==all]",
 )
 @click.option(
-    "-l0",
-    "--l0file",
-    type=click.Path(dir_okay=False, path_type=pathlib.Path),
-    help="Input L0 File. Required.",
-)
-@click.option(
     "-d",
     "--l0dir",
     type=click.Path(file_okay=False, path_type=pathlib.Path),
@@ -184,6 +176,11 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     type=click.Path(file_okay=False, path_type=pathlib.Path),
     help="Output for Log Files. Defaults to the current directory. Created if it does not exist.",
 )
+@click.argument(
+    "l0file",
+    metavar="L0FILE",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+)
 def pfc_decommutator(  # ruff:ignore[PLR0913]
     *,
     verbose: int,
@@ -196,7 +193,7 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     overwrite: bool,
     stcorrect: bool,
     apid: int,
-    l0file: pathlib.Path | None,
+    l0file: pathlib.Path,
     l0dir: pathlib.Path | None,
     l05dir: pathlib.Path | None,
     logdir: pathlib.Path | None,
@@ -209,10 +206,10 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     \b
         pfc_decommutator \\
-            --l0file=/path/to/0523462910_4_EA \\
             --l05dir=/path/to/l05dir \\
             --logdir=/path/to/logdir \\
-            -v
+            -v \\
+            /path/to/0523462910_4_EA
 
     This writes one L0.5 CDF file for each APID found in the L0 file, such
     as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
@@ -225,14 +222,10 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     The exit code is 1 if any APID could not be converted.
     """  # ruff:ignore[D301]
     # Make sure we got a good argument set. Because -b and -r are not
-    # implemented, --l0file is needed even when they are given.
+    # implemented, L0FILE is needed even when they are given.
     if (batch or recursive) and l0dir is None:
         raise click.UsageError(  # ruff:ignore[TRY003]
             "You must provide --l0dir if using -b or -r"  # ruff:ignore[EM101]
-        )
-    if l0file is None:
-        raise click.UsageError(  # ruff:ignore[TRY003]
-            "You must provide --l0file"  # ruff:ignore[EM101]
         )
     if verbose and quiet:
         raise click.UsageError(  # ruff:ignore[TRY003]

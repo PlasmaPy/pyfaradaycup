@@ -58,7 +58,7 @@ intersphinx_mapping = {
 intersphinx_timeout = 60
 
 # Do not convert "--" into an en dash, so that command line options
-# like --l0file are shown correctly
+# like --l05dir are shown correctly
 smartquotes_action = "qe"
 
 templates_path = ["_templates"]

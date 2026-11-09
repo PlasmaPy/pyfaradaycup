@@ -42,10 +42,10 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
     result = CliRunner().invoke(
         pfc_decommutator,
         [
-            f"--l0file={l0file}",
             f"--l05dir={l05dir}",
             f"--logdir={logdir}",
             "-v",
+            l0file,
         ],
         catch_exceptions=False,
     )
@@ -87,7 +87,7 @@ def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
     missing_file = tmp_path / "missing_l0_file"
     result = CliRunner().invoke(
         pfc_decommutator,
-        [f"--l0file={missing_file}", f"--l05dir={tmp_path}", f"--logdir={tmp_path}"],
+        [f"--l05dir={tmp_path}", f"--logdir={tmp_path}", str(missing_file)],
         catch_exceptions=False,
     )
     assert result.exit_code == 1
@@ -100,11 +100,28 @@ def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
 
 def test_pfc_decommutator_verbose_and_quiet(tmp_path: Path) -> None:
     """Test that -v and -q cannot be used together."""
-    result = CliRunner().invoke(
-        pfc_decommutator, [f"--l0file={tmp_path / 'l0'}", "-v", "-q"]
-    )
+    result = CliRunner().invoke(pfc_decommutator, ["-v", "-q", str(tmp_path / "l0")])
     assert result.exit_code == click.UsageError.exit_code
     assert "cannot be used together" in result.output
+    assert not list(tmp_path.glob("*.log"))
+
+
+def test_pfc_decommutator_missing_l0file(tmp_path: Path) -> None:
+    """Test that L0FILE is a required positional argument."""
+    result = CliRunner().invoke(pfc_decommutator, [f"--logdir={tmp_path}"])
+    assert result.exit_code == click.UsageError.exit_code
+    assert "Missing argument 'L0FILE'" in result.output
+    assert not list(tmp_path.glob("*.log"))
+
+
+def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
+    """Test that the L0 file can no longer be given with --l0file."""
+    result = CliRunner().invoke(
+        pfc_decommutator, [f"--logdir={tmp_path}", f"--l0file={l0file}"]
+    )
+    assert result.exit_code == click.UsageError.exit_code
+    # The message is "No such option: --l0file" for click < 8.2
+    assert re.search(r"No such option:? '?--l0file", result.output)
     assert not list(tmp_path.glob("*.log"))
 
 
@@ -130,7 +147,7 @@ def test_warn_about_ineffective_options(caplog: pytest.LogCaptureFixture) -> Non
             batch=True, recursive=False, l0dir=None, ptp=True, spacecraft=False
         )
     assert caplog.messages == [
-        "-b/--batch is not implemented; only --l0file will be converted",
+        "-b/--batch is not implemented; only L0FILE will be converted",
         "-p/--ptp is ignored unless -sc/--spacecraft is also given",
     ]
 
@@ -214,10 +231,10 @@ def test_pfc_decommutator_failed_apid(
     result = CliRunner().invoke(
         pfc_decommutator,
         [
-            f"--l0file={l0file}",
             f"--l05dir={tmp_path}",
             f"--logdir={tmp_path}",
             "--apid=352",
+            str(l0file),
         ],
         catch_exceptions=False,
     )

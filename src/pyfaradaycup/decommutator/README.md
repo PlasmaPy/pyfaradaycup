@@ -162,7 +162,7 @@ Most of these can be tested with `monkeypatch`, without new data files.
 
 ### Command line options
 
-- **Test the usage errors from `pfc_decommutator`**: an `--apid` that is not hexadecimal, `-b` or `-r` without `--l0dir`, a missing `--l0file`, and `--stcorrect`.
+- **Test the usage errors from `pfc_decommutator`**: an `--apid` that is not hexadecimal, `-b` or `-r` without `--l0dir`, and `--stcorrect`.
 
 ### Comparing CDF files
 
