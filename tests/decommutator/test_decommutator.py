@@ -143,11 +143,9 @@ def test_console_level(*, verbose: int, quiet: bool, expected: int) -> None:
 def test_warn_about_ineffective_options(caplog: pytest.LogCaptureFixture) -> None:
     """Test that options with no effect are logged as warnings."""
     with caplog.at_level(logging.WARNING, logger="pyfaradaycup"):
-        _warn_about_ineffective_options(
-            batch=True, recursive=False, l0dir=None, ptp=True, spacecraft=False
-        )
+        _warn_about_ineffective_options(recursive=True, ptp=True, spacecraft=False)
     assert caplog.messages == [
-        "-b/--batch is not implemented; only L0FILE will be converted",
+        "-r/--recursive is not implemented; only L0FILE will be converted",
         "-p/--ptp is ignored unless -sc/--spacecraft is also given",
     ]
 
