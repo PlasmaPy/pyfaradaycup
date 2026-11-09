@@ -33,7 +33,6 @@ def _parse_apid(
 def _warn_about_ineffective_options(
     *,
     recursive: bool,
-    l0dir: pathlib.Path | None,
     ptp: bool,
     spacecraft: bool,
 ) -> None:
@@ -42,10 +41,6 @@ def _warn_about_ineffective_options(
     if recursive:
         warnings.append(
             "-r/--recursive is not implemented; only L0FILE will be converted"
-        )
-    if l0dir is not None:
-        warnings.append(
-            "-d/--l0dir is not implemented; no files in it will be converted"
         )
     if ptp and not spacecraft:
         warnings.append("-p/--ptp is ignored unless -sc/--spacecraft is also given")
@@ -144,15 +139,6 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     help="APID to create L0.5 CDF file for, in hexadecimal (e.g., 35E) [0==all]",
 )
 @click.option(
-    "-d",
-    "--l0dir",
-    type=click.Path(file_okay=False, path_type=pathlib.Path),
-    help=(
-        "Input L0 Directory (for use with -r). "
-        "Not implemented: no files in it are converted."
-    ),
-)
-@click.option(
     "-dl05",
     "--l05dir",
     type=click.Path(file_okay=False, path_type=pathlib.Path),
@@ -181,7 +167,6 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     stcorrect: bool,
     apid: int,
     l0file: pathlib.Path,
-    l0dir: pathlib.Path | None,
     l05dir: pathlib.Path | None,
     logdir: pathlib.Path | None,
 ) -> None:
@@ -208,12 +193,6 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     The exit code is 1 if any APID could not be converted.
     """  # ruff:ignore[D301]
-    # Make sure we got a good argument set. Because -r is not
-    # implemented, L0FILE is needed even when it is given.
-    if recursive and l0dir is None:
-        raise click.UsageError(  # ruff:ignore[TRY003]
-            "You must provide --l0dir if using -r"  # ruff:ignore[EM101]
-        )
     if verbose and quiet:
         raise click.UsageError(  # ruff:ignore[TRY003]
             "-v/--verbose and -q/--quiet cannot be used together"  # ruff:ignore[EM101]
@@ -234,7 +213,6 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         logger.info("Writing log file %s", log_file)
         _warn_about_ineffective_options(
             recursive=recursive,
-            l0dir=l0dir,
             ptp=ptp,
             spacecraft=spacecraft,
         )
