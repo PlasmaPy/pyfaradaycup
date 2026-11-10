@@ -15,6 +15,7 @@ import pytest_check
 import spiceypy
 import xarray
 from click.testing import CliRunner
+from spacepy import pycdf
 
 from pyfaradaycup.decommutator import (
     DecommutationError,
@@ -438,3 +439,56 @@ def test_l0_to_l05_keeps_kernels_loaded_by_caller(tmp_path: Path) -> None:
         assert tls in before
     finally:
         spiceypy.unload(tls)
+
+
+def _fail_to_fill(cdf: pycdf.CDF, _dat: object) -> None:
+    """Write a global attribute to a CDF, and then fail to fill it."""
+    cdf.attrs["Partial"] = "yes"
+    msg = "made-up error while filling"
+    raise ValueError(msg)
+
+
+def test_l0_to_l05_deletes_cdf_that_could_not_be_filled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that a CDF that could not be filled is recorded as a failure
+    and deleted, so that a retry without ``overwrite`` converts the APID.
+    """
+    l1path = tmp_path / "0523462910_4_EA_APID352_L1.cdf"
+    with monkeypatch.context() as patch:
+        patch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
+        result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
+
+    assert result.failures[0x352].startswith(f"Could not fill {l1path} (deleted)")
+    assert "made-up error while filling" in result.failures[0x352]
+    assert set(result.cdf_files) == set()
+    assert not l1path.exists()
+
+    retry = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
+    assert retry.succeeded
+    assert retry.cdf_files == {0x352: l1path}
+
+
+def test_l0_to_l05_close_error_keeps_fill_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test that an error from closing a CDF that could not be filled is
+    logged, and does not replace the error from filling it.
+    """
+
+    def fail_to_close(cdf: pycdf.CDF) -> None:
+        cdf.close()
+        raise pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR)
+
+    monkeypatch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
+    monkeypatch.setattr(_l0_to_l05, "_close_cdf", fail_to_close)
+    with caplog.at_level(logging.WARNING, logger=_l0_to_l05.__name__):
+        result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
+
+    assert "made-up error while filling" in result.failures[0x352]
+    assert any(
+        record.getMessage().startswith("Could not close") for record in caplog.records
+    )
+    assert not (tmp_path / "0523462910_4_EA_APID352_L1.cdf").exists()
