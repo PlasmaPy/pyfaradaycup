@@ -10,6 +10,7 @@ documentation for details.
    :caption: Contents:
 
    cli
+   python
    logging
    api/modules
    glossary

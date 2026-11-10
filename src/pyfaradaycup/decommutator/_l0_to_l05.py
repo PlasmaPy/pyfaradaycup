@@ -1,4 +1,4 @@
-"""Contains the main function for the decommutator."""
+"""Convert SPC L0 files into L0.5 CDF files."""
 
 # The original version of this file from /psp/code on fc was swp_spc_l02l1.py,
 # which was run as a script.
@@ -38,8 +38,9 @@
 from __future__ import annotations
 
 __all__ = [
+    "DecommutationError",
     "DecommutationResult",
-    "main",
+    "l0_to_l05",
 ]
 
 import collections
@@ -74,10 +75,15 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 _PROVENANCE_PACKAGES = ("pyfaradaycup", "numpy", "spacepy", "spiceypy")
 
 
+def _apid_name(apid: int) -> str:
+    """Return an APID as it appears in CDF file names, like ``0x35E``."""
+    return f"0x{apid:03X}"
+
+
 @dataclasses.dataclass(frozen=True)
 class DecommutationResult:
     """
-    What `main` did when converting one L0 file, and the inputs it used.
+    What `l0_to_l05` did when converting one L0 file, and the inputs it used.
     """
 
     # Each field is documented in a docstring below it rather than in an
@@ -125,6 +131,72 @@ class DecommutationResult:
         """Whether every APID was converted."""
         return not self.failures
 
+    def raise_for_failures(self) -> None:
+        """
+        Raise an exception if any APID could not be converted.
+
+        Raises
+        ------
+        DecommutationError
+            If ``failures`` is not empty.
+        """
+        if self.failures:
+            raise DecommutationError(self)
+
+    def to_metadata(self) -> dict[str, object]:
+        """
+        Return the result as a dictionary that can be serialized as JSON.
+
+        This is meant for recording the result in a pipeline, as in
+        ``dagster.MaterializeResult(metadata=result.to_metadata())``.
+
+        Returns
+        -------
+        dict of str to object
+            Every field of the result, and ``succeeded``. Paths are
+            converted to strings, and APIDs to strings like ``"0x35E"``.
+        """
+        return {
+            "l0file": str(self.l0file),
+            "l0file_sha256": self.l0file_sha256,
+            "succeeded": self.succeeded,
+            "cdf_files": {_apid_name(a): str(p) for a, p in self.cdf_files.items()},
+            "failures": {_apid_name(a): r for a, r in self.failures.items()},
+            "packet_counts": {_apid_name(a): n for a, n in self.packet_counts.items()},
+            "kernels": [str(path) for path in self.kernels],
+            "skeletons": {_apid_name(a): str(p) for a, p in self.skeletons.items()},
+            "software_versions": dict(self.software_versions),
+            "hostname": self.hostname,
+            "elapsed": self.elapsed,
+        }
+
+
+class DecommutationError(RuntimeError):
+    """
+    An exception for when one or more APIDs could not be converted.
+
+    Parameters
+    ----------
+    result : DecommutationResult
+        The result of the conversion, which is kept in the ``result``
+        attribute so that the CDF files that were written can still be
+        found.
+    """
+
+    def __init__(self, result: DecommutationResult) -> None:
+        reasons = "; ".join(
+            f"{_apid_name(apid)}: {reason}" for apid, reason in result.failures.items()
+        )
+        super().__init__(
+            f"Could not convert {len(result.failures)} APIDs from "
+            f"{result.l0file}: {reasons}"
+        )
+        self.result = result
+
+    def __reduce__(self) -> tuple[type[DecommutationError], tuple[DecommutationResult]]:
+        """Allow the exception to be pickled, as when sent between processes."""
+        return type(self), (self.result,)
+
 
 def _loaded_kernels() -> collections.Counter[str]:
     """Return the number of times that each SPICE kernel file is loaded."""
@@ -158,15 +230,16 @@ def _unload_kernels_afterward(func: _F) -> _F:
 
 
 @_unload_kernels_afterward
-def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
+def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l0file: str | os.PathLike[str],
-    l05dir: str | os.PathLike[str] | None = None,
     *,
+    l05dir: str | os.PathLike[str] | None = None,
     spacecraft: bool = False,
     ptp: bool = False,
     gzip: bool = False,
     apidreq: int = 0,
     overwrite: bool = False,
+    raise_on_failure: bool = False,
 ) -> DecommutationResult:
     """
     Convert one SPC L0 file into L0.5 CDF files, one per APID.
@@ -188,7 +261,7 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
 
     ptp : bool, optional
         If `True`, the L0 file is a PTP file. Only used when
-        ``spacecraft`` is `True`.
+        ``spacecraft`` is `True`; otherwise a warning is logged.
 
     gzip : bool, optional
         If `True`, read the L0 file as gzip-compressed.
@@ -200,6 +273,12 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     overwrite : bool, optional
         If `True`, replace L0.5 CDF files that already exist. If `False`
         and a file already exists, a `FileExistsError` is raised.
+
+    raise_on_failure : bool, optional
+        If `True`, raise a `DecommutationError` after converting every
+        APID that could be converted, if any could not. If `False` (the
+        default), check ``failures`` or call
+        `DecommutationResult.raise_for_failures` on the result instead.
 
     Returns
     -------
@@ -219,6 +298,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         If the SPICE kernels cannot be loaded, or the L0 file cannot be
         read.
 
+    DecommutationError
+        If ``raise_on_failure`` is `True` and any APID could not be
+        converted.
+
     Notes
     -----
     Errors for a single APID do not stop the conversion. If the
@@ -226,7 +309,9 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     cannot be filled, or the APID is 0x07B (which is not implemented),
     the error is logged, recorded in the ``failures`` attribute of the
     result, and the next APID is processed. A CDF that could not be
-    filled may be left behind.
+    filled may be left behind. Use ``raise_on_failure=True`` so that a
+    caller such as a Dagster asset cannot mistake a partial conversion
+    for a successful one.
 
     The SPICE kernels that this function loads are unloaded when it
     returns or raises, so it can be called more than once in the same
@@ -235,6 +320,19 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     Progress and errors are logged with the `logging` module rather than
     printed. Use `~pyfaradaycup.configure_logging` to show them or write
     them to a log file.
+
+    Examples
+    --------
+    Convert an L0 file, writing the CDF files into the ``l05``
+    directory, and raise an exception if any APID could not be
+    converted:
+
+    >>> from pyfaradaycup.decommutator import l0_to_l05
+    >>> result = l0_to_l05(
+    ...     "0523462910_4_EA", l05dir="l05", raise_on_failure=True
+    ... )  # doctest: +SKIP
+    >>> [hex(apid) for apid in sorted(result.cdf_files)]  # doctest: +SKIP
+    ['0x351', '0x352', '0x353', '0x354', '0x35e', '0x35f']
     """
     if not l0file:
         raise ValueError("Please supply l0file")  # ruff:ignore[EM101, TRY003]
@@ -260,6 +358,8 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         hex(apidreq),
         overwrite,
     )
+    if ptp and not spacecraft:
+        logger.warning("ptp=True is ignored unless spacecraft=True")
 
     # Make sure the L0 file exists and is readable
     try:
@@ -474,6 +574,8 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             ", ".join(hex(apid) for apid in failures),
         )
 
+    if raise_on_failure:
+        result.raise_for_failures()
     return result
 
 
@@ -502,7 +604,7 @@ def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C9
     Fill a CDF with housekeeping data, one row per packet.
 
     This handles SPC housekeeping packets (APIDs 0x35E and 0x35F) and
-    the spacecraft housekeeping packets that `main` sends here
+    the spacecraft housekeeping packets that `l0_to_l05` sends here
     (APIDs 0x081, 0x1DE, 0x254, 0x256, 0x257, and 0x262).
 
     Parameters

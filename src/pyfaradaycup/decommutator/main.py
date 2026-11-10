@@ -11,7 +11,7 @@ import pathlib
 import click
 
 from pyfaradaycup._logging import configure_logging
-from pyfaradaycup.decommutator import l0_to_l05
+from pyfaradaycup.decommutator._l0_to_l05 import l0_to_l05
 
 logger = logging.getLogger(__name__)
 
@@ -30,23 +30,17 @@ def _parse_apid(
         )
 
 
-def _warn_about_ineffective_options(
-    *,
-    recursive: bool,
-    ptp: bool,
-    spacecraft: bool,
-) -> None:
-    """Log a warning for each option that has little or no effect."""
-    warnings = []
+def _warn_about_ineffective_options(*, recursive: bool) -> None:
+    """
+    Log a warning for each option that has no effect.
+
+    Options that are passed on to `~pyfaradaycup.decommutator.l0_to_l05`,
+    like ``--ptp``, are checked there instead.
+    """
     if recursive:
-        warnings.append(
+        logger.warning(
             "-r/--recursive is not implemented; only L0FILE will be converted"
         )
-    if ptp and not spacecraft:
-        warnings.append("-p/--ptp is ignored unless -sc/--spacecraft is also given")
-
-    for warning in warnings:
-        logger.warning(warning)
 
 
 def _console_level(*, verbose: int, quiet: bool) -> int:
@@ -211,13 +205,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
         ctx = click.get_current_context()
         logger.info("Running %s with options %s", ctx.command_path, ctx.params)
         logger.info("Writing log file %s", log_file)
-        _warn_about_ineffective_options(
-            recursive=recursive,
-            ptp=ptp,
-            spacecraft=spacecraft,
-        )
+        _warn_about_ineffective_options(recursive=recursive)
         try:
-            result = l0_to_l05.main(
+            result = l0_to_l05(
                 l0file=l0file,
                 l05dir=l05dir,
                 spacecraft=spacecraft,

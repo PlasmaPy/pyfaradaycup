@@ -4,7 +4,7 @@ This directory contains the code that converts Parker Solar Probe SPC L0 files i
 For historical reasons, the output files are named `*_L1.cdf`.
 
 - `main.py` defines the `pfc_decommutator` command line tool.
-- `l0_to_l05.py` defines `main`, which does the conversion for one L0 file.
+- `_l0_to_l05.py` defines `l0_to_l05`, which does the conversion for one L0 file.
 - `ccsds_reader_pipeline.py` reads the CCSDS packets from an L0 file.
 
 > [!NOTE]
@@ -19,10 +19,13 @@ The changes below are listed with the most important first.
 
 Dagster decides whether a step succeeded from the exit code of a subprocess, or from whether a Python call raised an exception.
 
-- **Decide whether `main` should raise when an APID fails.**
-  When a skeleton file is missing, when a CDF cannot be created or filled, or when the APID is 0x07B, `main` logs an error, records it in the `failures` attribute of the `DecommutationResult` it returns, and moves to the next APID.
-  `pfc_decommutator` then exits with a code of 1, but a Dagster asset that calls `main` must check `result.succeeded` itself.
-  A CDF that could not be filled is left behind without being closed.
+- **Decide whether `l0_to_l05` should raise by default when an APID fails.**
+  When a skeleton file is missing, when a CDF cannot be created or filled, or when the APID is 0x07B, `l0_to_l05` logs an error, records it in the `failures` attribute of the `DecommutationResult` it returns, and moves to the next APID.
+  `pfc_decommutator` then exits with a code of 1.
+  A Dagster asset should pass `raise_on_failure=True` or call `result.raise_for_failures()`, which raise a `DecommutationError`; otherwise the asset succeeds after a partial conversion.
+  Making `raise_on_failure=True` the default would make this mistake impossible.
+- **Close a CDF that could not be filled.**
+  It is left behind without being closed, so a Python caller that keeps running holds the file open.
 
 ### Make retries and parallel runs safe
 
@@ -32,13 +35,15 @@ Dagster decides whether a step succeeded from the exit code of a subprocess, or 
   Without `--overwrite`, a retry stops at the first L0.5 CDF file that already exists.
   A Dagster step should either always overwrite, or skip files that are already complete.
 
-### Make it callable from Python
+### Calling it from Python
 
-Calling the conversion as a function is better suited to Dagster than starting a subprocess, since Dagster can then capture exceptions, log messages, and return values.
+This is done: an asset should call `pyfaradaycup.decommutator.l0_to_l05` rather than `pfc_decommutator`, which ends the Python process when it finishes.
+`docs/source/python.rst` has an example asset.
 
-- **Keep `pfc_decommutator` as a thin wrapper.**
-  A click command ends the Python process when it finishes, so it should not be called from an asset or op.
-  All checks that matter should be in the function that the asset calls.
+- `pfc_decommutator` is a thin wrapper, and the checks that matter are in `l0_to_l05`.
+  Keep it that way when adding options.
+- `DecommutationResult.to_metadata` returns the result in a form that can be used as the metadata of an asset materialization.
+- `tests/decommutator/test_dagster.py` converts an L0 file in an asset, and runs only in `nox -s dagster_with_coverage`.
 
 ### Make the inputs configurable
 
@@ -52,7 +57,7 @@ Calling the conversion as a function is better suited to Dagster than starting a
 ### Record provenance in the CDF files
 
 - **Write the provenance into the global attributes of each CDF.**
-  `main` logs the software versions, host, SHA-256 checksum of the L0 file, and the kernels and skeletons used, and returns them in a `DecommutationResult`, but none of this is written to the CDF files.
+  `l0_to_l05` logs the software versions, host, SHA-256 checksum of the L0 file, and the kernels and skeletons used, and returns them in a `DecommutationResult`, but none of this is written to the CDF files.
   A CDF file that is separated from its log file therefore cannot be traced back to how it was made.
   Add global attributes such as `Parents` (the L0 file and its checksum), `Software_version`, and `Generation_date`, following the ISTP guidelines.
   This changes the contents of the CDF files, so the expected CDF files in `tests/data` would need to be regenerated.
@@ -134,12 +139,12 @@ Both accept `nocdf=True`, which returns the expanded data without writing a CDF 
 
 - **Decide what should happen when `_cdf35e_35f` cannot calculate `Epoch`.**
   If none of the expected MET fields are present, `_cdf35e_35f` logs an error and returns without writing any data.
-  `main` then reports the CDF file as written, and the APID is not included in `failures`.
+  `l0_to_l05` then reports the CDF file as written, and the APID is not included in `failures`.
 - **Decide what should happen when the CDF skeleton has a variable that the data does not.**
   `_cdf351_353_354` raises `RuntimeError`, but `_cdf352` only logs a warning.
   A test for each function would show whether this difference is intended.
 
-### Errors in `main`
+### Errors in `l0_to_l05`
 
 Most of these can be tested with `monkeypatch`, without new data files.
 
@@ -152,7 +157,7 @@ Most of these can be tested with `monkeypatch`, without new data files.
 
 - **Test that a gzip-compressed L0 file (`--gzip`) gives the same CDF files** as the uncompressed file.
 - **Test that a compressed PTP file name** (such as `*.ptp.gz`) gives CDF file names without `.ptp` in them.
-  `main` removes a second extension only when the first one leaves a name ending in `ptp`.
+  `l0_to_l05` removes a second extension only when the first one leaves a name ending in `ptp`.
 - **Test that `_get_layout` raises `RuntimeError`** for a line in `sweap_tlm.blk` that cannot be parsed, and returns `None` for an APID that is not in the file.
 - **Test that `_get_newest_kernel` raises `RuntimeError`** when no kernel files match, and when both or neither of `tls` and `sclk` are `True`.
 
@@ -172,4 +177,4 @@ Most of these can be tested with `monkeypatch`, without new data files.
 - `_wrapper_status` in `ccsds_reader_pipeline.py` is not called anywhere.
   Either remove it, or test it if it is meant to be used.
 - `_cdf351_353_354` raises `UnboundLocalError` for an APID other than 0x351, 0x353, or 0x354.
-  `main` never calls it with another APID, so a test is not needed unless it becomes public.
+  `l0_to_l05` never calls it with another APID, so a test is not needed unless it becomes public.
