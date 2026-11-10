@@ -37,7 +37,7 @@ def test_package_logger_has_only_null_handler() -> None:
     [
         "pyfaradaycup.decommutator.ccsds_reader_pipeline",
         "pyfaradaycup.decommutator.main",
-        "pyfaradaycup.decommutator.l0_to_l05",
+        "pyfaradaycup.decommutator._l0_to_l05",
     ],
 )
 def test_module_logger(module_name: str) -> None:
