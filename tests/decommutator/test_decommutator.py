@@ -31,7 +31,6 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-@pytest.mark.slow
 def test_pfc_decommutator(tmp_path: Path) -> None:
     """Test the level 0 to level 0.5 step using the click command line tool."""
     tag = "0523462910_4_EA"
