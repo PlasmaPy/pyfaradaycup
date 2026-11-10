@@ -309,7 +309,7 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     cannot be filled, or the APID is 0x07B (which is not implemented),
     the error is logged, recorded in the ``failures`` attribute of the
     result, and the next APID is processed. A CDF that could not be
-    filled may be left behind. Use ``raise_on_failure=True`` so that a
+    filled is deleted. Use ``raise_on_failure=True`` so that a
     caller such as a Dagster asset cannot mistake a partial conversion
     for a successful one.
 
@@ -526,23 +526,30 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
-            failures[apid] = f"Could not fill {l1path}: {exc!r}"
+            failures[apid] = f"Could not fill {l1path} (deleted): {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
-                "Could not fill %s for APID %s (%r); skipping this APID",
+                "Could not fill %s for APID %s (%r); deleting it and skipping "
+                "this APID",
                 l1path,
                 hex(apid),
                 exc,
             )
+            # Close the CDF now rather than when it is garbage
+            # collected, without letting an error from closing replace
+            # the error from filling it. The partially filled CDF is
+            # deleted so that it is not mistaken for a complete one, and
+            # so that a retry without overwrite does not stop at it.
+            try:
+                _close_cdf(cdf)
+            except pycdf.CDFError:
+                logger.warning("Could not close %s", l1path, exc_info=True)
+            try:
+                l1path.unlink(missing_ok=True)
+            except OSError:
+                logger.warning("Could not delete %s", l1path, exc_info=True)
             continue
 
-        # Close the CDF. spacepy warns when a variable that the CDF
-        # skeleton marks for compression does not get smaller when
-        # compressed, which is harmless.
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
-            )
-            cdf.close()
+        _close_cdf(cdf)
         cdf_files[apid] = l1path
         # The message about overwriting the file is enough for the
         # console, so the message about writing it is only for the log file.
@@ -597,6 +604,21 @@ def _sha256(path: pathlib.Path) -> str:
         for chunk in iter(lambda: file.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _close_cdf(cdf: pycdf.CDF) -> None:
+    """
+    Close a CDF file.
+
+    spacepy warns when a variable that the CDF skeleton marks for
+    compression does not get smaller when compressed, which is harmless,
+    so this warning is not shown.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
+        )
+        cdf.close()
 
 
 def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]
