@@ -533,16 +533,16 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
                 hex(apid),
                 exc,
             )
+            # Close the CDF now rather than when it is garbage
+            # collected, without letting an error from closing replace
+            # the error from filling it.
+            try:
+                _close_cdf(cdf)
+            except pycdf.CDFError:
+                logger.warning("Could not close %s", l1path, exc_info=True)
             continue
 
-        # Close the CDF. spacepy warns when a variable that the CDF
-        # skeleton marks for compression does not get smaller when
-        # compressed, which is harmless.
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
-            )
-            cdf.close()
+        _close_cdf(cdf)
         cdf_files[apid] = l1path
         # The message about overwriting the file is enough for the
         # console, so the message about writing it is only for the log file.
@@ -597,6 +597,21 @@ def _sha256(path: pathlib.Path) -> str:
         for chunk in iter(lambda: file.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _close_cdf(cdf: pycdf.CDF) -> None:
+    """
+    Close a CDF file.
+
+    spacepy warns when a variable that the CDF skeleton marks for
+    compression does not get smaller when compressed, which is harmless,
+    so this warning is not shown.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
+        )
+        cdf.close()
 
 
 def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]
