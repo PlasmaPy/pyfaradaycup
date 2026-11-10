@@ -309,7 +309,7 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     cannot be filled, or the APID is 0x07B (which is not implemented),
     the error is logged, recorded in the ``failures`` attribute of the
     result, and the next APID is processed. A CDF that could not be
-    filled may be left behind. Use ``raise_on_failure=True`` so that a
+    filled is deleted. Use ``raise_on_failure=True`` so that a
     caller such as a Dagster asset cannot mistake a partial conversion
     for a successful one.
 
@@ -526,20 +526,27 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         try:
             cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
-            failures[apid] = f"Could not fill {l1path}: {exc!r}"
+            failures[apid] = f"Could not fill {l1path} (deleted): {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
-                "Could not fill %s for APID %s (%r); skipping this APID",
+                "Could not fill %s for APID %s (%r); deleting it and skipping "
+                "this APID",
                 l1path,
                 hex(apid),
                 exc,
             )
             # Close the CDF now rather than when it is garbage
             # collected, without letting an error from closing replace
-            # the error from filling it.
+            # the error from filling it. The partially filled CDF is
+            # deleted so that it is not mistaken for a complete one, and
+            # so that a retry without overwrite does not stop at it.
             try:
                 _close_cdf(cdf)
             except pycdf.CDFError:
                 logger.warning("Could not close %s", l1path, exc_info=True)
+            try:
+                l1path.unlink(missing_ok=True)
+            except OSError:
+                logger.warning("Could not delete %s", l1path, exc_info=True)
             continue
 
         _close_cdf(cdf)
