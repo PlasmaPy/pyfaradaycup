@@ -4,11 +4,13 @@ import hashlib
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 import cdflib.xarray
 import click
 import pytest
 import pytest_check
+import spiceypy
 import xarray
 from click.testing import CliRunner
 
@@ -240,3 +242,54 @@ def test_pfc_decommutator_failed_apid(
     assert f"ERROR: Could not read skeleton file {missing_skeleton}" in result.output
     assert "WARNING: Could not convert 1 APIDs: 0x352" in result.output
     assert not list(tmp_path.glob("*.cdf"))
+
+
+def _loaded_kernels() -> list[str]:
+    """Return the SPICE kernel files that are loaded, in the order loaded."""
+    return [spiceypy.kdata(i, "ALL")[0] for i in range(spiceypy.ktotal("ALL"))]
+
+
+def test_main_unloads_kernels(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """
+    Test that the SPICE kernels are loaded while the L0 file is converted,
+    and unloaded afterward, so that repeated calls do not add to them.
+    """
+    loaded_while_reading = []
+    read_file = l0_to_l05._read_file
+
+    def spy(**kwargs: Any) -> object:  # ruff:ignore[ANN401]
+        loaded_while_reading.extend(_loaded_kernels())
+        return read_file(**kwargs)
+
+    monkeypatch.setattr(l0_to_l05, "_read_file", spy)
+    before = _loaded_kernels()
+    l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
+    l0_to_l05.main(l0file, tmp_path, apidreq=0x352, overwrite=True)
+
+    assert {Path(kernel).suffix for kernel in loaded_while_reading} == {".tls", ".tsc"}
+    assert _loaded_kernels() == before
+
+
+def test_main_unloads_kernels_after_error(tmp_path: Path) -> None:
+    """Test that the SPICE kernels are unloaded when the conversion raises."""
+    l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
+    before = _loaded_kernels()
+    with pytest.raises(FileExistsError):
+        l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
+    assert _loaded_kernels() == before
+
+
+def test_main_keeps_kernels_loaded_by_caller(tmp_path: Path) -> None:
+    """
+    Test that a SPICE kernel that the caller loaded stays loaded, even
+    though the conversion loads and unloads another copy of it.
+    """
+    tls = l0_to_l05._get_newest_kernel(tls=True)
+    spiceypy.furnsh(tls)
+    try:
+        before = _loaded_kernels()
+        l0_to_l05.main(l0file, tmp_path, apidreq=0x352)
+        assert _loaded_kernels() == before
+        assert tls in before
+    finally:
+        spiceypy.unload(tls)

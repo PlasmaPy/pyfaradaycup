@@ -31,10 +31,6 @@ Dagster decides whether a step succeeded from the exit code of a subprocess, or 
 - **Decide what a retry should do.**
   Without `--overwrite`, a retry stops at the first L0.5 CDF file that already exists.
   A Dagster step should either always overwrite, or skip files that are already complete.
-- **Remove the global state.**
-  SPICE kernels are loaded with `spiceypy.furnsh` on every call and are never unloaded.
-  This is safe when each step runs in its own process, but not when `main` is called more than once in the same process.
-  Unload the kernels when the conversion finishes.
 
 ### Make it callable from Python
 

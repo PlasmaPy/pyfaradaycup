@@ -42,7 +42,9 @@ __all__ = [
     "main",
 ]
 
+import collections
 import dataclasses
+import functools
 import hashlib
 import importlib.metadata
 import logging
@@ -52,7 +54,7 @@ import platform
 import socket
 import time
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 import numpy as np
 import spiceypy
@@ -65,6 +67,8 @@ if TYPE_CHECKING:
     import os
 
 logger = logging.getLogger(__name__)
+
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 # Packages whose versions are recorded for provenance
 _PROVENANCE_PACKAGES = ("pyfaradaycup", "numpy", "spacepy", "spiceypy")
@@ -122,6 +126,38 @@ class DecommutationResult:
         return not self.failures
 
 
+def _loaded_kernels() -> collections.Counter[str]:
+    """Return the number of times that each SPICE kernel file is loaded."""
+    return collections.Counter(
+        spiceypy.kdata(i, "ALL")[0] for i in range(spiceypy.ktotal("ALL"))
+    )
+
+
+def _unload_kernels_afterward(func: _F) -> _F:
+    """
+    Unload the SPICE kernels that ``func`` loads, after it returns or raises.
+
+    SPICE keeps loaded kernels in a pool that is global to the process,
+    and loading a kernel that is already loaded adds another copy of it.
+    Without unloading, each call would add to the pool. Kernels that were
+    loaded before the call, by the caller or anyone else, are left loaded.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:  # ruff:ignore[ANN401]
+        before = _loaded_kernels()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            # spiceypy.unload removes the most recently loaded copy of a file
+            for kernel, count in (_loaded_kernels() - before).items():
+                for _ in range(count):
+                    spiceypy.unload(kernel)
+
+    return cast("_F", wrapper)
+
+
+@_unload_kernels_afterward
 def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     l0file: str | os.PathLike[str],
     l05dir: str | os.PathLike[str] | None = None,
@@ -191,6 +227,10 @@ def main(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     the error is logged, recorded in the ``failures`` attribute of the
     result, and the next APID is processed. A CDF that could not be
     filled may be left behind.
+
+    The SPICE kernels that this function loads are unloaded when it
+    returns or raises, so it can be called more than once in the same
+    process.
 
     Progress and errors are logged with the `logging` module rather than
     printed. Use `~pyfaradaycup.configure_logging` to show them or write
