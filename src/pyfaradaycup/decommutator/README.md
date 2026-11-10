@@ -24,13 +24,12 @@ Dagster decides whether a step succeeded from the exit code of a subprocess, or 
   `pfc_decommutator` then exits with a code of 1.
   A Dagster asset should pass `raise_on_failure=True` or call `result.raise_for_failures()`, which raise a `DecommutationError`; otherwise the asset succeeds after a partial conversion.
   Making `raise_on_failure=True` the default would make this mistake impossible.
-- **Close a CDF that could not be filled.**
-  It is left behind without being closed, so a Python caller that keeps running holds the file open.
 
 ### Make retries and parallel runs safe
 
 - **Write each CDF to a temporary file, and rename it when it is complete.**
-  CDF files are currently written in place, so a run that stops part way leaves an incomplete CDF file behind.
+  CDF files are currently written in place.
+  A CDF that could not be filled is closed and deleted, but a run that is interrupted or killed while writing a CDF file still leaves an incomplete one behind.
 - **Decide what a retry should do.**
   Without `--overwrite`, a retry stops at the first L0.5 CDF file that already exists.
   A Dagster step should either always overwrite, or skip files that are already complete.
@@ -150,7 +149,8 @@ Most of these can be tested with `monkeypatch`, without new data files.
 
 - **An L0.5 CDF file that already exists without `overwrite`** should raise `FileExistsError` and leave the file unchanged.
 - **A leap second or SCLK kernel that is missing or cannot be loaded** should raise `RuntimeError`.
-- **A CDF file that cannot be created or filled** should be recorded in `failures`, and the remaining APIDs should still be converted.
+- **A CDF file that cannot be created** should be recorded in `failures`, and the remaining APIDs should still be converted.
+  The case of a CDF file that cannot be filled is already tested.
 - **APID 0x07B, an APID with no packets, and an APID other than the one requested with `apidreq`** should each be skipped.
 
 ### Reading files
