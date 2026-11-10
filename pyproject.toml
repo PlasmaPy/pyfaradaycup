@@ -279,28 +279,37 @@ lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 lint.pylint.max-positional-args = 6
 
-[tool.pytest]  # https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
-addopts = [
+# Settings are in tool.pytest.ini_options rather than directly in
+# tool.pytest, which only pytest >= 9 reads, so that they also apply on
+# Python 3.9, where the newest pytest is 8.x.
+# https://docs.pytest.org/en/stable/reference/customize.html#pyproject-toml
+[tool.pytest]
+ini_options.testpaths = [ "tests", "src/pyfaradaycup" ]
+ini_options.addopts = [
   "--durations=5",
   "--durations-min=0.4",
   # Import modules by name so that doctests in src/ do not conflict
   # with the copy of the package installed into site-packages by nox.
   "--import-mode=importlib",
+  # Error on unknown configuration options and unregistered markers.
+  # With pytest >= 9, `strict = true` would also do this, but pytest 8
+  # does not support it.
+  "--strict-config",
+  "--strict-markers",
   "--tb=short",
 ]
-empty_parameter_set_mark = "fail_at_collect"
-filterwarnings = [
+ini_options.markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+ini_options.empty_parameter_set_mark = "fail_at_collect"
+ini_options.xfail_strict = true
+ini_options.filterwarnings = [
   # To prevent the number of warnings issue during tests from ballooning,
   # treat warnings as errors unless otherwise specified. Please raise a
   # GitHub issue when ignoring a FutureWarning or DeprecationWarning,
   # and label it with "needed for release".
   "error",
 ]
-markers = [
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
-strict = true
-testpaths = [ "tests", "src/pyfaradaycup" ]
 
 [tool.coverage]  # https://coverage.readthedocs.io/en/latest/config.html
 run.source_pkgs = [ "pyfaradaycup" ]
