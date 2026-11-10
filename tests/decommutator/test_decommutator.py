@@ -295,7 +295,7 @@ def test_raise_for_failures() -> None:
     with pytest.raises(DecommutationError) as excinfo:
         result.raise_for_failures()
     assert str(excinfo.value) == (
-        "Could not convert 1 APIDs from /l0/0523462910_4_EA: "
+        f"Could not convert 1 APIDs from {result.l0file}: "
         "0x35E: Could not find skeleton file"
     )
     assert excinfo.value.result is result
@@ -317,17 +317,20 @@ def test_to_metadata() -> None:
     """
     Test that the metadata has strings in place of paths and APIDs, and
     can be serialized as JSON.
+
+    Paths are compared with ``str(Path(...))`` because the separator
+    depends on the operating system.
     """
     metadata = _result(failures={0x35E: "reason"}).to_metadata()
     assert json.loads(json.dumps(metadata)) == {
-        "l0file": "/l0/0523462910_4_EA",
+        "l0file": str(Path("/l0/0523462910_4_EA")),
         "l0file_sha256": "0123abcd",
         "succeeded": False,
-        "cdf_files": {"0x352": "/l05/0523462910_4_EA_APID352_L1.cdf"},
+        "cdf_files": {"0x352": str(Path("/l05/0523462910_4_EA_APID352_L1.cdf"))},
         "failures": {"0x35E": "reason"},
         "packet_counts": {"0x352": 7, "0x35E": 3},
-        "kernels": ["/k/naif0012.tls", "/k/spp_sclk.tsc"],
-        "skeletons": {"0x352": "/s/apid352.cdf"},
+        "kernels": [str(Path("/k/naif0012.tls")), str(Path("/k/spp_sclk.tsc"))],
+        "skeletons": {"0x352": str(Path("/s/apid352.cdf"))},
         "software_versions": {"Python": "3.14.0", "pyfaradaycup": "0.1.0"},
         "hostname": "example",
         "elapsed": 1.5,
