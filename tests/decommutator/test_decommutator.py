@@ -81,9 +81,11 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
         l05_cdf_expected = str(l05_dir / "2026" / "08" / f"APID{apid}" / cdf_file)
         l05_cdf_actual = str(tmp_path / cdf_file)
 
-        # Use unix time so that time is given as a number rather than a datetime.
-        expected = cdflib.xarray.cdf_to_xarray(l05_cdf_expected, to_unixtime=True)
-        actual = cdflib.xarray.cdf_to_xarray(l05_cdf_actual, to_unixtime=True)
+        # Keep times as datetime64[ns] rather than converting to unix time,
+        # which cdflib rounds to the nearest microsecond, so that the full
+        # nanosecond precision of CDF_TIME_TT2000 is compared.
+        expected = cdflib.xarray.cdf_to_xarray(l05_cdf_expected)
+        actual = cdflib.xarray.cdf_to_xarray(l05_cdf_actual)
 
         with pytest_check.check:
             xarray.testing.assert_allclose(actual, expected, atol=0, rtol=0)
