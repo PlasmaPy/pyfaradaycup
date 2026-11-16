@@ -62,7 +62,7 @@ import spiceypy
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.decommutator.ccsds_reader_pipeline import _read_file, _read_file_sc
+from pyfaradaycup.decommutator.ccsds_reader import _read_file, _read_file_sc
 
 if TYPE_CHECKING:
     import os
