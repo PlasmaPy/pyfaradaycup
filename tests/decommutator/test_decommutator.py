@@ -24,11 +24,14 @@ from spacepy import pycdf
 from pyfaradaycup.decommutator import (
     DecommutationError,
     DecommutationResult,
+    NoPacketsError,
     _l0_to_l05,
     l0_to_l05,
     main,
 )
 from pyfaradaycup.decommutator.main import (
+    EXIT_FAILURE,
+    EXIT_NO_PACKETS,
     _console_level,
     _l0_files,
     _warn_about_ineffective_options,
@@ -251,7 +254,7 @@ def test_pfc_decommutator_directory_continues_after_failure(
         catch_exceptions=False,
     )
 
-    assert result.exit_code == 1
+    assert result.exit_code == EXIT_FAILURE
     assert f"Could not convert {bad_file}" in result.output
     assert [path.name for path in tmp_path.rglob("*.cdf")] == [
         f"{l0file.name}_APID352_L1.cdf"
@@ -260,6 +263,52 @@ def test_pfc_decommutator_directory_continues_after_failure(
     assert [name.rsplit("_", 1)[0] for name in log_files] == [
         "l0_to_l05_0000000000_0_EA",
         f"l0_to_l05_{l0file.name}",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("with_failure", "expected_exit_code"),
+    [(False, EXIT_NO_PACKETS), (True, EXIT_FAILURE)],
+)
+def test_pfc_decommutator_directory_no_packets(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    with_failure: bool,
+    expected_exit_code: int,
+) -> None:
+    """
+    Test that an L0 file with no packets in a directory does not stop the
+    other L0 files from being converted, and that the exit code is
+    EXIT_NO_PACKETS, unless another L0 file could not be converted, in
+    which case it is EXIT_FAILURE.
+    """
+    indir = tmp_path / "l0"
+    indir.mkdir()
+    (indir / "0000000000_0_EA").write_bytes(b"not an L0 file")
+    shutil.copy(l0file, indir / l0file.name)
+    if with_failure:
+        bad_file = indir / "0000000000_1_EA"
+        shutil.copy(l0file, bad_file)
+
+        def fail_for_bad_file(l0file: Path, **kwargs: Any) -> DecommutationResult:  # ruff:ignore[ANN401]
+            if l0file == bad_file:
+                msg = "made-up error while converting"
+                raise RuntimeError(msg)
+            return l0_to_l05(l0file, **kwargs)
+
+        monkeypatch.setattr(main, "l0_to_l05", fail_for_bad_file)
+
+    result = CliRunner().invoke(
+        pfc_decommutator,
+        [f"--l05dir={tmp_path}", f"--logdir={tmp_path}", "--apid=352", str(indir)],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == expected_exit_code, result.output
+    assert "No packets for any supported APID" in result.output
+    assert [path.name for path in tmp_path.rglob("*.cdf")] == [
+        f"{l0file.name}_APID352_L1.cdf"
     ]
 
 
@@ -518,6 +567,72 @@ def test_decommutation_error_pickle() -> None:
     unpickled = pickle.loads(pickle.dumps(error))  # ruff:ignore[S301]
     assert str(unpickled) == str(error)
     assert unpickled.result == error.result
+
+
+def test_no_packets_error_pickle() -> None:
+    """Test that NoPacketsError survives being pickled."""
+    error = NoPacketsError(Path("/l0/0523462910_4_EA"), {0x352: 0})
+    unpickled = pickle.loads(pickle.dumps(error))  # ruff:ignore[S301]
+    assert str(unpickled) == str(error)
+    assert unpickled.l0file == error.l0file
+    assert unpickled.packet_counts == error.packet_counts
+
+
+@pytest.mark.parametrize("contents", [b"", b"not an L0 file" * 100])
+def test_l0_to_l05_no_packets(tmp_path: Path, contents: bytes) -> None:
+    """
+    Test that an L0 file with no packets raises NoPacketsError, writes
+    no CDF files, and unloads the SPICE kernels.
+    """
+    bad_file = tmp_path / "0000000000_0_EA"
+    bad_file.write_bytes(contents)
+    l05dir = tmp_path / "l05"
+    with pytest.raises(NoPacketsError, match="No packets for any supported APID") as e:
+        l0_to_l05(bad_file, l05dir=l05dir)
+    assert e.value.l0file == bad_file
+    assert not any(e.value.packet_counts.values())
+    assert not l05dir.exists()
+    assert _loaded_kernels() == []
+
+
+def test_l0_to_l05_only_unsupported_packets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that an L0 file whose only packets are for APIDs that have no
+    CDF procedure, like 0x07B, raises NoPacketsError.
+    """
+    l0data = {0x07B: {"MET": [1, 2, 3]}, 0x352: {"MET": []}}
+    monkeypatch.setattr(_l0_to_l05, "_read_file", lambda **_: l0data)
+    with pytest.raises(NoPacketsError) as e:
+        l0_to_l05(l0file, l05dir=tmp_path)
+    assert e.value.packet_counts == {0x07B: 3, 0x352: 0}
+    assert not list(tmp_path.rglob("*.cdf"))
+
+
+def test_pfc_decommutator_no_packets(tmp_path: Path) -> None:
+    """
+    Test that the command line tool exits with EXIT_NO_PACKETS, and logs
+    the error without a traceback, when the L0 file has no packets.
+    """
+    bad_file = tmp_path / "0000000000_0_EA"
+    bad_file.write_bytes(b"not an L0 file")
+    result = CliRunner().invoke(
+        pfc_decommutator,
+        [f"--l05dir={tmp_path}", f"--logdir={tmp_path}", str(bad_file)],
+        catch_exceptions=False,
+    )
+    # The value is documented, so check it rather than only the constant
+    assert result.exit_code == EXIT_NO_PACKETS == 65  # ruff:ignore[PLR2004]
+    assert (
+        f"ERROR: Could not convert {bad_file}: No packets for any supported "
+        f"APID in L0 file {bad_file}"
+    ) in result.output
+    (log_file,) = tmp_path.glob("*.log")
+    log = log_file.read_text(encoding="utf-8")
+    assert "No packets for any supported APID" in log
+    assert "Traceback" not in log
+    assert not list(tmp_path.rglob("*.cdf"))
 
 
 def test_to_metadata() -> None:

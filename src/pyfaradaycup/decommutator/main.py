@@ -12,9 +12,21 @@ import re
 import click
 
 from pyfaradaycup._logging import configure_logging
-from pyfaradaycup.decommutator._l0_to_l05 import l0_to_l05
+from pyfaradaycup.decommutator._l0_to_l05 import NoPacketsError, l0_to_l05
 
 logger = logging.getLogger(__name__)
+
+EXIT_FAILURE = 1
+"""The exit code when an L0 file or one of its APIDs could not be converted."""
+
+EXIT_NO_PACKETS = 65
+"""
+The exit code when an L0 file has no packets for any supported APID.
+
+This is ``EX_DATAERR`` from ``sysexits.h``, which means that the input
+data was incorrect. It is hard-coded because `os.EX_DATAERR` is not
+available on Windows.
+"""
 
 L0_FILENAME_PATTERN = re.compile(r"[0-9]+_[0-9]+_EA")
 """
@@ -238,8 +250,11 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     timestamps in UTC. Each L0 file gets its own log file.
 
     The exit code is 1 if any APID of any L0 file could not be converted.
-    When converting a directory, an L0 file that could not be converted
-    does not stop the remaining L0 files from being converted.
+    Otherwise, the exit code is 65 (EX_DATAERR from sysexits.h) if any L0
+    file has no packets for any supported APID, which usually means that
+    it is empty, corrupted, or not an L0 file. When converting a
+    directory, an L0 file that could not be converted does not stop the
+    remaining L0 files from being converted.
     """  # ruff:ignore[D301]
     if verbose and quiet:
         raise click.UsageError(  # ruff:ignore[TRY003]
@@ -249,9 +264,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     if stcorrect:
         raise RuntimeError("--stcorrect has not been implemented.")  # ruff:ignore[EM101, TRY003]
 
-    succeeded = True
+    exit_codes = set()
     for l0file in _l0_files(l0path):
-        succeeded &= _convert(
+        exit_code = _convert(
             l0file,
             verbose=verbose,
             quiet=quiet,
@@ -264,8 +279,12 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             apid=apid,
             overwrite=overwrite,
         )
-    if not succeeded:
-        raise SystemExit(1)
+        exit_codes.add(exit_code)
+    # A failure to convert takes precedence over an L0 file with no
+    # packets, since it is more likely to need investigating
+    for exit_code in (EXIT_FAILURE, EXIT_NO_PACKETS):
+        if exit_code in exit_codes:
+            raise SystemExit(exit_code)
 
 
 def _convert(  # ruff:ignore[PLR0913]
@@ -281,14 +300,16 @@ def _convert(  # ruff:ignore[PLR0913]
     gzip: bool,
     apid: int,
     overwrite: bool,
-) -> bool:
+) -> int:
     """
     Convert one L0 file, with its own log file.
 
     Returns
     -------
-    bool
-        Whether every APID was converted.
+    int
+        ``0`` if every APID was converted, `EXIT_NO_PACKETS` if the L0
+        file has no packets for any supported APID, and `EXIT_FAILURE`
+        otherwise.
     """
     log_file = _log_file_path(logdir, l0file)
     with configure_logging(
@@ -311,12 +332,17 @@ def _convert(  # ruff:ignore[PLR0913]
                 apidreq=apid,
                 overwrite=overwrite,
             )
+        except NoPacketsError as exc:
+            # This is a problem with the input data rather than a bug, so
+            # the traceback is not needed
+            logger.error("Could not convert %s: %s", l0file, exc)  # ruff:ignore[TRY400]
+            return EXIT_NO_PACKETS
         except Exception:
             # Record the traceback in the log file as well as on the screen
             logger.exception("Could not convert %s", l0file)
-            return False
+            return EXIT_FAILURE
 
-        return result.succeeded
+        return 0 if result.succeeded else EXIT_FAILURE
 
 
 if __name__ == "__main__":
