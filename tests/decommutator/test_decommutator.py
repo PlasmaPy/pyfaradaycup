@@ -30,7 +30,7 @@ from pyfaradaycup.decommutator.main import (
 )
 
 repo_root = Path(__file__).parent.parent.parent
-data_dir = repo_root / "psp" / "data"
+data_dir = repo_root / "_psp" / "data"
 ssr_dir = data_dir / "sci" / "sweap" / "raw" / "ssr"
 l05_dir = data_dir / "sci" / "sweap" / "spc" / "L05"
 l0file = ssr_dir / "2026" / "215" / "0523462910_4_EA"
