@@ -29,6 +29,7 @@ from pyfaradaycup.decommutator import (
 )
 from pyfaradaycup.decommutator.main import (
     _console_level,
+    _l0_files,
     _warn_about_ineffective_options,
     pfc_decommutator,
 )
@@ -190,7 +191,7 @@ def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
 
 def test_pfc_decommutator_directory(tmp_path: Path) -> None:
     """
-    Test that every file ending with _EA directly in a directory is
+    Test that every L0 file directly in a directory is
     converted, each with its own log file, and that other files and
     subdirectories are skipped.
     """
@@ -262,14 +263,45 @@ def test_pfc_decommutator_directory_continues_after_failure(
 
 
 def test_pfc_decommutator_directory_without_l0_files(tmp_path: Path) -> None:
-    """Test that a directory with no files ending with _EA is an error."""
+    """Test that a directory with no L0 files is an error."""
     (tmp_path / "README.md").write_text("Not an L0 file", encoding="utf-8")
+    (tmp_path / "31f_531_EA").write_text("Not an L0 file", encoding="utf-8")
     result = CliRunner().invoke(
         pfc_decommutator, [f"--logdir={tmp_path}", str(tmp_path)]
     )
     assert result.exit_code == click.ClickException.exit_code
-    assert f"No L0 files ending with _EA in directory {tmp_path}" in result.output
+    assert "No L0 files with names like 0523462910_4_EA" in result.output
+    assert f"in directory {tmp_path}" in result.output
     assert not list(tmp_path.glob("*.log"))
+
+
+def test_l0_files_names(tmp_path: Path) -> None:
+    """
+    Test that only files whose whole names are digits, an underscore,
+    digits, and _EA are found in a directory.
+    """
+    matching = ["13531_53_EA", "0523462910_4_EA"]
+    not_matching = [
+        "31f_531_EA",
+        "351_3EA",
+        "_53_EA",
+        "13531__EA",
+        "13531_53_ea",
+        "13531_53_EA.gz",
+        "13531_53_EAX",
+        "x13531_53_EA",
+        "13531_53_1_EA",
+        "\N{ARABIC-INDIC DIGIT ONE}_53_EA",
+    ]
+    for name in matching + not_matching:
+        (tmp_path / name).touch()
+    assert _l0_files(tmp_path) == sorted(tmp_path / name for name in matching)
+
+
+def test_l0_files_single_file(tmp_path: Path) -> None:
+    """Test that a path that is not a directory is returned as is, whatever its name."""
+    path = tmp_path / "not_an_l0_name.dat"
+    assert _l0_files(path) == [path]
 
 
 def test_pfc_decommutator_verbose_and_quiet(tmp_path: Path) -> None:

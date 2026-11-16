@@ -7,6 +7,7 @@ __all__ = ["pfc_decommutator"]
 import datetime
 import logging
 import pathlib
+import re
 
 import click
 
@@ -15,8 +16,11 @@ from pyfaradaycup.decommutator._l0_to_l05 import l0_to_l05
 
 logger = logging.getLogger(__name__)
 
-L0_FILE_SUFFIX = "_EA"
-"""The end of the names of the L0 files that are converted in a directory."""
+L0_FILENAME_PATTERN = re.compile(r"[0-9]+_[0-9]+_EA")
+"""
+The pattern that the whole name of an L0 file must match to be converted
+when it is in a directory, like ``0523462910_4_EA``.
+"""
 
 
 def _parse_apid(
@@ -70,23 +74,28 @@ def _l0_files(l0path: pathlib.Path) -> list[pathlib.Path]:
     -------
     list of pathlib.Path
         ``[l0path]`` if ``l0path`` is not a directory. Otherwise, the
-        files directly in ``l0path`` whose names end with ``_EA``, sorted
+        files directly in ``l0path`` whose names match
+        ``L0_FILENAME_PATTERN``, like ``0523462910_4_EA``, sorted
         by name. Subdirectories are not searched.
 
     Raises
     ------
     click.ClickException
-        If ``l0path`` is a directory with no files ending with ``_EA``.
+        If ``l0path`` is a directory with no files whose names match
+        ``L0_FILENAME_PATTERN``.
     """
     if not l0path.is_dir():
         return [l0path]
     l0files = sorted(
         path
         for path in l0path.iterdir()
-        if path.name.endswith(L0_FILE_SUFFIX) and path.is_file()
+        if L0_FILENAME_PATTERN.fullmatch(path.name) and path.is_file()
     )
     if not l0files:
-        msg = f"No L0 files ending with {L0_FILE_SUFFIX} in directory {l0path}"
+        msg = (
+            f"No L0 files with names like 0523462910_4_EA (matching "
+            f"{L0_FILENAME_PATTERN.pattern}) in directory {l0path}"
+        )
         raise click.ClickException(msg)
     return l0files
 
@@ -205,8 +214,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     Convert SPC L0 files into L0.5 CDF files, one per APID.
 
     L0PATH is an L0 file, or a directory of L0 files. For a directory,
-    every file directly in it whose name ends with _EA is converted, in
-    order of name, and subdirectories are not searched.
+    every file directly in it with a name made of digits, an underscore,
+    digits, and _EA (like 0523462910_4_EA) is converted, in order of
+    name, and subdirectories are not searched.
 
     To convert the L0 file 0523462910_4_EA, printing progress messages
     to the screen:
