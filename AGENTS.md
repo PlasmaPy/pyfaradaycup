@@ -16,7 +16,8 @@ files into Level 0.5 (L0.5 or L05) CDF files:
   L0 to L0.5, and is exported from `pyfaradaycup.decommutator`. Older
   code and filenames sometimes use "L1" to mean L0.5.
 - `main` defines the `pfc_decommutator` command line tool with Click,
-  which takes a required `L0FILE` argument.
+  which takes a required `L0PATH` argument that is an L0 file or a
+  directory of L0 files.
 
 ## Development
 

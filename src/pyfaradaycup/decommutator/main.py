@@ -7,6 +7,7 @@ __all__ = ["pfc_decommutator"]
 import datetime
 import logging
 import pathlib
+import re
 
 import click
 
@@ -15,13 +16,22 @@ from pyfaradaycup.decommutator._l0_to_l05 import NoPacketsError, l0_to_l05
 
 logger = logging.getLogger(__name__)
 
+EXIT_FAILURE = 1
+"""The exit code when an L0 file or one of its APIDs could not be converted."""
+
 EXIT_NO_PACKETS = 65
 """
-The exit code when the L0 file has no packets for any supported APID.
+The exit code when an L0 file has no packets for any supported APID.
 
 This is ``EX_DATAERR`` from ``sysexits.h``, which means that the input
 data was incorrect. It is hard-coded because `os.EX_DATAERR` is not
 available on Windows.
+"""
+
+L0_FILENAME_PATTERN = re.compile(r"[0-9]+_[0-9]+_EA")
+"""
+The pattern that the whole name of an L0 file must match to be converted
+when it is in a directory, like ``0523462910_4_EA``.
 """
 
 
@@ -48,7 +58,7 @@ def _warn_about_ineffective_options(*, recursive: bool) -> None:
     """
     if recursive:
         logger.warning(
-            "-r/--recursive is not implemented; only L0FILE will be converted"
+            "-r/--recursive is not implemented; subdirectories will not be searched"
         )
 
 
@@ -61,6 +71,45 @@ def _console_level(*, verbose: int, quiet: bool) -> int:
     if verbose == 1:
         return logging.INFO
     return logging.DEBUG
+
+
+def _l0_files(l0path: pathlib.Path) -> list[pathlib.Path]:
+    """
+    Return the L0 files to convert for ``l0path``.
+
+    Parameters
+    ----------
+    l0path : pathlib.Path
+        An L0 file, or a directory of L0 files.
+
+    Returns
+    -------
+    list of pathlib.Path
+        ``[l0path]`` if ``l0path`` is not a directory. Otherwise, the
+        files directly in ``l0path`` whose names match
+        ``L0_FILENAME_PATTERN``, like ``0523462910_4_EA``, sorted
+        by name. Subdirectories are not searched.
+
+    Raises
+    ------
+    click.ClickException
+        If ``l0path`` is a directory with no files whose names match
+        ``L0_FILENAME_PATTERN``.
+    """
+    if not l0path.is_dir():
+        return [l0path]
+    l0files = sorted(
+        path
+        for path in l0path.iterdir()
+        if L0_FILENAME_PATTERN.fullmatch(path.name) and path.is_file()
+    )
+    if not l0files:
+        msg = (
+            f"No L0 files with names like 0523462910_4_EA (matching "
+            f"{L0_FILENAME_PATTERN.pattern}) in directory {l0path}"
+        )
+        raise click.ClickException(msg)
+    return l0files
 
 
 def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib.Path:
@@ -106,7 +155,7 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     is_flag=True,
     help=(
         "Convert all L0 files in given directory and in all subdirectories. "
-        "Not implemented: only L0FILE is converted."
+        "Not implemented: subdirectories of L0PATH are not searched."
     ),
 )
 @click.option(
@@ -154,9 +203,9 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     help="Output for Log Files. Defaults to the current directory. Created if it does not exist.",
 )
 @click.argument(
-    "l0file",
-    metavar="L0FILE",
-    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    "l0path",
+    metavar="L0PATH",
+    type=click.Path(path_type=pathlib.Path),
 )
 def pfc_decommutator(  # ruff:ignore[PLR0913]
     *,
@@ -169,12 +218,17 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     overwrite: bool,
     stcorrect: bool,
     apid: int,
-    l0file: pathlib.Path,
+    l0path: pathlib.Path,
     l05dir: pathlib.Path | None,
     logdir: pathlib.Path | None,
 ) -> None:
     """
-    Convert one SPC L0 file into L0.5 CDF files, one per APID.
+    Convert SPC L0 files into L0.5 CDF files, one per APID.
+
+    L0PATH is an L0 file, or a directory of L0 files. For a directory,
+    every file directly in it with a name made of digits, an underscore,
+    digits, and _EA (like 0523462910_4_EA) is converted, in order of
+    name, and subdirectories are not searched.
 
     To convert the L0 file 0523462910_4_EA, printing progress messages
     to the screen:
@@ -193,11 +247,14 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     l0_to_l05_0523462910_4_EA_20261029T142301Z.log, into the
     directory given by --logdir. If --l05dir or --logdir is not given,
     the current directory is used. The log file has every message, with
-    timestamps in UTC.
+    timestamps in UTC. Each L0 file gets its own log file.
 
-    The exit code is 1 if any APID could not be converted, and 65 (EX_DATAERR
-    from sysexits.h) if the L0 file has no packets for any supported APID,
-    which usually means that it is empty, corrupted, or not an L0 file.
+    The exit code is 1 if any APID of any L0 file could not be converted.
+    Otherwise, the exit code is 65 (EX_DATAERR from sysexits.h) if any L0
+    file has no packets for any supported APID, which usually means that
+    it is empty, corrupted, or not an L0 file. When converting a
+    directory, an L0 file that could not be converted does not stop the
+    remaining L0 files from being converted.
     """  # ruff:ignore[D301]
     if verbose and quiet:
         raise click.UsageError(  # ruff:ignore[TRY003]
@@ -207,6 +264,53 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     if stcorrect:
         raise RuntimeError("--stcorrect has not been implemented.")  # ruff:ignore[EM101, TRY003]
 
+    exit_codes = set()
+    for l0file in _l0_files(l0path):
+        exit_code = _convert(
+            l0file,
+            verbose=verbose,
+            quiet=quiet,
+            recursive=recursive,
+            logdir=logdir,
+            l05dir=l05dir,
+            spacecraft=spacecraft,
+            ptp=ptp,
+            gzip=gzip,
+            apid=apid,
+            overwrite=overwrite,
+        )
+        exit_codes.add(exit_code)
+    # A failure to convert takes precedence over an L0 file with no
+    # packets, since it is more likely to need investigating
+    for exit_code in (EXIT_FAILURE, EXIT_NO_PACKETS):
+        if exit_code in exit_codes:
+            raise SystemExit(exit_code)
+
+
+def _convert(  # ruff:ignore[PLR0913]
+    l0file: pathlib.Path,
+    *,
+    verbose: int,
+    quiet: bool,
+    recursive: bool,
+    logdir: pathlib.Path | None,
+    l05dir: pathlib.Path | None,
+    spacecraft: bool,
+    ptp: bool,
+    gzip: bool,
+    apid: int,
+    overwrite: bool,
+) -> int:
+    """
+    Convert one L0 file, with its own log file.
+
+    Returns
+    -------
+    int
+        ``0`` if every APID was converted, `EXIT_NO_PACKETS` if the L0
+        file has no packets for any supported APID, and `EXIT_FAILURE`
+        otherwise.
+    """
     log_file = _log_file_path(logdir, l0file)
     with configure_logging(
         level=_console_level(verbose=verbose, quiet=quiet),
@@ -232,14 +336,13 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             # This is a problem with the input data rather than a bug, so
             # the traceback is not needed
             logger.error("Could not convert %s: %s", l0file, exc)  # ruff:ignore[TRY400]
-            raise SystemExit(EXIT_NO_PACKETS) from None
+            return EXIT_NO_PACKETS
         except Exception:
             # Record the traceback in the log file as well as on the screen
             logger.exception("Could not convert %s", l0file)
-            raise SystemExit(1) from None
+            return EXIT_FAILURE
 
-        if not result.succeeded:
-            raise SystemExit(1)
+        return 0 if result.succeeded else EXIT_FAILURE
 
 
 if __name__ == "__main__":
