@@ -250,8 +250,11 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         Path to the L0 file to convert.
 
     l05dir : str or path-like, optional
-        Directory for the L0.5 CDF files. If `None` (the default), the
-        current directory is used. It is created if it does not exist.
+        Directory for the L0.5 CDF files. Each CDF file is written into
+        a subdirectory named after its APID, like
+        ``APID35E/0523462910_4_EA_APID35E_L1.cdf``. If `None` (the
+        default), the current directory is used. It and its
+        subdirectories are created if they do not exist.
 
     spacecraft : bool, optional
         If `True`, read spacecraft housekeeping packets with
@@ -443,9 +446,9 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             continue  # skip this apid if user only wanted one apid and this isn't it
 
         # Filename for the L0.5 file we're about to write for this apid
-        l1path = (
-            l05dir / f"{l0file_noext}_APID{str(hex(apid)[2:].zfill(3)).upper()}_L1.cdf"  # ruff:ignore[FURB116]
-        )
+        # in a subdirectory for the APID, like APID35E/
+        apid_dirname = f"APID{apid:03X}"
+        l1path = l05dir / apid_dirname / f"{l0file_noext}_{apid_dirname}_L1.cdf"
 
         # Make sure the skeleton file exists and is readable
         try:
@@ -494,7 +497,7 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton, creating the
-        # L0.5 directory if it doesn't exist
+        # L0.5 directory and the APID subdirectory if they don't exist
         l1path.parent.mkdir(parents=True, exist_ok=True)
         try:
             cdf = pycdf.CDF(str(l1path), skeleton_filename)

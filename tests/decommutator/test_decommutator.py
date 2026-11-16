@@ -140,7 +140,7 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
         cdf_file = f"{tag}_APID{apid}_L1.cdf"
 
         l05_cdf_expected = str(l05_dir / "2026" / "08" / f"APID{apid}" / cdf_file)
-        l05_cdf_actual = str(tmp_path / cdf_file)
+        l05_cdf_actual = str(tmp_path / f"APID{apid}" / cdf_file)
 
         # Keep times as datetime64[ns] rather than converting to unix time,
         # which cdflib rounds to the nearest microsecond, so that the full
@@ -272,6 +272,13 @@ def test_l0_to_l05_returns_result(
     assert result.failures == {}
     assert set(result.cdf_files) == apids
     assert all(path.is_file() for path in result.cdf_files.values())
+    for apid, path in result.cdf_files.items():
+        assert path == (
+            tmp_path
+            / "l05"
+            / f"APID{apid:03X}"
+            / f"{l0file.name}_APID{apid:03X}_L1.cdf"
+        )
     assert set(result.skeletons) == apids
     assert all(result.packet_counts[apid] > 0 for apid in apids)
     assert result.l0file == l0file
@@ -458,9 +465,11 @@ def test_pfc_decommutator_matches_l0_to_l05(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     l0_to_l05(l0file, l05dir=python_dir)
 
-    cli_files = sorted(path.name for path in cli_dir.glob("*.cdf"))
+    cli_files = sorted(path.relative_to(cli_dir) for path in cli_dir.rglob("*.cdf"))
     assert cli_files
-    assert cli_files == sorted(path.name for path in python_dir.glob("*.cdf"))
+    assert cli_files == sorted(
+        path.relative_to(python_dir) for path in python_dir.rglob("*.cdf")
+    )
     for name in cli_files:
         with pytest_check.check:
             assert (cli_dir / name).read_bytes() == (python_dir / name).read_bytes()
@@ -533,7 +542,7 @@ def test_l0_to_l05_deletes_cdf_that_could_not_be_filled(
     Test that a CDF that could not be filled is recorded as a failure
     and deleted, so that a retry without ``overwrite`` converts the APID.
     """
-    l1path = tmp_path / "0523462910_4_EA_APID352_L1.cdf"
+    l1path = tmp_path / "APID352" / "0523462910_4_EA_APID352_L1.cdf"
     with monkeypatch.context() as patch:
         patch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
         result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
@@ -569,4 +578,4 @@ def test_l0_to_l05_close_error_keeps_fill_error(
     assert any(
         record.getMessage().startswith("Could not close") for record in caplog.records
     )
-    assert not (tmp_path / "0523462910_4_EA_APID352_L1.cdf").exists()
+    assert not (tmp_path / "APID352" / "0523462910_4_EA_APID352_L1.cdf").exists()
