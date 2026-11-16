@@ -159,7 +159,6 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     ),
 )
 @click.option(
-    "-p",
     "--ptp",
     is_flag=True,
     help="Indicate that input L0 file is a PTP file. Ignored unless -sc is given.",
@@ -183,7 +182,6 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     ),
 )
 @click.option(
-    "-a",
     "--apid",
     default="0",
     show_default=True,
@@ -191,13 +189,11 @@ def _log_file_path(logdir: pathlib.Path | None, l0file: pathlib.Path) -> pathlib
     help="APID to create L0.5 CDF file for, in hexadecimal (e.g., 35E) [0==all]",
 )
 @click.option(
-    "-dl05",
     "--l05dir",
     type=click.Path(file_okay=False, path_type=pathlib.Path),
     help="Output L0.5 Directory. Defaults to the current directory. Created if it does not exist.",
 )
 @click.option(
-    "-dlog",
     "--logdir",
     type=click.Path(file_okay=False, path_type=pathlib.Path),
     help="Output for Log Files. Defaults to the current directory. Created if it does not exist.",
