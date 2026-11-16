@@ -88,6 +88,14 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
         with pytest_check.check:
             xarray.testing.assert_allclose(actual, expected, atol=0, rtol=0)
 
+        # assert_allclose ignores attributes, which hold the CDF global and
+        # variable attributes, and neither assertion compares dtypes.
+        with pytest_check.check:
+            xarray.testing.assert_identical(actual, expected)
+        for name, variable in expected.variables.items():
+            with pytest_check.check:
+                assert actual[name].dtype == variable.dtype, (apid, name)
+
 
 def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
     """
