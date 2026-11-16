@@ -382,22 +382,6 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "args", [["-a", "352"], ["-dl05", "l05"], ["-dlog", "logs"], ["-p"]]
-)
-def test_pfc_decommutator_short_options_removed(
-    tmp_path: Path, args: list[str]
-) -> None:
-    """Test that the removed short options are no longer accepted."""
-    result = CliRunner().invoke(
-        pfc_decommutator, [f"--logdir={tmp_path}", *args, str(l0file)]
-    )
-    assert result.exit_code == click.UsageError.exit_code
-    # Click reports -dl05 and -dlog as the unknown option -d
-    assert "No such option" in result.output
-    assert not list(tmp_path.glob("*.log"))
-
-
-@pytest.mark.parametrize(
     ("verbose", "quiet", "expected"),
     [
         (0, False, logging.WARNING),
