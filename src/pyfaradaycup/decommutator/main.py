@@ -11,9 +11,18 @@ import pathlib
 import click
 
 from pyfaradaycup._logging import configure_logging
-from pyfaradaycup.decommutator._l0_to_l05 import l0_to_l05
+from pyfaradaycup.decommutator._l0_to_l05 import NoPacketsError, l0_to_l05
 
 logger = logging.getLogger(__name__)
+
+EXIT_NO_PACKETS = 65
+"""
+The exit code when the L0 file has no packets for any supported APID.
+
+This is ``EX_DATAERR`` from ``sysexits.h``, which means that the input
+data was incorrect. It is hard-coded because `os.EX_DATAERR` is not
+available on Windows.
+"""
 
 
 def _parse_apid(
@@ -186,7 +195,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
     the current directory is used. The log file has every message, with
     timestamps in UTC.
 
-    The exit code is 1 if any APID could not be converted.
+    The exit code is 1 if any APID could not be converted, and 65 (EX_DATAERR
+    from sysexits.h) if the L0 file has no packets for any supported APID,
+    which usually means that it is empty, corrupted, or not an L0 file.
     """  # ruff:ignore[D301]
     if verbose and quiet:
         raise click.UsageError(  # ruff:ignore[TRY003]
@@ -217,6 +228,11 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
                 apidreq=apid,
                 overwrite=overwrite,
             )
+        except NoPacketsError as exc:
+            # This is a problem with the input data rather than a bug, so
+            # the traceback is not needed
+            logger.error("Could not convert %s: %s", l0file, exc)  # ruff:ignore[TRY400]
+            raise SystemExit(EXIT_NO_PACKETS) from None
         except Exception:
             # Record the traceback in the log file as well as on the screen
             logger.exception("Could not convert %s", l0file)

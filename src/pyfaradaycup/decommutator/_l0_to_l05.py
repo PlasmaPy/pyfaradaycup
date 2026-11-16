@@ -198,6 +198,36 @@ class DecommutationError(RuntimeError):
         return type(self), (self.result,)
 
 
+class NoPacketsError(ValueError):
+    """
+    An exception for when an L0 file has no packets for any supported APID.
+
+    This happens when the L0 file is empty, is not an L0 file, or is
+    corrupted, or when ``spacecraft`` does not match the kind of packets
+    in the L0 file.
+
+    Parameters
+    ----------
+    l0file : pathlib.Path
+        The L0 file, which is kept in the ``l0file`` attribute.
+
+    packet_counts : dict of int to int
+        The number of packets read for each APID, which is kept in the
+        ``packet_counts`` attribute.
+    """
+
+    def __init__(self, l0file: pathlib.Path, packet_counts: dict[int, int]) -> None:
+        super().__init__(f"No packets for any supported APID in L0 file {l0file}")
+        self.l0file = l0file
+        self.packet_counts = packet_counts
+
+    def __reduce__(
+        self,
+    ) -> tuple[type[NoPacketsError], tuple[pathlib.Path, dict[int, int]]]:
+        """Allow the exception to be pickled, as when sent between processes."""
+        return type(self), (self.l0file, self.packet_counts)
+
+
 def _loaded_kernels() -> collections.Counter[str]:
     """Return the number of times that each SPICE kernel file is loaded."""
     return collections.Counter(
@@ -300,6 +330,11 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     RuntimeError
         If the SPICE kernels cannot be loaded, or the L0 file cannot be
         read.
+
+    NoPacketsError
+        If the L0 file has no packets for any supported APID, which
+        usually means that it is empty, corrupted, or not an L0 file. No
+        CDF files are written.
 
     DecommutationError
         If ``raise_on_failure`` is `True` and any APID could not be
@@ -424,6 +459,10 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     packet_counts = {
         apid: len(next(iter(values.values()), [])) for apid, values in l0data.items()
     }
+    cdfproc = _cdf_procedures()
+    if not any(packet_counts.get(apid, 0) for apid in cdfproc):
+        raise NoPacketsError(l0file, packet_counts)
+
     cdf_files: dict[int, pathlib.Path] = {}
     failures: dict[int, str] = {}
     skeletons: dict[int, pathlib.Path] = {}
@@ -512,20 +551,6 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             continue
 
         # Run a different procedure to put data into CDF file depending on APID
-        cdfproc = {
-            0x081: _cdf35e_35f,
-            0x1DE: _cdf35e_35f,
-            0x254: _cdf35e_35f,
-            0x256: _cdf35e_35f,
-            0x257: _cdf35e_35f,
-            0x262: _cdf35e_35f,
-            0x351: _cdf351_353_354,
-            0x352: _cdf352,
-            0x353: _cdf351_353_354,
-            0x354: _cdf351_353_354,
-            0x35E: _cdf35e_35f,
-            0x35F: _cdf35e_35f,
-        }
         try:
             cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
@@ -587,6 +612,29 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
     if raise_on_failure:
         result.raise_for_failures()
     return result
+
+
+def _cdf_procedures() -> dict[int, Callable[..., object]]:
+    """
+    Return the procedure that fills the CDF file for each supported APID.
+
+    The procedures are looked up each time, rather than kept in a
+    module-level constant, so that tests can replace them.
+    """
+    return {
+        0x081: _cdf35e_35f,
+        0x1DE: _cdf35e_35f,
+        0x254: _cdf35e_35f,
+        0x256: _cdf35e_35f,
+        0x257: _cdf35e_35f,
+        0x262: _cdf35e_35f,
+        0x351: _cdf351_353_354,
+        0x352: _cdf352,
+        0x353: _cdf351_353_354,
+        0x354: _cdf351_353_354,
+        0x35E: _cdf35e_35f,
+        0x35F: _cdf35e_35f,
+    }
 
 
 def _software_versions() -> dict[str, str]:

@@ -43,6 +43,13 @@ on the result:
 The exception has the result in its ``result`` attribute, so the CDF
 files that were written can still be found.
 
+If the L0 file has no packets for any supported APID, which usually
+means that it is empty, corrupted, or not an L0 file, a
+:class:`~pyfaradaycup.decommutator.NoPacketsError` is raised and no CDF
+files are written, whatever the value of ``raise_on_failure``. The
+``pfc_decommutator`` command line tool exits with code 65 in this case,
+rather than 1.
+
 Using Dagster
 =============
 
