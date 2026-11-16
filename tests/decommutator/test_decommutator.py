@@ -5,6 +5,7 @@ import json
 import logging
 import pickle
 import re
+import shutil
 import warnings
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,7 @@ from pyfaradaycup.decommutator import (
     DecommutationResult,
     _l0_to_l05,
     l0_to_l05,
+    main,
 )
 from pyfaradaycup.decommutator.main import (
     _console_level,
@@ -186,6 +188,90 @@ def test_pfc_decommutator_logs_exception(tmp_path: Path) -> None:
     assert "RuntimeError: Could not read L0 file" in log
 
 
+def test_pfc_decommutator_directory(tmp_path: Path) -> None:
+    """
+    Test that every file ending with _EA directly in a directory is
+    converted, each with its own log file, and that other files and
+    subdirectories are skipped.
+    """
+    indir = tmp_path / "l0"
+    (indir / "subdir").mkdir(parents=True)
+    tags = ["0523462910_4_EA", "0523462910_5_EA"]
+    for tag in tags:
+        shutil.copy(l0file, indir / tag)
+    shutil.copy(l0file, indir / "0523462910_6_EA.bak")
+    shutil.copy(l0file, indir / "subdir" / "0523462910_7_EA")
+    (indir / "0523462910_8_EA").mkdir()
+
+    l05dir = tmp_path / "l05"
+    logdir = tmp_path / "logs"
+    result = CliRunner().invoke(
+        pfc_decommutator,
+        [f"--l05dir={l05dir}", f"--logdir={logdir}", "--apid=352", str(indir)],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    assert sorted(path.name for path in l05dir.rglob("*.cdf")) == [
+        f"{tag}_APID352_L1.cdf" for tag in tags
+    ]
+    log_files = sorted(logdir.glob("*.log"))
+    assert [path.name.rsplit("_", 1)[0] for path in log_files] == [
+        f"l0_to_l05_{tag}" for tag in tags
+    ]
+
+
+def test_pfc_decommutator_directory_continues_after_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that an L0 file in a directory that cannot be converted does
+    not stop the next one from being converted, and that the exit code
+    is nonzero.
+    """
+    indir = tmp_path / "l0"
+    indir.mkdir()
+    bad_file = indir / "0000000000_0_EA"
+    shutil.copy(l0file, bad_file)
+    shutil.copy(l0file, indir / l0file.name)
+
+    def fail_for_bad_file(l0file: Path, **kwargs: Any) -> DecommutationResult:  # ruff:ignore[ANN401]
+        if l0file == bad_file:
+            msg = "made-up error while converting"
+            raise RuntimeError(msg)
+        return l0_to_l05(l0file, **kwargs)
+
+    monkeypatch.setattr(main, "l0_to_l05", fail_for_bad_file)
+
+    result = CliRunner().invoke(
+        pfc_decommutator,
+        [f"--l05dir={tmp_path}", f"--logdir={tmp_path}", "--apid=352", str(indir)],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 1
+    assert f"Could not convert {bad_file}" in result.output
+    assert [path.name for path in tmp_path.rglob("*.cdf")] == [
+        f"{l0file.name}_APID352_L1.cdf"
+    ]
+    log_files = sorted(path.name for path in tmp_path.glob("*.log"))
+    assert [name.rsplit("_", 1)[0] for name in log_files] == [
+        "l0_to_l05_0000000000_0_EA",
+        f"l0_to_l05_{l0file.name}",
+    ]
+
+
+def test_pfc_decommutator_directory_without_l0_files(tmp_path: Path) -> None:
+    """Test that a directory with no files ending with _EA is an error."""
+    (tmp_path / "README.md").write_text("Not an L0 file", encoding="utf-8")
+    result = CliRunner().invoke(
+        pfc_decommutator, [f"--logdir={tmp_path}", str(tmp_path)]
+    )
+    assert result.exit_code == click.ClickException.exit_code
+    assert f"No L0 files ending with _EA in directory {tmp_path}" in result.output
+    assert not list(tmp_path.glob("*.log"))
+
+
 def test_pfc_decommutator_verbose_and_quiet(tmp_path: Path) -> None:
     """Test that -v and -q cannot be used together."""
     result = CliRunner().invoke(pfc_decommutator, ["-v", "-q", str(tmp_path / "l0")])
@@ -195,10 +281,10 @@ def test_pfc_decommutator_verbose_and_quiet(tmp_path: Path) -> None:
 
 
 def test_pfc_decommutator_missing_l0file(tmp_path: Path) -> None:
-    """Test that L0FILE is a required positional argument."""
+    """Test that L0PATH is a required positional argument."""
     result = CliRunner().invoke(pfc_decommutator, [f"--logdir={tmp_path}"])
     assert result.exit_code == click.UsageError.exit_code
-    assert "Missing argument 'L0FILE'" in result.output
+    assert "Missing argument 'L0PATH'" in result.output
     assert not list(tmp_path.glob("*.log"))
 
 
@@ -233,7 +319,7 @@ def test_warn_about_ineffective_options(caplog: pytest.LogCaptureFixture) -> Non
     with caplog.at_level(logging.WARNING, logger="pyfaradaycup"):
         _warn_about_ineffective_options(recursive=True)
     assert caplog.messages == [
-        "-r/--recursive is not implemented; only L0FILE will be converted",
+        "-r/--recursive is not implemented; subdirectories will not be searched",
     ]
 
 
