@@ -17,7 +17,7 @@ from pyfaradaycup.decommutator import (
     [
         "pyfaradaycup",
         "pyfaradaycup.decommutator",
-        "pyfaradaycup.decommutator.ccsds_reader_pipeline",
+        "pyfaradaycup.decommutator.ccsds_reader",
     ],
 )
 def test_import(package_name: str) -> None:

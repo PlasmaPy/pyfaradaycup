@@ -1,5 +1,5 @@
 """
-Tests of the private helper functions in ccsds_reader_pipeline.
+Tests of the private helper functions in ccsds_reader.
 
 The end-to-end test in ``test_decommutator.py`` checks that a whole L0
 file is converted to the expected L05 CDF files, but when it fails it
@@ -19,7 +19,7 @@ import struct
 
 import pytest
 
-from pyfaradaycup.decommutator.ccsds_reader_pipeline import (
+from pyfaradaycup.decommutator.ccsds_reader import (
     _parse_ccsds_head,
     _read_bytestr,
     _read_file,

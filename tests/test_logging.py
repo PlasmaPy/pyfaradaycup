@@ -35,7 +35,7 @@ def test_package_logger_has_only_null_handler() -> None:
 @pytest.mark.parametrize(
     "module_name",
     [
-        "pyfaradaycup.decommutator.ccsds_reader_pipeline",
+        "pyfaradaycup.decommutator.ccsds_reader",
         "pyfaradaycup.decommutator.main",
         "pyfaradaycup.decommutator._l0_to_l05",
     ],

@@ -5,7 +5,7 @@ For historical reasons, the output files are named `*_L1.cdf`.
 
 - `main.py` defines the `pfc_decommutator` command line tool.
 - `_l0_to_l05.py` defines `l0_to_l05`, which does the conversion for one L0 file.
-- `ccsds_reader_pipeline.py` reads the CCSDS packets from an L0 file.
+- `ccsds_reader.py` reads the CCSDS packets from an L0 file.
 
 > [!NOTE]
 > This file was generated with Claude.
@@ -174,7 +174,7 @@ Most of these can be tested with `monkeypatch`, without new data files.
 
 ### Code that may not be needed
 
-- `_wrapper_status` in `ccsds_reader_pipeline.py` is not called anywhere.
+- `_wrapper_status` in `ccsds_reader.py` is not called anywhere.
   Either remove it, or test it if it is meant to be used.
 - `_cdf351_353_354` raises `UnboundLocalError` for an APID other than 0x351, 0x353, or 0x354.
   `l0_to_l05` never calls it with another APID, so a test is not needed unless it becomes public.
