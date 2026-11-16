@@ -42,7 +42,7 @@ files into Level 0.5 (L0.5 or L05) CDF files:
 
 ## Testing
 
-- Test data files are in `psp/data/sci/`. Keep new test data files
+- Test data files are in `_psp/data/sci/`. Keep new test data files
   small.
 - Mark long-running tests with `@pytest.mark.slow`. Deselect them with
   `-m "not slow"`.

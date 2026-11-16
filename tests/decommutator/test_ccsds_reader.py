@@ -27,7 +27,7 @@ from pyfaradaycup.decommutator.ccsds_reader import (
 
 _L0_FILE = (
     pathlib.Path(__file__).parent.parent.parent
-    / "psp"
+    / "_psp"
     / "data"
     / "sci"
     / "sweap"

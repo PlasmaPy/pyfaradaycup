@@ -59,7 +59,7 @@ This is done: an asset should call `pyfaradaycup.decommutator.l0_to_l05` rather 
   `l0_to_l05` logs the software versions, host, SHA-256 checksum of the L0 file, and the kernels and skeletons used, and returns them in a `DecommutationResult`, but none of this is written to the CDF files.
   A CDF file that is separated from its log file therefore cannot be traced back to how it was made.
   Add global attributes such as `Parents` (the L0 file and its checksum), `Software_version`, and `Generation_date`, following the ISTP guidelines.
-  This changes the contents of the CDF files, so the expected CDF files in `psp/data` would need to be regenerated.
+  This changes the contents of the CDF files, so the expected CDF files in `_psp/data` would need to be regenerated.
 
 ### Improve the log messages
 
@@ -88,7 +88,7 @@ This is done: an asset should call `pyfaradaycup.decommutator.l0_to_l05` rather 
 
 ## Tests to add
 
-The end-to-end test in `tests/decommutator/test_decommutator.py` converts one instrument L0 file (`psp/data/sci/sweap/raw/ssr/2026/215/0523462910_4_EA`) and compares the L0.5 CDF files with the expected ones, with no tolerance.
+The end-to-end test in `tests/decommutator/test_decommutator.py` converts one instrument L0 file (`_psp/data/sci/sweap/raw/ssr/2026/215/0523462910_4_EA`) and compares the L0.5 CDF files with the expected ones, with no tolerance.
 This protects the usual path for SPC instrument packets, but about a third of the code in this directory is never run by the tests.
 Most of it is in the spacecraft housekeeping path, in the handling of unusual packets, and in the handling of errors.
 The tests below are listed with the most important first.
@@ -98,7 +98,7 @@ The tests below are listed with the most important first.
 None of the code used with `--spacecraft` is tested, so a change could alter the CDF files for APIDs 0x081, 0x1DE, 0x254, 0x256, 0x257, and 0x262 without any test failing.
 
 - **Add a test that converts a spacecraft L0 file.**
-  Add a spacecraft L0 file to `psp/data`, along with the expected L0.5 CDF files, and compare them as the existing test does.
+  Add a spacecraft L0 file to `_psp/data`, along with the expected L0.5 CDF files, and compare them as the existing test does.
   If `--ptp` is needed, also add a PTP file.
 - **Test how the flight software version is chosen.**
   `_read_file_sc` chooses a spacecraft housekeeping definition file from the MET in the first packet header, by comparing it with the dates in `sc_hsk/L1/APID257_combined.txt`.

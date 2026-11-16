@@ -21,7 +21,7 @@ dagster = pytest.importorskip("dagster")
 
 l0file = (
     Path(__file__).parent.parent.parent
-    / "psp/data/sci/sweap/raw/ssr/2026/215/0523462910_4_EA"
+    / "_psp/data/sci/sweap/raw/ssr/2026/215/0523462910_4_EA"
 )
 
 # Dagster and its dependencies can issue warnings on import or during a
