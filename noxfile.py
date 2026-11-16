@@ -37,6 +37,7 @@ SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
     "3.12",
     "3.13",
     "3.14",
+    "3.15",
 )
 SUPPORTED_OPERATING_SYSTEMS: tuple[str, ...] = ("linux", "macos", "windows")
 
@@ -46,7 +47,7 @@ MINPYTHON = SUPPORTED_PYTHON_VERSIONS[0]
 RUNNING_ON_CI: bool = os.getenv("CI") is not None
 RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
-DOCPYTHON = "3.14"
+DOCPYTHON = "3.15"
 
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
