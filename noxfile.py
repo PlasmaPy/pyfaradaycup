@@ -48,10 +48,6 @@ RUNNING_ON_RTD: bool = os.getenv("READTHEDOCS") is not None
 
 DOCPYTHON = "3.14"
 
-REPO_ROOT = pathlib.Path(__file__).parent
-DATA_DIR = REPO_ROOT / "psp" / "data"
-SSR_DIR = DATA_DIR / "sci" / "sweap" / "raw" / "ssr"
-
 
 @nox_uv.session(uv_groups=["test"], python=SUPPORTED_PYTHON_VERSIONS)
 def tests(session: nox.Session) -> None:
