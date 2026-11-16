@@ -61,7 +61,7 @@ def test_l0_to_l05_in_dagster_asset(tmp_path: Path) -> None:
     metadata = materialization.metadata
     assert metadata["succeeded"].value is True
     assert metadata["cdf_files"].value == {
-        "0x352": str(l05dir / "0523462910_4_EA_APID352_L1.cdf")
+        "0x352": str(l05dir / "APID352" / "0523462910_4_EA_APID352_L1.cdf")
     }
     assert metadata["l0file"].value == str(l0file)
 
