@@ -178,8 +178,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
             /path/to/0523462910_4_EA
 
     This writes one L0.5 CDF file for each APID found in the L0 file, such
-    as 0523462910_4_EA_APID351_L1.cdf, into the directory given by
-    --l05dir, and a log file, such as
+    as APID351/0523462910_4_EA_APID351_L1.cdf, into a subdirectory named
+    after the APID in the directory given by --l05dir, and a log file,
+    such as
     l0_to_l05_0523462910_4_EA_20261029T142301Z.log, into the
     directory given by --logdir. If --l05dir or --logdir is not given,
     the current directory is used. The log file has every message, with
