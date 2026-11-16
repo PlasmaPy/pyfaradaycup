@@ -1,5 +1,6 @@
 """Test command line tools."""
 
+import gzip
 import hashlib
 import json
 import logging
@@ -473,6 +474,44 @@ def test_pfc_decommutator_matches_l0_to_l05(tmp_path: Path) -> None:
     for name in cli_files:
         with pytest_check.check:
             assert (cli_dir / name).read_bytes() == (python_dir / name).read_bytes()
+
+
+def test_pfc_decommutator_gzip(tmp_path: Path) -> None:
+    """
+    Test that converting a gzipped L0 file with --gzip writes the same
+    CDF files, with the same names, as converting the uncompressed file.
+    """
+    gzipped_l0file = tmp_path / f"{l0file.name}.gz"
+    gzipped_l0file.write_bytes(gzip.compress(l0file.read_bytes(), mtime=0))
+
+    # Each run gets its own directories, since the log files would
+    # otherwise have the same name if both runs start in the same second.
+    plain_dir = tmp_path / "plain"
+    gzip_dir = tmp_path / "gzip"
+    for outdir, args in (
+        (plain_dir, [str(l0file)]),
+        (gzip_dir, ["--gzip", str(gzipped_l0file)]),
+    ):
+        result = CliRunner().invoke(
+            pfc_decommutator,
+            [f"--l05dir={outdir}", f"--logdir={outdir}", *args],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
+
+    plain_files = sorted(
+        path.relative_to(plain_dir) for path in plain_dir.rglob("*.cdf")
+    )
+    assert [path.name for path in plain_files] == [
+        f"{l0file.name}_APID{apid}_L1.cdf"
+        for apid in ["351", "352", "353", "354", "35E", "35F"]
+    ]
+    assert plain_files == sorted(
+        path.relative_to(gzip_dir) for path in gzip_dir.rglob("*.cdf")
+    )
+    for path in plain_files:
+        with pytest_check.check:
+            assert (gzip_dir / path).read_bytes() == (plain_dir / path).read_bytes()
 
 
 def _loaded_kernels() -> list[str]:
