@@ -28,7 +28,7 @@ data was incorrect. It is hard-coded because `os.EX_DATAERR` is not
 available on Windows.
 """
 
-L0_FILENAME_PATTERN = re.compile(r"[0-9]+_[0-9]+_EA")
+L0_FILENAME_PATTERN = re.compile(r"[0-9]+_[0-9]+_[A-Z]{2}")
 """
 The pattern that the whole name of an L0 file must match to be converted
 when it is in a directory, like ``0523462910_4_EA``.
@@ -223,8 +223,9 @@ def pfc_decommutator(  # ruff:ignore[PLR0913]
 
     L0PATH is an L0 file, or a directory of L0 files. For a directory,
     every file directly in it with a name made of digits, an underscore,
-    digits, and _EA (like 0523462910_4_EA) is converted, in order of
-    name, and subdirectories are not searched.
+    digits, an underscore, and two capital letters (like
+    0523462910_4_EA) is converted, in order of name, and subdirectories
+    are not searched.
 
     To convert the L0 file 0523462910_4_EA, printing progress messages
     to the screen:
