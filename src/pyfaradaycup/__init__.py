@@ -1,4 +1,4 @@
-__all__ = ["LoggingConfiguration", "configure_logging", "decommutator"]
+__all__ = ["LoggingConfiguration", "configure_logging", "decommutator", "l05_to_l1"]
 
 import logging
 
@@ -8,5 +8,5 @@ import logging
 # application has not configured logging.
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from pyfaradaycup import decommutator
+from pyfaradaycup import decommutator, l05_to_l1
 from pyfaradaycup._logging import LoggingConfiguration, configure_logging

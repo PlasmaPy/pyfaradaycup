@@ -18,6 +18,9 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup",
         "pyfaradaycup.decommutator",
         "pyfaradaycup.decommutator.ccsds_reader",
+        "pyfaradaycup.l05_to_l1",
+        "pyfaradaycup.l05_to_l1.cdf_to_survey",
+        "pyfaradaycup.l05_to_l1.main",
     ],
 )
 def test_import(package_name: str) -> None:
