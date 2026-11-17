@@ -328,15 +328,19 @@ def test_pfc_decommutator_directory_without_l0_files(tmp_path: Path) -> None:
 def test_l0_files_names(tmp_path: Path) -> None:
     """
     Test that only files whose whole names are digits, an underscore,
-    digits, and _EA are found in a directory.
+    digits, an underscore, and two capital letters are found in a directory.
     """
-    matching = ["13531_53_EA", "0523462910_4_EA"]
+    matching = ["13531_53_EA", "0523462910_4_EA", "0523462910_4_FG", "1_2_ZZ"]
     not_matching = [
         "31f_531_EA",
         "351_3EA",
         "_53_EA",
         "13531__EA",
         "13531_53_ea",
+        "13531_53_Ea",
+        "13531_53_E",
+        "13531_53_E1",
+        "13531_53_\N{LATIN CAPITAL LETTER E WITH ACUTE}A",
         "13531_53_EA.gz",
         "13531_53_EAX",
         "x13531_53_EA",
