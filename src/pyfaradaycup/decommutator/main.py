@@ -12,6 +12,7 @@ import re
 import click
 
 from pyfaradaycup._logging import configure_logging
+from pyfaradaycup._logging import console_level as _console_level
 from pyfaradaycup.decommutator._l0_to_l05 import NoPacketsError, l0_to_l05
 
 logger = logging.getLogger(__name__)
@@ -60,17 +61,6 @@ def _warn_about_ineffective_options(*, recursive: bool) -> None:
         logger.warning(
             "-r/--recursive is not implemented; subdirectories will not be searched"
         )
-
-
-def _console_level(*, verbose: int, quiet: bool) -> int:
-    """Return the minimum level of messages to print to standard error."""
-    if quiet:
-        return logging.ERROR
-    if verbose == 0:
-        return logging.WARNING
-    if verbose == 1:
-        return logging.INFO
-    return logging.DEBUG
 
 
 def _l0_files(l0path: pathlib.Path) -> list[pathlib.Path]:

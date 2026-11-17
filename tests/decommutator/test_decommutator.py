@@ -7,13 +7,12 @@ import logging
 import pickle
 import re
 import shutil
-import warnings
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import cdflib.xarray
 import click
-import numpy as np
 import pytest
 import pytest_check
 import spiceypy
@@ -50,66 +49,9 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _value(obj: Any) -> Any:  # ruff:ignore[ANN401]
-    """Return a value that compares equal by value, converting ctypes and arrays."""
-    if hasattr(obj, "value"):  # ctypes values, like c_long, compare by identity
-        return obj.value
-    if isinstance(obj, tuple):
-        return tuple(_value(item) for item in obj)
-    return np.asarray(obj).tolist()
-
-
-def _cdf_metadata(path: str) -> dict[str, Any]:
-    """
-    Return the metadata of a CDF file that is lost when it is converted to
-    xarray, so that it can be compared between two files.
-
-    The CDF version is not included, because it is the version of the CDF
-    library that wrote the file and so differs between environments.
-    Variable attributes are read from raw variables so that time values
-    keep the full precision of ``CDF_TIME_TT2000``.
-    """
-    with warnings.catch_warnings(), pycdf.CDF(path) as cdf:
-        # spacepy 0.7.0 reads string attribute entries with numpy.char.array,
-        # which NumPy 2.5 deprecates.
-        warnings.filterwarnings(
-            "ignore", "The chararray class is deprecated", DeprecationWarning
-        )
-        global_attributes = {
-            name: [
-                (i, _value(attr[i]), attr.type(i))
-                for i in range(attr.max_idx() + 1)
-                if attr.has_entry(i)
-            ]
-            for name, attr in cdf.attrs.items()
-        }
-        variables = {}
-        for name in cdf:
-            var = cdf.raw_var(name)
-            variables[name] = {
-                "type": var.type(),
-                "nelems": var.nelems(),
-                "shape": var.shape,
-                "rv": var.rv(),
-                "dv": var.dv(),
-                "sparse": _value(var.sparse()),
-                "pad": _value(var.pad()),
-                "compress": _value(var.compress()),
-                "attrs": {
-                    attr: (_value(var.attrs[attr]), var.attrs.type(attr))
-                    for attr in var.attrs
-                },
-            }
-        return {
-            "col_major": cdf.col_major(),
-            "compress": _value(cdf.compress()),
-            "checksum": cdf.checksum(),
-            "global_attributes": global_attributes,
-            "variables": variables,
-        }
-
-
-def test_pfc_decommutator(tmp_path: Path) -> None:
+def test_pfc_decommutator(
+    tmp_path: Path, cdf_metadata: Callable[[str], dict[str, Any]]
+) -> None:
     """Test the level 0 to level 0.5 step using the click command line tool."""
     tag = "0523462910_4_EA"
 
@@ -167,8 +109,8 @@ def test_pfc_decommutator(tmp_path: Path) -> None:
                 assert actual[name].dtype == variable.dtype, (apid, name)
 
         # Compare the CDF metadata that is lost in the conversion to xarray.
-        expected_metadata = _cdf_metadata(l05_cdf_expected)
-        actual_metadata = _cdf_metadata(l05_cdf_actual)
+        expected_metadata = cdf_metadata(l05_cdf_expected)
+        actual_metadata = cdf_metadata(l05_cdf_actual)
         for key, value in expected_metadata.items():
             with pytest_check.check:
                 assert actual_metadata[key] == value, (apid, key)
