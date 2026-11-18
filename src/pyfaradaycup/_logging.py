@@ -133,7 +133,7 @@ class _StderrHandler(logging.StreamHandler):
     # A read-only property is intended, so that the handler cannot be
     # given a fixed stream, even though StreamHandler.stream is writable.
     @property
-    def stream(self) -> TextIO:  # ty: ignore[invalid-property-type-override]
+    def stream(self) -> TextIO:  # ty: ignore[incompatible-property-override]
         return sys.stderr
 
 
