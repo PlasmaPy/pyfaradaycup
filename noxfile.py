@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.9"
 # dependencies = [ "nox[uv]", "nox-uv", "uv" ]
 # ///
 
@@ -29,6 +29,8 @@ import nox.command
 import nox_uv
 
 nox.options.default_venv_backend = "uv"
+
+nox.options.sessions = ["tests-3.9", "dagster_with_coverage", "lint", "typecheck"]
 
 SUPPORTED_PYTHON_VERSIONS: tuple[str, ...] = (
     "3.9",
