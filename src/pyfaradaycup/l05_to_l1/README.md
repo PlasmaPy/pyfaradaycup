@@ -42,5 +42,3 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 - [ ] **Check the conversion of times to dates and Julian days against IDL.**
   The documentation of `CDF_EPOCH_TOJULDAYS` does not say how it handles leap seconds, and `CDF_merge_to_daily` calls `CDF_EPOCH, /BREAKDOWN` on `CDF_TIME_TT2000` values without `/TT2000`.
   Compare `_cdf_epoch_tojuldays` and `_julday` with IDL for times near midnight and during the leap second at the end of 2016.
-- [ ] **Add the rest of the L0.5 files for 2026-08-03 to `_psp/`,** so that the L1 files from IDL for APIDs 353, 354, 35E, and 35F can be reproduced.
-  Then remove those APIDs' `xfail` marks from `test_l1_matches_idl`.

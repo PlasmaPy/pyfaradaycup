@@ -40,13 +40,6 @@ l1_dir = spc_dir / "L1"
 
 date = datetime.date(2026, 8, 3)
 
-APIDS_WITH_ALL_L05_FILES = {"351"}
-"""
-The APIDs whose L1 files from IDL can be made from the L0.5 files in
-``_psp``. The L1 files for the other APIDs also used L0.5 files from
-raw files that are not in ``_psp``.
-"""
-
 
 @pytest.mark.parametrize(
     ("filenames", "expected"),
@@ -323,24 +316,7 @@ def _l1_name(apid: str) -> Path:
     )
 
 
-@pytest.mark.parametrize(
-    "apid",
-    [
-        apid
-        if apid in APIDS_WITH_ALL_L05_FILES
-        else pytest.param(
-            apid,
-            marks=pytest.mark.xfail(
-                reason=(
-                    "The L0.5 files for 2026-08-03 from the other raw files are "
-                    "not yet in _psp"
-                ),
-                strict=True,
-            ),
-        )
-        for apid in SPC_L1_APIDS
-    ],
-)
+@pytest.mark.parametrize("apid", SPC_L1_APIDS)
 def test_l1_matches_idl(
     apid: str,
     l1_from_cli: Path,
@@ -383,8 +359,7 @@ def test_l1_matches_idl(
 def test_l1_records_are_in_idl_l1(apid: str, l1_from_cli: Path) -> None:
     """
     Test that every record in each L1 file is in the L1 file made by
-    IDL with the same values, including for APIDs whose L1 files from
-    IDL had more L0.5 files than are in ``_psp``.
+    IDL with the same values.
     """
     expected = cdflib.xarray.cdf_to_xarray(str(l1_dir / _l1_name(apid)))
     actual = cdflib.xarray.cdf_to_xarray(str(l1_from_cli / _l1_name(apid)))
