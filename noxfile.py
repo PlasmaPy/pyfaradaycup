@@ -257,27 +257,6 @@ def check_build(session: nox.Session) -> None:
     session.run("twine", "check", "dist/*", *session.posargs)
 
 
-@nox_uv.session(
-    python=MAXPYTHON,
-    uv_only_groups=["manifest"],
-    uv_no_install_project=True,
-)
-def manifest(session: nox.Session) -> None:
-    """
-    Check for missing files in MANIFEST.in.
-
-    When run outside of CI, this check may report files that were
-    locally created but not included in version control. These false
-    positives can be ignored by adding file patterns and paths to
-    `ignore` under `[tool.check-manifest]` in `pyproject.toml`.
-    """
-    # check-manifest would be suitable as a pre-commit hook, except that
-    # it requires ∼6 seconds to build the package, which would triple
-    # the time needed to run pre-commit.
-    session.install("check-manifest")
-    session.run("check-manifest", *session.posargs)
-
-
 @nox_uv.session(python=MAXPYTHON, uv_only_groups=["lint"], uv_no_install_project=True)
 def lint(session: nox.Session) -> None:
     """Run all pre-commit hooks defined in .pre-commit-config.yaml."""
