@@ -256,7 +256,7 @@ def test_configure_logging_capture_warnings(tmp_path: pathlib.Path) -> None:
     assert "WARNING  py.warnings:" in log_file.read_text(encoding="utf-8")
     assert "UserWarning: captured" in log_file.read_text(encoding="utf-8")
     assert not logging.getLogger("py.warnings").handlers
-    assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+    assert warnings.showwarning is not logging._showwarning  # ty: ignore[missing-attribute]
 
 
 def test_configure_logging_replacement_stops_capturing_warnings() -> None:
@@ -264,7 +264,7 @@ def test_configure_logging_replacement_stops_capturing_warnings() -> None:
     pyfaradaycup.configure_logging(capture_warnings=True)
     pyfaradaycup.configure_logging()
     assert not logging.getLogger("py.warnings").handlers
-    assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+    assert warnings.showwarning is not logging._showwarning  # ty: ignore[missing-attribute]
 
 
 def test_configure_logging_replacement_restores_original_level() -> None:
@@ -310,7 +310,7 @@ def test_configure_logging_capture_warnings_without_handlers() -> None:
     """Test that warnings are not captured when there is nowhere to send them."""
     with pyfaradaycup.configure_logging(console=False, capture_warnings=True) as config:
         assert not config.capture_warnings
-        assert warnings.showwarning is not logging._showwarning  # ty: ignore[unresolved-attribute]
+        assert warnings.showwarning is not logging._showwarning  # ty: ignore[missing-attribute]
 
 
 def test_configure_logging_console_uses_current_stderr(

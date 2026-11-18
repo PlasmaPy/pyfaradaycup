@@ -61,7 +61,7 @@ def _file2bytestr(
         if gzip:
             import gzip  # ruff:ignore[PLC0415]  # ty: ignore[invalid-assignment]
 
-            with gzip.open(path, "rb") as f:  # ty: ignore[unresolved-attribute]
+            with gzip.open(path, "rb") as f:  # ty: ignore[missing-attribute]
                 bytestr = f.read()
             return bytestr  # ruff:ignore[RET504]
         return pathlib.Path(path).read_bytes()
@@ -252,10 +252,11 @@ def _read_file(
     # store the format for each apid in a dictionary
     apidformat = {}
     for apid in ok_apids:
-        apidformat[apid] = _get_layout(apid)
-        if apidformat[apid]:
+        layout = _get_layout(apid)
+        apidformat[apid] = layout
+        if layout:
             data[apid] = {}
-            for name in apidformat[apid].names:  # ty: ignore[unresolved-attribute]
+            for name in layout.names:
                 data[apid][name] = []
 
     # create a list of two dictionaries that can keep track of
