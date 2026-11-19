@@ -16,6 +16,7 @@ __all__ = ["cdf_merge_to_daily"]
 import datetime
 import logging
 import pathlib
+import secrets
 import time
 from typing import TYPE_CHECKING
 
@@ -112,13 +113,13 @@ def _read_mycdf(
     return data, record_varying
 
 
-def _read_master_cdf(
-    skeletonfile: pathlib.Path, out_cdf: pathlib.Path, *, overwrite: bool
-) -> None:
+def _read_master_cdf(skeletonfile: pathlib.Path, out_cdf: pathlib.Path) -> None:
     """
     Create a CDF file from a skeleton CDF file.
 
-    This replaces ``read_master_cdf`` from CDAWlib.
+    This replaces ``read_master_cdf`` from CDAWlib, which copies the
+    skeleton over the output file. Here, the file is created at a
+    temporary path chosen by `cdf_merge_to_daily`, which must not exist.
 
     Parameters
     ----------
@@ -127,34 +128,35 @@ def _read_master_cdf(
         but no records.
     out_cdf : pathlib.Path
         The CDF file to create.
-    overwrite : bool
-        Whether to replace ``out_cdf`` if it already exists.
-
-    Raises
-    ------
-    FileExistsError
-        If ``out_cdf`` exists and ``overwrite`` is `False`.
     """
-    if out_cdf.exists():
-        if not overwrite:
-            msg = f"{out_cdf} already exists; use overwrite to replace it"
-            raise FileExistsError(msg)
-        logger.info("Overwriting %s", out_cdf)
-        out_cdf.unlink()
     with pycdf.CDF(str(out_cdf), str(skeletonfile)):
         pass
 
 
-def _write_data_to_cdf(out_cdf: pathlib.Path, buffer: dict[str, np.ndarray]) -> None:
+def _temporary_path(out_cdf: pathlib.Path) -> pathlib.Path:
+    """
+    Return a new path, next to ``out_cdf``, to write it to first.
+
+    The name starts with ``.`` so that it is hidden, and ends with
+    ``.cdf``, because the CDF library adds ``.cdf`` to names that do not
+    end with it.
+    """
+    return out_cdf.with_name(f".{out_cdf.stem}.{secrets.token_hex(8)}.tmp.cdf")
+
+
+def _write_data_to_cdf(
+    out_cdf: pathlib.Path, buffer: dict[str, np.ndarray], *, logical_file_id: str
+) -> None:
     """
     Write data into a CDF file created by `_read_master_cdf`.
 
     This replaces ``write_data_to_cdf`` from CDAWlib. Like it, the
     ``Logical_file_id`` global attribute is set to the name of the file
-    without ``.cdf``, and the ``Generation_date`` global attribute is
-    set to the current local time in the format of IDL's ``systime()``,
-    like ``Fri Aug 14 11:38:16 2026``. Each is set only if the skeleton
-    has it.
+    without ``.cdf``, which is given by ``logical_file_id`` because the
+    file is written at a temporary path first. The ``Generation_date``
+    global attribute is set to the current local time in the format of
+    IDL's ``systime()``, like ``Fri Aug 14 11:38:16 2026``. Each is set
+    only if the skeleton has it.
 
     Parameters
     ----------
@@ -162,12 +164,14 @@ def _write_data_to_cdf(out_cdf: pathlib.Path, buffer: dict[str, np.ndarray]) -> 
         The CDF file to write into.
     buffer : dict of str to numpy.ndarray
         The raw values to write into each variable.
+    logical_file_id : str
+        The name of the final file without ``.cdf``.
     """
     cdf = pycdf.CDF(str(out_cdf))
     try:
         cdf.readonly(False)  # ruff:ignore[FBT003]
         if "Logical_file_id" in cdf.attrs:
-            cdf.attrs["Logical_file_id"][0] = out_cdf.stem
+            cdf.attrs["Logical_file_id"][0] = logical_file_id
         if "Generation_date" in cdf.attrs:
             cdf.attrs["Generation_date"][0] = time.ctime()
         for name, values in buffer.items():
@@ -216,7 +220,9 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
     outversion : int, default: 0
         The version number in the name of each output file.
     overwrite : bool, default: False
-        Whether to replace output files that already exist.
+        Whether to replace output files that already exist. Each file
+        is written at a temporary path and renamed when it is complete,
+        so an existing file is left unchanged if writing fails.
 
     Returns
     -------
@@ -309,8 +315,17 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
         ind = all_thisday[o[u]]
 
         out_cdf = _outfile(outpath, outname, thisdate, outversion)
-        _read_master_cdf(skeletonfile, out_cdf, overwrite=overwrite)
+        exists = out_cdf.exists()
+        if exists and not overwrite:
+            msg = f"{out_cdf} already exists; use overwrite to replace it"
+            raise FileExistsError(msg)
+
+        # Unlike IDL, which copies the skeleton over the output file, the
+        # file is written at a temporary path and then renamed, so that
+        # an existing file is only replaced by a complete one.
+        tmp_cdf = _temporary_path(out_cdf)
         try:
+            _read_master_cdf(skeletonfile, tmp_cdf)
             # For each variable, select the content for this day. IDL
             # uses the first dimension with the same length as Epoch as
             # the record dimension, which ARRAY_CHUNK selects from.
@@ -321,11 +336,17 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
                 name: values[ind] if record_varying[name] else values
                 for name, values in odata.items()
             }
-            _write_data_to_cdf(out_cdf, buffer)
+            _write_data_to_cdf(tmp_cdf, buffer, logical_file_id=out_cdf.stem)
+            tmp_cdf.replace(out_cdf)
         except BaseException:
-            # Delete the CDF so that it is not mistaken for a complete one
-            out_cdf.unlink(missing_ok=True)
+            # Delete the partial CDF, and leave any existing file alone
+            tmp_cdf.unlink(missing_ok=True)
             raise
-        logger.info("Wrote %d records to %s", ind.size, out_cdf)
+        logger.info(
+            "Wrote %d records to %s%s",
+            ind.size,
+            out_cdf,
+            ", replacing the existing file" if exists else "",
+        )
         outfiles.append(out_cdf)
     return outfiles
