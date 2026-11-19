@@ -67,12 +67,22 @@ def test_spp_swp_spc_which_apid(filenames: list[Any], expected: list[str]) -> No
     [
         date,
         datetime.datetime(2026, 8, 3, 12, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2026, 8, 3, 23),  # ruff:ignore[DTZ001]
+        datetime.datetime(
+            2026, 8, 2, 21, tzinfo=datetime.timezone(datetime.timedelta(hours=-4))
+        ),
+        datetime.datetime(
+            2026, 8, 4, 2, tzinfo=datetime.timezone(datetime.timedelta(hours=4))
+        ),
         "2026-08-03",
         "2026-08-03T12:34:56Z",
     ],
 )
 def test_parse_date(value: datetime.date | str) -> None:
-    """Test that dates can be given as dates, datetimes, and ISO 8601 strings."""
+    """
+    Test that dates can be given as dates, datetimes, and ISO 8601
+    strings, and that datetimes with time zones are converted to UTC.
+    """
     assert _parse_date(value) == date
 
 

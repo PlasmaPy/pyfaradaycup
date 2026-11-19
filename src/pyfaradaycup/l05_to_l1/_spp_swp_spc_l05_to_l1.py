@@ -107,7 +107,9 @@ def _parse_date(date: datetime.date | str) -> datetime.date:
     Return a date given as a `datetime.date` or an ISO 8601 string.
 
     Like ``TIMESTAMPTOVALUES`` in IDL, only the date is used from a
-    string like ``"2026-08-03T12:00:00Z"``.
+    string like ``"2026-08-03T12:00:00Z"``. A `datetime.datetime` with a
+    time zone is converted to UTC first, and one without a time zone is
+    taken to be in UTC.
 
     Raises
     ------
@@ -116,6 +118,8 @@ def _parse_date(date: datetime.date | str) -> datetime.date:
         format ``YYYY-MM-DD``.
     """
     if isinstance(date, datetime.datetime):
+        if date.utcoffset() is not None:
+            date = date.astimezone(datetime.timezone.utc)
         return date.date()
     if isinstance(date, datetime.date):
         return date
