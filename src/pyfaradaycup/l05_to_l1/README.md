@@ -39,6 +39,8 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 - In the Python API, a date can also be given as a `datetime.datetime`, which is converted to UTC before its date is taken if it has a time zone.
   IDL only accepts dates as strings or numbers.
 - An existing L1 file is replaced only with `--overwrite`.
+  Each L1 file is written at a temporary path in the same directory and renamed when it is complete, so an existing file is left unchanged if writing the new one fails.
+  IDL copies the skeleton over the existing file before writing the data.
   Without it, none of the L1 files for a date are written if any of them already exist.
 
 ## To do
