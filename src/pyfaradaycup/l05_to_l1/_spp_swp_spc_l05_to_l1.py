@@ -89,6 +89,13 @@ def spp_swp_spc_which_apid(
         The three characters after the first ``_APID`` in each file
         name, like ``"351"``, or ``""`` if there is no ``_APID``.
 
+    Notes
+    -----
+    Unlike IDL, which searches the whole string, only the name of the
+    file is searched, so that an ``_APID`` in the name of a directory is
+    not mistaken for the APID. Like IDL, ``_APID`` at the very start of
+    the name is not counted.
+
     Examples
     --------
     >>> spp_swp_spc_which_apid(["0523462910_4_EA_APID35E_L1.cdf", "other.cdf"])
@@ -100,9 +107,10 @@ def spp_swp_spc_which_apid(
         filenames = [filenames]
     apids = []
     for filename in filenames:
-        name = os.fspath(filename)
+        name = pathlib.PurePath(filename).name
         position = name.find("_APID")
-        apids.append(name[position + 5 : position + 8] if position >= 0 else "")
+        # IDL checks for strpos(...) gt 0, which ignores a match at 0
+        apids.append(name[position + 5 : position + 8] if position > 0 else "")
     return apids
 
 

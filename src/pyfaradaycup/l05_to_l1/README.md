@@ -30,6 +30,7 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 - Of a set of duplicate records, the one in the last input file is kept.
   IDL's `sort` is not stable, so which duplicate IDL keeps is not defined.
 - A warning is logged for each input file that is missing, rather than depending only on whether the last file is missing.
+- The APID is found from the name of each L0.5 file, rather than from its whole path, so that `_APID` in the name of a directory is not mistaken for the APID.
 - An L0.5 file that cannot be read, such as one that is truncated or still being written, is skipped with a warning.
 - An existing L1 file is replaced only with `--overwrite`.
   Without it, none of the L1 files for a date are written if any of them already exist.

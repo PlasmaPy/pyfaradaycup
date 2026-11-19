@@ -54,11 +54,17 @@ date = datetime.date(2026, 8, 3)
         (["no_apid.cdf", "x_APID353_L1.cdf"], ["", "353"]),
         ([], []),
         ("0523462910_4_EA_APID351_L1.cdf", ["351"]),
+        ("/data/spc_APID_l05/2026/08/APID353/x_APID353_L1.cdf", ["353"]),
+        (Path("spc_APID_l05/no_apid.cdf"), [""]),
+        ("_APID351_L1.cdf", [""]),
         (Path("L05/2026/08/APID35E/0523462910_4_EA_APID35E_L1.cdf"), ["35E"]),
     ],
 )
 def test_spp_swp_spc_which_apid(filenames: list[Any], expected: list[str]) -> None:
-    """Test that the APID is the three characters after _APID."""
+    """
+    Test that the APID is the three characters after the first _APID in
+    the name of the file, not counting one at the start of the name.
+    """
     assert spp_swp_spc_which_apid(filenames) == expected
 
 
