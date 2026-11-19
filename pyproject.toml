@@ -36,6 +36,7 @@ dependencies = [
   "spacepy>=0.7",
   "spiceypy>=6",
 ]
+scripts.l05_to_l1 = "pyfaradaycup.l05_to_l1.main:l05_to_l1"
 scripts.pfc_decommutator = "pyfaradaycup.decommutator.main:pfc_decommutator"
 
 [dependency-groups]

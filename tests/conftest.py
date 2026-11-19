@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import warnings
 from typing import TYPE_CHECKING, Any
 
@@ -79,3 +80,15 @@ def cdf_metadata() -> Callable[[str], dict[str, Any]]:
     lost when it is converted to xarray.
     """
     return _cdf_metadata
+
+
+def tt2000(*args: int) -> int:
+    """Return the ``CDF_TIME_TT2000`` value of a UTC time given like `datetime.datetime`."""
+    time = datetime.datetime(*args)  # ruff:ignore[DTZ001]  # ty: ignore[invalid-argument-type]
+    return int(pycdf.lib.datetime_to_tt2000(time))
+
+
+@pytest.fixture(name="tt2000")
+def tt2000_fixture() -> Callable[..., int]:
+    """Return `tt2000`, for converting UTC times into ``CDF_TIME_TT2000`` values."""
+    return tt2000

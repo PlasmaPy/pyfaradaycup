@@ -88,3 +88,29 @@ can be serialized as JSON.
 
 To show log messages from the conversion in the Dagster event log, see
 :ref:`logging-dagster`.
+
+Converting L0.5 files into L1 files from Python
+===============================================
+
+The :ref:`l05_to_l1 <cli>` command line tool calls
+:func:`~pyfaradaycup.l05_to_l1.spp_swp_spc_l05_to_l1_date` for each
+date, which can also be called directly:
+
+.. code-block:: python
+
+   from pyfaradaycup.l05_to_l1 import spp_swp_spc_l05_to_l1_date
+
+   l1files = spp_swp_spc_l05_to_l1_date(
+       "2026-08-03", l05dir="/path/to/L05", l1dir="/path/to/L1"
+   )
+
+This merges the records on that date from every L0.5 file in
+``/path/to/L05`` into one L1 file for each APID, and returns the paths
+of the L1 files. If no L0.5 files have data for the date,
+:class:`~pyfaradaycup.l05_to_l1.NoL05DataError` is raised, and the
+``l05_to_l1`` command line tool exits with code 65.
+
+The names of the functions are the same as in the IDL code that they
+were ported from, and
+:func:`~pyfaradaycup.l05_to_l1.cdf_merge_to_daily` can merge any CDF
+files with a ``CDF_TIME_TT2000`` variable named ``Epoch``.
