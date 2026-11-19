@@ -776,7 +776,7 @@ def test_l0_to_l05_close_error_keeps_fill_error(
         raise pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR)
 
     monkeypatch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
-    monkeypatch.setattr(_l0_to_l05, "_close_cdf", fail_to_close)
+    monkeypatch.setattr(_l0_to_l05, "close_cdf", fail_to_close)
     with caplog.at_level(logging.WARNING, logger=_l0_to_l05.__name__):
         result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
 

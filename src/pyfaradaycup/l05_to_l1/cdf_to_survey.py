@@ -17,12 +17,12 @@ import datetime
 import logging
 import pathlib
 import time
-import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
 from spacepy import pycdf
 
+from pyfaradaycup.utils._cdf import close_cdf
 from pyfaradaycup.utils.idl import cdf_epoch_tojuldays, julday, uniq
 
 if TYPE_CHECKING:
@@ -139,21 +139,6 @@ def _read_master_cdf(
         pass
 
 
-def _close_cdf(cdf: pycdf.CDF) -> None:
-    """
-    Close a CDF file.
-
-    spacepy warns when a variable that the CDF skeleton marks for
-    compression does not get smaller when compressed, which is harmless,
-    so this warning is not shown.
-    """
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
-        )
-        cdf.close()
-
-
 def _write_data_to_cdf(out_cdf: pathlib.Path, buffer: dict[str, np.ndarray]) -> None:
     """
     Write data into a CDF file created by `_read_master_cdf`.
@@ -182,7 +167,7 @@ def _write_data_to_cdf(out_cdf: pathlib.Path, buffer: dict[str, np.ndarray]) -> 
         for name, values in buffer.items():
             cdf.raw_var(name)[...] = values
     finally:
-        _close_cdf(cdf)
+        close_cdf(cdf)
 
 
 def cdf_merge_to_daily(  # ruff:ignore[PLR0913]

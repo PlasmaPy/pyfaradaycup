@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,6 +10,7 @@ import pytest
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
+from pyfaradaycup.utils._cdf import close_cdf
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -67,11 +67,7 @@ def write_l05_file(
             else:
                 var[...] = np.zeros(epoch_values.size, dtype=dtype)
     finally:
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
-            )
-            cdf.close()
+        close_cdf(cdf)
     return path
 
 

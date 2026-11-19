@@ -54,7 +54,6 @@ import pathlib
 import platform
 import socket
 import time
-import warnings
 from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 import numpy as np
@@ -63,6 +62,7 @@ from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
 from pyfaradaycup.decommutator.ccsds_reader import _read_file, _read_file_sc
+from pyfaradaycup.utils._cdf import close_cdf
 
 if TYPE_CHECKING:
     import os
@@ -568,7 +568,7 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             # deleted so that it is not mistaken for a complete one, and
             # so that a retry without overwrite does not stop at it.
             try:
-                _close_cdf(cdf)
+                close_cdf(cdf)
             except pycdf.CDFError:
                 logger.warning("Could not close %s", l1path, exc_info=True)
             try:
@@ -577,7 +577,7 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
                 logger.warning("Could not delete %s", l1path, exc_info=True)
             continue
 
-        _close_cdf(cdf)
+        close_cdf(cdf)
         cdf_files[apid] = l1path
         # The message about overwriting the file is enough for the
         # console, so the message about writing it is only for the log file.
@@ -655,21 +655,6 @@ def _sha256(path: pathlib.Path) -> str:
         for chunk in iter(lambda: file.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
-
-
-def _close_cdf(cdf: pycdf.CDF) -> None:
-    """
-    Close a CDF file.
-
-    spacepy warns when a variable that the CDF skeleton marks for
-    compression does not get smaller when compressed, which is harmless,
-    so this warning is not shown.
-    """
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
-        )
-        cdf.close()
 
 
 def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]
