@@ -669,3 +669,19 @@ def test_dagster_unmanaged_logger_with_log_file(tmp_path: pathlib.Path) -> None:
         "info message",
         "warning message",
     ]
+
+
+@pytest.mark.parametrize(
+    ("verbose", "quiet", "expected"),
+    [
+        (0, False, logging.WARNING),
+        (1, False, logging.INFO),
+        (2, False, logging.DEBUG),
+        (3, False, logging.DEBUG),
+        (0, True, logging.ERROR),
+        (2, True, logging.ERROR),
+    ],
+)
+def test_console_level(*, verbose: int, quiet: bool, expected: int) -> None:
+    """Test the console level for combinations of -v and -q, where -q wins."""
+    assert _logging.console_level(verbose=verbose, quiet=quiet) == expected

@@ -14,7 +14,7 @@ explained in :ref:`logging-concepts`.
 
 from __future__ import annotations
 
-__all__ = ["LoggingConfiguration", "configure_logging"]
+__all__ = ["LoggingConfiguration", "configure_logging", "console_level"]
 
 import logging
 import pathlib
@@ -440,3 +440,33 @@ def _make_file_handler(
     file_formatter.converter = time.gmtime
     file_handler.setFormatter(file_formatter)
     return file_handler
+
+
+def console_level(*, verbose: int, quiet: bool) -> int:
+    """
+    Return the minimum level of messages to print to standard error.
+
+    This converts the ``-v/--verbose`` and ``-q/--quiet`` options of the
+    command line tools into a level for `configure_logging`.
+
+    Parameters
+    ----------
+    verbose : int
+        The number of times ``-v`` was given.
+    quiet : bool
+        Whether ``-q`` was given.
+
+    Returns
+    -------
+    int
+        ``logging.ERROR`` if ``quiet`` is `True`. Otherwise,
+        ``logging.WARNING``, ``logging.INFO``, or ``logging.DEBUG`` for
+        ``verbose`` of 0, 1, or more.
+    """
+    if quiet:
+        return logging.ERROR
+    if verbose == 0:
+        return logging.WARNING
+    if verbose == 1:
+        return logging.INFO
+    return logging.DEBUG
