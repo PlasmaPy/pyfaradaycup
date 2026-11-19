@@ -83,8 +83,8 @@ def _log_file_path(logdir: pathlib.Path | None, date: datetime.date) -> pathlib.
     "--overwrite",
     is_flag=True,
     help=(
-        "Overwrite existing L1 CDF files. Without this, a date fails if any "
-        "of its L1 CDF files already exist."
+        "Overwrite existing L1 CDF files. Without this, a date fails, and "
+        "none of its L1 CDF files are written, if any of them already exist."
     ),
 )
 @click.option(

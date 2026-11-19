@@ -53,6 +53,13 @@ def _unique_dates(jd: np.ndarray) -> list[datetime.date]:
     ]
 
 
+def _outfile(
+    outpath: pathlib.Path, outname: str, date: datetime.date, outversion: int = 0
+) -> pathlib.Path:
+    """Return the path of the daily file for ``date``."""
+    return outpath / f"{outname}_{date:%Y%m%d}_v{outversion:02d}.cdf"
+
+
 def _read_mycdf(
     infiles: Sequence[pathlib.Path],
 ) -> tuple[dict[str, np.ndarray], dict[str, bool]]:
@@ -301,7 +308,7 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
         u = uniq(jd[all_thisday[o]])
         ind = all_thisday[o[u]]
 
-        out_cdf = outpath / f"{outname}_{thisdate:%Y%m%d}_v{outversion:02d}.cdf"
+        out_cdf = _outfile(outpath, outname, thisdate, outversion)
         _read_master_cdf(skeletonfile, out_cdf, overwrite=overwrite)
         try:
             # For each variable, select the content for this day. IDL

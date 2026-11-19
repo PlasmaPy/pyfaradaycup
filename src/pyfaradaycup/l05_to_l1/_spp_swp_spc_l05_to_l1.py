@@ -26,7 +26,11 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1.cdf_to_survey import _unique_dates, cdf_merge_to_daily
+from pyfaradaycup.l05_to_l1.cdf_to_survey import (
+    _outfile,
+    _unique_dates,
+    cdf_merge_to_daily,
+)
 from pyfaradaycup.utils.idl import cdf_epoch_tojuldays
 
 if TYPE_CHECKING:
@@ -274,7 +278,9 @@ def spp_swp_spc_l05_to_l1_date(
         If no L0.5 files for any APID in ``SPC_L1_APIDS`` have records
         on ``date``.
     FileExistsError
-        If an L1 file exists and ``overwrite`` is `False`.
+        If an L1 file exists and ``overwrite`` is `False`. This is
+        checked for every APID before any L1 file is written, so that
+        none are written.
     ValueError
         If ``date`` is not a valid date.
     """
@@ -288,18 +294,43 @@ def spp_swp_spc_l05_to_l1_date(
     if not set(apids) & set(SPC_L1_APIDS):
         raise NoL05DataError(date, l05dir)
 
+    files_for_apids = {
+        apid: [f for f, a in zip(l05files, apids) if a == apid] for apid in SPC_L1_APIDS
+    }
+    files_for_apids = {apid: files for apid, files in files_for_apids.items() if files}
+
+    def outpath(apid: str) -> pathlib.Path:
+        return l1dir / f"{date:%Y}" / f"{date:%m}" / f"APID{apid}"
+
+    def outname(apid: str) -> str:
+        return f"spp_swp_spc_APID{apid}L1"
+
+    # Unlike IDL, which always overwrites, check that none of the L1
+    # files exist before writing any, so that a date is not left with
+    # some new L1 files and some old ones.
+    if not overwrite:
+        existing = [
+            path
+            for apid in files_for_apids
+            if (path := _outfile(outpath(apid), outname(apid), date)).exists()
+        ]
+        if existing:
+            msg = (
+                f"L1 files for {date.isoformat()} already exist, so none "
+                "were written; use overwrite to replace them: "
+                + ", ".join(str(path) for path in existing)
+            )
+            raise FileExistsError(msg)
+
     outfiles = []
-    for apid in SPC_L1_APIDS:
-        files_for_apid = [f for f, a in zip(l05files, apids) if a == apid]
-        if not files_for_apid:
-            continue
+    for apid, files_for_apid in files_for_apids.items():
         outfiles += cdf_merge_to_daily(
             files_for_apid,
             skeletonfile=data_dir
             / "cdf_skeletons"
             / f"psp_swp_spc_l1_{apid.lower()}_skeleton.cdf",
-            outname=f"spp_swp_spc_APID{apid}L1",
-            outpath=l1dir / f"{date:%Y}" / f"{date:%m}" / f"APID{apid}",
+            outname=outname(apid),
+            outpath=outpath(apid),
             outdate=date,
             overwrite=overwrite,
         )

@@ -228,6 +228,21 @@ def test_spp_swp_spc_l05_to_l1_date_no_data(tmp_path: Path) -> None:
     assert not (tmp_path / "L1").exists()
 
 
+def test_spp_swp_spc_l05_to_l1_date_writes_none_if_one_exists(tmp_path: Path) -> None:
+    """
+    Test that without overwrite, no L1 files are written for a date if
+    the L1 file for any APID already exists, even a later one.
+    """
+    l1files = spp_swp_spc_l05_to_l1_date(date, l05dir=l05_dir, l1dir=tmp_path)
+    *removed, kept = l1files
+    for path in removed:
+        path.unlink()
+    with pytest.raises(FileExistsError, match="none were written") as excinfo:
+        spp_swp_spc_l05_to_l1_date(date, l05dir=l05_dir, l1dir=tmp_path)
+    assert str(kept) in str(excinfo.value)
+    assert not any(path.exists() for path in removed)
+
+
 def test_no_l05_data_error_pickle() -> None:
     """Test that NoL05DataError can be pickled, as is needed by multiprocessing."""
     error = NoL05DataError(date, l05_dir)
@@ -335,7 +350,7 @@ def test_l05_to_l1_overwrite(tmp_path: Path) -> None:
 
     result = invoke(2)
     assert result.exit_code == EXIT_FAILURE
-    assert "already exists" in result.output
+    assert "already exist" in result.output
 
     result = invoke(3, "-o")
     assert result.exit_code == 0, result.output
