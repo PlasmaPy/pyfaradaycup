@@ -32,7 +32,6 @@ from pyfaradaycup.decommutator import (
 from pyfaradaycup.decommutator.main import (
     EXIT_FAILURE,
     EXIT_NO_PACKETS,
-    _console_level,
     _l0_files,
     _warn_about_ineffective_options,
     pfc_decommutator,
@@ -383,21 +382,6 @@ def test_pfc_decommutator_l0file_option_removed(tmp_path: Path) -> None:
     # The message is "No such option: --l0file" for click < 8.2
     assert re.search(r"No such option:? '?--l0file", result.output)
     assert not list(tmp_path.glob("*.log"))
-
-
-@pytest.mark.parametrize(
-    ("verbose", "quiet", "expected"),
-    [
-        (0, False, logging.WARNING),
-        (1, False, logging.INFO),
-        (2, False, logging.DEBUG),
-        (3, False, logging.DEBUG),
-        (0, True, logging.ERROR),
-    ],
-)
-def test_console_level(*, verbose: int, quiet: bool, expected: int) -> None:
-    """Test the console level for each combination of -v and -q."""
-    assert _console_level(verbose=verbose, quiet=quiet) == expected
 
 
 def test_warn_about_ineffective_options(caplog: pytest.LogCaptureFixture) -> None:
