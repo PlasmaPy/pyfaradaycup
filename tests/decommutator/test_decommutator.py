@@ -753,10 +753,10 @@ def test_l0_to_l05_deletes_cdf_that_could_not_be_filled(
         patch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
         result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
 
-    assert result.failures[0x352].startswith(f"Could not fill {l1path} (deleted)")
+    assert result.failures[0x352].startswith(f"Could not fill {l1path}: ")
     assert "made-up error while filling" in result.failures[0x352]
     assert set(result.cdf_files) == set()
-    assert not l1path.exists()
+    assert list(l1path.parent.iterdir()) == []
 
     retry = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
     assert retry.succeeded
@@ -784,4 +784,41 @@ def test_l0_to_l05_close_error_keeps_fill_error(
     assert any(
         record.getMessage().startswith("Could not close") for record in caplog.records
     )
-    assert not (tmp_path / "APID352" / "0523462910_4_EA_APID352_L1.cdf").exists()
+    assert list((tmp_path / "APID352").iterdir()) == []
+
+
+def _interrupt_filling(cdf: pycdf.CDF, _dat: object) -> None:
+    """Write a global attribute to a CDF, and then interrupt filling it."""
+    cdf.attrs["Partial"] = "yes"
+    raise KeyboardInterrupt
+
+
+@pytest.mark.parametrize("fill", [_fail_to_fill, _interrupt_filling])
+def test_l0_to_l05_overwrite_failure_keeps_cdf(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fill: Callable[..., None]
+) -> None:
+    """
+    Test that when a CDF cannot be filled or is interrupted with
+    ``overwrite``, the existing CDF is left unchanged, and the partial
+    one is deleted.
+    """
+    (l1path,) = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352).cdf_files.values()
+    contents = l1path.read_bytes()
+    monkeypatch.setattr(_l0_to_l05, "_cdf352", fill)
+    try:
+        result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+    except KeyboardInterrupt:
+        assert fill is _interrupt_filling
+    else:
+        assert fill is _fail_to_fill
+        assert "made-up error while filling" in result.failures[0x352]
+    assert l1path.read_bytes() == contents
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_l0_to_l05_overwrite_leaves_only_cdf(tmp_path: Path) -> None:
+    """Test that overwriting a CDF leaves no temporary files behind."""
+    l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
+    result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+    (l1path,) = result.cdf_files.values()
+    assert list(l1path.parent.iterdir()) == [l1path]
