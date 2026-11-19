@@ -24,7 +24,11 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 ## Differences from IDL
 
 - The L0.5 files for a date are found by searching `L05/YYYY/MM/APID*/` for the month of the date and the months before and after it, because there is no `sdc_state` registry.
-- Variables are matched between the skeleton and the input files by name rather than by position, and an error is raised if they differ.
+  - Only the files for the APIDs that get L1 files (351, 353, 354, 35E, and 35F) are opened.
+    IDL selects the files for each APID after looking them up, so the same files are used.
+  - In place of the `unique_dates` of each raw file in the registry, the dates of the records in each L0.5 file are cached, so that each file is read once when the L1 files for several dates are made.
+    A file is read again if its modification time or size changes.
+- Variables are matched between the skeleton and the input files by name rather than by position, so they can be in any order, and an error is raised if the skeleton and the input files do not have the same variables.
 - Variables are selected along their record dimension, rather than along the first dimension with as many elements as `Epoch` has records.
   These are the same for the current L1 skeletons, whose variables are all one-dimensional.
 - Of a set of duplicate records, the one in the last input file is kept.
@@ -32,6 +36,8 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 - A warning is logged for each input file that is missing, rather than depending only on whether the last file is missing.
 - The APID is found from the name of each L0.5 file, rather than from its whole path, so that `_APID` in the name of a directory is not mistaken for the APID.
 - An L0.5 file that cannot be read, such as one that is truncated or still being written, is skipped with a warning.
+- In the Python API, a date can also be given as a `datetime.datetime`, which is converted to UTC before its date is taken if it has a time zone.
+  IDL only accepts dates as strings or numbers.
 - An existing L1 file is replaced only with `--overwrite`.
   Without it, none of the L1 files for a date are written if any of them already exist.
 
