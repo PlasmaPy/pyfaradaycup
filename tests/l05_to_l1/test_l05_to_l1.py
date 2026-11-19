@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import datetime
 import logging
+import os
 import pickle
 import re
+import types
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +21,7 @@ from click.testing import CliRunner
 from pyfaradaycup.l05_to_l1 import (
     SPC_L1_APIDS,
     NoL05DataError,
+    _spp_swp_spc_l05_to_l1,
     spp_swp_spc_l05_to_l1_date,
     spp_swp_spc_l05_to_l1_dates,
     spp_swp_spc_which_apid,
@@ -32,6 +35,8 @@ from pyfaradaycup.l05_to_l1.main import EXIT_FAILURE, EXIT_NO_DATA, l05_to_l1
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from spacepy import pycdf
 
 repo_root = Path(__file__).parent.parent.parent
 spc_dir = repo_root / "_psp" / "data" / "sci" / "sweap" / "spc"
@@ -131,6 +136,39 @@ def test_l05_children_skips_other_apids(
     unreadable.parent.mkdir(parents=True)
     unreadable.write_bytes(b"not a CDF file")
     assert _l05_children(date, tmp_path) == expected
+
+
+def test_l05_children_reads_each_file_once(
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Test that the dates in an L0.5 file are read once for several
+    dates, and read again after the file changes.
+    """
+    path = l05_file(tmp_path / "2026/08/APID353/a_APID353_L1.cdf", [tt2000(2026, 8, 3)])
+    opened: list[str] = []
+    cdf_class = _spp_swp_spc_l05_to_l1.pycdf.CDF
+
+    def counting_cdf(name: str) -> pycdf.CDF:
+        opened.append(name)
+        return cdf_class(name)
+
+    monkeypatch.setattr(
+        _spp_swp_spc_l05_to_l1, "pycdf", types.SimpleNamespace(CDF=counting_cdf)
+    )
+    assert _l05_children(date, tmp_path) == [path]
+    assert _l05_children(datetime.date(2026, 8, 4), tmp_path) == []
+    assert opened == [str(path)]
+
+    path.unlink()
+    l05_file(path, [tt2000(2026, 8, 4)])
+    stat = path.stat()
+    os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
+    assert _l05_children(datetime.date(2026, 8, 4), tmp_path) == [path]
+    assert opened == [str(path), str(path)]
 
 
 def test_spp_swp_spc_l05_to_l1_date_skips_apid352(tmp_path: Path) -> None:

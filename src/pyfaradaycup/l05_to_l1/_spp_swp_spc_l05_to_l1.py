@@ -16,6 +16,7 @@ __all__ = [
 ]
 
 import datetime
+import functools
 import logging
 import os
 import pathlib
@@ -130,6 +131,44 @@ def _months_around(date: datetime.date) -> list[tuple[int, int]]:
     return [(i // 12, i % 12 + 1) for i in (index - 1, index, index + 1)]
 
 
+@functools.lru_cache(maxsize=8192)
+def _l05_file_dates(
+    path: pathlib.Path,
+    mtime_ns: int,  # ruff:ignore[ARG001]
+    size: int,  # ruff:ignore[ARG001]
+) -> frozenset[datetime.date]:
+    """
+    Return the dates (in UTC) of the records in an L0.5 file.
+
+    This plays the part of the ``unique_dates`` of each raw file in the
+    ``sdc_state`` registry in IDL, so that a file is opened only once
+    when the L1 files for several dates are made. The modification time
+    and size of the file are part of the key of the cache, so that a
+    file is read again after it changes.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The L0.5 CDF file.
+    mtime_ns : int
+        The modification time of the file, in nanoseconds.
+    size : int
+        The size of the file, in bytes.
+
+    Returns
+    -------
+    frozenset of datetime.date
+        The dates of the records, which is empty if the file has no
+        ``Epoch`` variable.
+    """
+    with pycdf.CDF(str(path)) as cdf:
+        if "Epoch" not in cdf:
+            logger.debug("Skipping %s, which has no Epoch variable", path)
+            return frozenset()
+        epoch = np.asarray(cdf.raw_var("Epoch")[...])
+    return frozenset(_unique_dates(cdf_epoch_tojuldays(epoch)))
+
+
 def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Path]:
     """
     Return the L0.5 files for ``SPC_L1_APIDS`` that have records on a date.
@@ -173,12 +212,8 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
     ]
     children = []
     for path in candidates:
-        with pycdf.CDF(str(path)) as cdf:
-            if "Epoch" not in cdf:
-                logger.debug("Skipping %s, which has no Epoch variable", path)
-                continue
-            epoch = np.asarray(cdf.raw_var("Epoch")[...])
-        if date in _unique_dates(cdf_epoch_tojuldays(epoch)):
+        stat = path.stat()
+        if date in _l05_file_dates(path, stat.st_mtime_ns, stat.st_size):
             children.append(path)
     logger.debug("L0.5 files with records on %s: %s", date, children)
     return children
