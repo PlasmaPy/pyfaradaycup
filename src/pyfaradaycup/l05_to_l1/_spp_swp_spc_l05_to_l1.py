@@ -313,7 +313,7 @@ def spp_swp_spc_l05_to_l1_dates(
 
     Parameters
     ----------
-    dates : datetime.date, str, or `~collections.abc.Iterable` of these
+    dates : datetime.date, str, or `~collections.abc.Iterable` of datetime.date or str
         The dates, in UTC, as dates or ISO 8601 strings like
         ``"2026-08-03"``. Like in IDL, a single date is treated as a
         list of one date.
