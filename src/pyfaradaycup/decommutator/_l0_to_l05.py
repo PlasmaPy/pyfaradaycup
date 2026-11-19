@@ -62,7 +62,7 @@ from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
 from pyfaradaycup.decommutator.ccsds_reader import _read_file, _read_file_sc
-from pyfaradaycup.utils._cdf import close_cdf
+from pyfaradaycup.utils._cdf import close_cdf, temporary_path
 
 if TYPE_CHECKING:
     import os
@@ -517,10 +517,10 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
             # try to open and close it
             l1path.open().close()
 
-            # if we get here, this file already exists; so delete it, if desired
+            # if we get here, this file already exists. It is replaced
+            # only once the new file is complete, if overwrite is set.
             if overwrite:
                 logger.info("Overwriting existing L0.5 CDF file %s", l1path)
-                l1path.unlink()
                 overwritten = True
             else:
                 msg = (
@@ -532,14 +532,18 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
         except OSError:
             pass  # Apparently the file did not exist already
         except Exception as exc:
-            msg = f"Could not check existence of or delete L0.5 CDF file: {l1path}"
+            msg = f"Could not check existence of L0.5 CDF file: {l1path}"
             raise RuntimeError(msg) from exc
 
         # Create a new CDF file from the provided skeleton, creating the
-        # L0.5 directory and the APID subdirectory if they don't exist
+        # L0.5 directory and the APID subdirectory if they don't exist.
+        # Unlike IDL, the CDF is written at a temporary path and renamed
+        # when it is complete, so that an incomplete file is never left
+        # at l1path, and an existing file is kept if this one fails.
         l1path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = temporary_path(l1path)
         try:
-            cdf = pycdf.CDF(str(l1path), skeleton_filename)
+            cdf = pycdf.CDF(str(tmp_path), skeleton_filename)
         except pycdf.CDFError as exc:
             failures[apid] = f"Could not create {l1path}: {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
@@ -548,36 +552,37 @@ def l0_to_l05(  # ruff:ignore[C901, PLR0912, PLR0913, PLR0915]
                 hex(apid),
                 exc,
             )
+            _discard_partial_cdf(None, tmp_path)
             continue
 
         # Run a different procedure to put data into CDF file depending on APID
         try:
             cdfproc[apid](cdf, l0data[apid])
         except Exception as exc:  # ruff:ignore[BLE001]
-            failures[apid] = f"Could not fill {l1path} (deleted): {exc!r}"
+            failures[apid] = f"Could not fill {l1path}: {exc!r}"
             logger.error(  # ruff:ignore[TRY400]
-                "Could not fill %s for APID %s (%r); deleting it and skipping "
-                "this APID",
+                "Could not fill %s for APID %s (%r); skipping this APID",
                 l1path,
                 hex(apid),
                 exc,
             )
-            # Close the CDF now rather than when it is garbage
-            # collected, without letting an error from closing replace
-            # the error from filling it. The partially filled CDF is
-            # deleted so that it is not mistaken for a complete one, and
-            # so that a retry without overwrite does not stop at it.
-            try:
-                close_cdf(cdf)
-            except pycdf.CDFError:
-                logger.warning("Could not close %s", l1path, exc_info=True)
-            try:
-                l1path.unlink(missing_ok=True)
-            except OSError:
-                logger.warning("Could not delete %s", l1path, exc_info=True)
+            _discard_partial_cdf(cdf, tmp_path)
             continue
+        except BaseException:
+            # Such as KeyboardInterrupt
+            _discard_partial_cdf(cdf, tmp_path)
+            raise
 
-        close_cdf(cdf)
+        try:
+            close_cdf(cdf)
+        except BaseException:
+            _discard_partial_cdf(None, tmp_path)
+            raise
+        try:
+            tmp_path.replace(l1path)
+        except BaseException:
+            _discard_partial_cdf(None, tmp_path)
+            raise
         cdf_files[apid] = l1path
         # The message about overwriting the file is enough for the
         # console, so the message about writing it is only for the log file.
@@ -655,6 +660,33 @@ def _sha256(path: pathlib.Path) -> str:
         for chunk in iter(lambda: file.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _discard_partial_cdf(cdf: pycdf.CDF | None, tmp_path: pathlib.Path) -> None:
+    """
+    Close and delete a CDF file that was not completely written.
+
+    Errors from closing and deleting it are logged rather than raised,
+    so that they do not replace the error that stopped it from being
+    written.
+
+    Parameters
+    ----------
+    cdf : spacepy.pycdf.CDF or None
+        The open CDF file, or `None` if it is already closed or was
+        never opened.
+    tmp_path : pathlib.Path
+        The temporary path that the CDF file was written at.
+    """
+    if cdf is not None:
+        try:
+            close_cdf(cdf)
+        except pycdf.CDFError:
+            logger.warning("Could not close %s", tmp_path, exc_info=True)
+    try:
+        tmp_path.unlink(missing_ok=True)
+    except OSError:
+        logger.warning("Could not delete %s", tmp_path, exc_info=True)
 
 
 def _cdf35e_35f(cdf: pycdf.CDF, dat: dict[str, list]) -> None:  # ruff:ignore[C901]
