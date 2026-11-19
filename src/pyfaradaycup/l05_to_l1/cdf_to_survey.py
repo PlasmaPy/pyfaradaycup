@@ -23,19 +23,18 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup.utils._cdf import close_cdf
-from pyfaradaycup.utils.idl import cdf_epoch_tojuldays, julday, uniq
+from pyfaradaycup.utils.idl import (
+    _JD_OF_ORDINAL_ZERO,
+    cdf_epoch_tojuldays,
+    julday,
+    uniq,
+)
 
 if TYPE_CHECKING:
     import os
     from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
-
-_JD_OF_ORDINAL_ZERO = julday(datetime.date.min) - 1
-"""
-The Julian day of midnight on the day before 0001-01-01, which is day
-1 of `datetime.date.toordinal`.
-"""
 
 
 def _unique_dates(jd: np.ndarray) -> list[datetime.date]:
