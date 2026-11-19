@@ -48,6 +48,8 @@ date = datetime.date(2026, 8, 3)
         ([Path("L05/2026/08/APID35E/0523462910_4_EA_APID35E_L1.cdf")], ["35E"]),
         (["no_apid.cdf", "x_APID353_L1.cdf"], ["", "353"]),
         ([], []),
+        ("0523462910_4_EA_APID351_L1.cdf", ["351"]),
+        (Path("L05/2026/08/APID35E/0523462910_4_EA_APID35E_L1.cdf"), ["35E"]),
     ],
 )
 def test_spp_swp_spc_which_apid(filenames: list[Any], expected: list[str]) -> None:
@@ -162,6 +164,17 @@ def test_spp_swp_spc_l05_to_l1_dates(
         )
     assert len(l1files) == len(SPC_L1_APIDS)
     assert "2026-08-04; skipping this date" in caplog.text
+
+
+@pytest.mark.parametrize("value", [date, "2026-08-03"])
+def test_spp_swp_spc_l05_to_l1_dates_one_date(
+    tmp_path: Path, value: datetime.date | str
+) -> None:
+    """Test that a single date is treated as a list of one date, like in IDL."""
+    l1files = spp_swp_spc_l05_to_l1_dates(value, l05dir=l05_dir, l1dir=tmp_path)
+    assert l1files == spp_swp_spc_l05_to_l1_dates(
+        [date], l05dir=l05_dir, l1dir=tmp_path, overwrite=True
+    )
 
 
 def test_l05_to_l1(tmp_path: Path) -> None:

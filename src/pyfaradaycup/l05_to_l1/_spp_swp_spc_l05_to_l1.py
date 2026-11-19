@@ -66,14 +66,17 @@ class NoL05DataError(ValueError):
         return type(self), (self.date, self.l05dir)
 
 
-def spp_swp_spc_which_apid(filenames: Iterable[str | os.PathLike[str]]) -> list[str]:
+def spp_swp_spc_which_apid(
+    filenames: str | os.PathLike[str] | Iterable[str | os.PathLike[str]],
+) -> list[str]:
     """
     Return the APID in the name of each file.
 
     Parameters
     ----------
-    filenames : `~collections.abc.Iterable` of path-like
-        File names, like ``0523462910_4_EA_APID351_L1.cdf``.
+    filenames : path-like or `~collections.abc.Iterable` of path-like
+        File names, like ``0523462910_4_EA_APID351_L1.cdf``. Like in
+        IDL, a single file name is treated as a list of one file name.
 
     Returns
     -------
@@ -85,7 +88,11 @@ def spp_swp_spc_which_apid(filenames: Iterable[str | os.PathLike[str]]) -> list[
     --------
     >>> spp_swp_spc_which_apid(["0523462910_4_EA_APID35E_L1.cdf", "other.cdf"])
     ['35E', '']
+    >>> spp_swp_spc_which_apid("0523462910_4_EA_APID351_L1.cdf")
+    ['351']
     """
+    if isinstance(filenames, (str, os.PathLike)):
+        filenames = [filenames]
     apids = []
     for filename in filenames:
         name = os.fspath(filename)
@@ -241,7 +248,7 @@ def spp_swp_spc_l05_to_l1_date(
 
 
 def spp_swp_spc_l05_to_l1_dates(
-    dates: Iterable[datetime.date | str],
+    dates: datetime.date | str | Iterable[datetime.date | str],
     *,
     l05dir: str | os.PathLike[str],
     l1dir: str | os.PathLike[str],
@@ -256,9 +263,10 @@ def spp_swp_spc_l05_to_l1_dates(
 
     Parameters
     ----------
-    dates : `~collections.abc.Iterable` of datetime.date or str
+    dates : datetime.date, str, or `~collections.abc.Iterable` of these
         The dates, in UTC, as dates or ISO 8601 strings like
-        ``"2026-08-03"``.
+        ``"2026-08-03"``. Like in IDL, a single date is treated as a
+        list of one date.
     l05dir : path-like
         The top L0.5 directory, which has ``YYYY/MM/APID*/``
         subdirectories.
@@ -280,6 +288,8 @@ def spp_swp_spc_l05_to_l1_dates(
     ValueError
         If a date is not a valid date.
     """
+    if isinstance(dates, (str, datetime.date)):
+        dates = [dates]
     unique_dates = sorted({_parse_date(date) for date in dates})
     l1file_array = []
     for date in unique_dates:
