@@ -132,7 +132,7 @@ def _months_around(date: datetime.date) -> list[tuple[int, int]]:
 
 def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Path]:
     """
-    Return the L0.5 files that have records on a date.
+    Return the L0.5 files for ``SPC_L1_APIDS`` that have records on a date.
 
     In IDL, these files are looked up in the ``sdc_state`` registry from
     the ``unique_dates`` and ``l05_children`` of each raw file. Instead,
@@ -140,6 +140,11 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
     in the directory for the month of their raw file, which can differ
     from the month of their records, so the months before and after
     ``date`` are searched too.
+
+    IDL selects the files for each APID from these files with
+    `spp_swp_spc_which_apid`. Here, files for other APIDs are left out
+    first, so that they are not opened. The files selected for each
+    APID are the same.
 
     Parameters
     ----------
@@ -152,14 +157,20 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
     Returns
     -------
     list of pathlib.Path
-        The L0.5 CDF files with at least one record on ``date``, sorted.
+        The L0.5 CDF files for ``SPC_L1_APIDS`` with at least one record
+        on ``date``, sorted.
     """
-    candidates = sorted(
+    paths = sorted(
         path
         for year, month in _months_around(date)
         for path in (l05dir / f"{year:04d}" / f"{month:02d}").glob("APID*/*.cdf")
         if path.is_file()
     )
+    candidates = [
+        path
+        for path, apid in zip(paths, spp_swp_spc_which_apid(paths))
+        if apid in SPC_L1_APIDS
+    ]
     children = []
     for path in candidates:
         with pycdf.CDF(str(path)) as cdf:

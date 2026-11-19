@@ -115,6 +115,24 @@ def test_l05_children(
     assert _l05_children(date, tmp_path) == expected
 
 
+def test_l05_children_skips_other_apids(
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+) -> None:
+    """
+    Test that L0.5 files for APIDs that have no L1 files are not opened,
+    so that a file for one of them that cannot be read is not an error.
+    """
+    expected = [
+        l05_file(tmp_path / "2026/08/APID353/a_APID353_L1.cdf", [tt2000(2026, 8, 3)])
+    ]
+    unreadable = tmp_path / "2026/08/APID352/b_APID352_L1.cdf"
+    unreadable.parent.mkdir(parents=True)
+    unreadable.write_bytes(b"not a CDF file")
+    assert _l05_children(date, tmp_path) == expected
+
+
 def test_spp_swp_spc_l05_to_l1_date_skips_apid352(tmp_path: Path) -> None:
     """
     Test that an L1 file is made for each APID except 352, which has no
