@@ -1,0 +1,413 @@
+# Description of psp_l2_spcephem_v00.cdf, written by
+# `uv run python -m pyfaradaycup._cdf_description`. Do not edit.
+file:
+  CDF version: 3.7.0
+  majority: column
+  compression: none
+  checksum: True
+global attributes:
+  "Project":
+    0: CDF_CHAR "LWS>Living With a Star"
+  "Source_name":
+    0: CDF_CHAR "PSP>Parker Solar Probe"
+  "Discipline":
+    0: CDF_CHAR "Solar Physics>Heliospheric Physics"
+    1: CDF_CHAR "Space Physics>Interplanetary Studies"
+  "Data_type":
+    0: CDF_CHAR "OR>Orbit"
+  "Descriptor":
+    0: CDF_CHAR "SWEAP>Solar Wind Electrons Alphas and Protons"
+  "File_naming_convention":
+    0: CDF_CHAR "source_datatype_descriptor_yyyyMMdd"
+  "Data_version":
+    0: CDF_CHAR "01"
+  "PI_name":
+    0: CDF_CHAR "Justin C. Kasper"
+  "PI_affiliation":
+    0: CDF_CHAR "Smithsonian Astrophysical Observatory"
+  "TEXT":
+    0: CDF_CHAR "The orbital position, velocity, and orientation of the spacecraft is recorded here at SPC spectrum times."
+  "Instrument_type":
+    0: CDF_CHAR "Ephemeris"
+  "Mission_group":
+    0: CDF_CHAR "SPP"
+  "Logical_source":
+    0: CDF_CHAR "psp_or_sweap"
+  "Logical_file_id":
+    0: CDF_CHAR "psp_or_sweap_00000000_v01"
+  "Logical_source_description":
+    0: CDF_CHAR "Solar Probe Orbit and Attitude reference"
+  "Time_resolution":
+    0: CDF_CHAR "128 Hz"
+  "Rules_of_use":
+  "Generated_by":
+    0: CDF_CHAR "Michael L. Stevens"
+  "Generation_date":
+    0: CDF_CHAR "Dec 12, 2018"
+  "Acknowledgement":
+  "MODS":
+    0: CDF_CHAR "12/05/2018- CDF skeleton created (MLS)"
+  "ADID_ref":
+  "LINK_TEXT":
+  "LINK_TITLE":
+  "HTTP_LINK":
+  "spase_DatasetResourceID":
+    0: CDF_CHAR "spase://VSO/NumericalData/LWS/PSP/SPC/full"
+variables:
+  "Epoch":
+    type: CDF_TIME_TT2000
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: none
+    pad value: -9223372036854775807
+    attributes:
+      "CATDESC": CDF_CHAR "Time in TT2000 format"
+      "FIELDNAM": CDF_CHAR "Epoch"
+      "FILLVAL": CDF_TIME_TT2000 -9223372036854775808
+      "LABLAXIS": CDF_CHAR "Epoch"
+      "UNITS": CDF_CHAR "ns"
+      "VALIDMIN": CDF_TIME_TT2000 -315575942816000000
+      "VALIDMAX": CDF_TIME_TT2000 946728068183000000
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "This time corresponds to the first measurement of the spectrum. Owing to frequent changes in the operating mode, this is usually NOT regular cadence."
+      "MONOTON": CDF_CHAR "INCREASE"
+      "TIME_BASE": CDF_CHAR "J2000"
+      "TIME_SCALE": CDF_CHAR "Terrestrial Time"
+      "REFERENCE_POSITION": CDF_CHAR "Rotating Earth Geoid"
+    records: 0
+  "pos_HCI":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "PSP Spacecraft position in the Heliocentric Inertial system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DEPEND_1": CDF_CHAR "HCI_LABL"
+      "DISPLAY_TYPE": CDF_CHAR "orbit"
+      "FIELDNAM": CDF_CHAR "pos_HCI"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "pos_J2000"
+      "LABL_PTR_1": CDF_CHAR "HCI_LABL"
+      "UNITS": CDF_CHAR "km"
+      "VALIDMIN": CDF_REAL4 [-1e+30, -1e+30, -1e+30]
+      "VALIDMAX": CDF_REAL4 [1e+30, 1e+30, 1e+30]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "Also called Ecliptic J2000. Z is the solar north rotational axis, and X is the solar ascending node on the J2000 ecliptic."
+    records: 0
+  "vel_HCI":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "PSP Spacecraft velocity vector in the Heliocentric Inertial system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DEPEND_1": CDF_CHAR "HCI_LABL"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "vel_J2000"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "vel_J2000"
+      "LABL_PTR_1": CDF_CHAR "HCI_LABL"
+      "UNITS": CDF_CHAR "km/s"
+      "VALIDMIN": CDF_REAL4 [-1e+30, -1e+30, -1e+30]
+      "VALIDMAX": CDF_REAL4 [1e+30, 1e+30, 1e+30]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "Also called Ecliptic J2000. Z is the solar north rotational axis, and X is the solar ascending node on the J2000 ecliptic."
+    records: 0
+  "SCX_RTN":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "PSP Spacecraft observatory x-axis unit vector in the [co-moving] Heliographic Radial-Tangential-Normal system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DEPEND_1": CDF_CHAR "HCI_LABL"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SCX_RTN"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SCX_J2000"
+      "LABL_PTR_1": CDF_CHAR "RTN_LABL"
+      "UNITS": CDF_CHAR "none"
+      "VALIDMIN": CDF_REAL4 [-1.0, -1.0, -1.0]
+      "VALIDMAX": CDF_REAL4 [1.0, 1.0, 1.0]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "X axis points from Sun center to the spacecraft. The Y axis is the cross product of the solar rotational axis and X, and lies in the solar equatorial plane (towards the West limb)."
+    records: 0
+  "SCY_RTN":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "PSP Spacecraft observatory y-axis unit vector in the [co-moving] Heliographic Radial-Tangential-Normal system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DEPEND_1": CDF_CHAR "HCI_LABL"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SCY_RTN"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SCX_J2000"
+      "LABL_PTR_1": CDF_CHAR "RTN_LABL"
+      "UNITS": CDF_CHAR "none"
+      "VALIDMIN": CDF_REAL4 [-1.0, -1.0, -1.0]
+      "VALIDMAX": CDF_REAL4 [1.0, 1.0, 1.0]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "X axis points from Sun center to the spacecraft. The Y axis is the cross product of the solar rotational axis and X, and lies in the solar equatorial plane (towards the West limb)."
+    records: 0
+  "SCZ_RTN":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "PSP Spacecraft observatory z-axis unit vector in the [co-moving] Heliographic Radial-Tangential-Normal system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DEPEND_1": CDF_CHAR "HCI_LABL"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SCZ_RTN"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SCX_J2000"
+      "LABL_PTR_1": CDF_CHAR "RTN_LABL"
+      "UNITS": CDF_CHAR "none"
+      "VALIDMIN": CDF_REAL4 [-1.0, -1.0, -1.0]
+      "VALIDMAX": CDF_REAL4 [1.0, 1.0, 1.0]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "X axis points from Sun center to the spacecraft. The Y axis is the cross product of the solar rotational axis and X, and lies in the solar equatorial plane (towards the West limb)."
+    records: 0
+  "HCI_LABL":
+    type: CDF_CHAR
+    number of elements: 22
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: False
+    sparse records: none
+    compression: none
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "HCI system coordinates"
+      "FIELDNAM": CDF_CHAR "HCI_LABL"
+      "FORMAT": CDF_CHAR "A23"
+      "LABLAXIS": CDF_CHAR "pos_HCI_LABL_1"
+      "VAR_TYPE": CDF_CHAR "metadata"
+    records: 1
+      0: ["x_HCI", "y_HCI", "z_HCI"]
+  "RTN_LABL":
+    type: CDF_CHAR
+    number of elements: 22
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: False
+    sparse records: none
+    compression: none
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "RTN system coordinates"
+      "FIELDNAM": CDF_CHAR "RTN_LABL"
+      "FORMAT": CDF_CHAR "A23"
+      "LABLAXIS": CDF_CHAR "pos_HCI_LABL_1"
+      "VAR_TYPE": CDF_CHAR "metadata"
+    records: 1
+      0: ["R", "T", "N"]
+  "SUN_ANGLE":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "SUN_ANGLE"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SUN_ANGLE"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SUN_ANGLE"
+      "UNITS": CDF_CHAR "degrees"
+      "VALIDMIN": CDF_REAL4 -180.0
+      "VALIDMAX": CDF_REAL4 180.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "angle from SCZ axis to sun in degrees"
+    records: 0
+  "CARR_LON":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "Carrington Longitude"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "CARR_LON"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "CARR_LON"
+      "UNITS": CDF_CHAR "degrees"
+      "VALIDMIN": CDF_REAL4 -180.0
+      "VALIDMAX": CDF_REAL4 180.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "Degrees Longitude from solar prime meridian"
+    records: 0
+  "CARR_LAT":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "CARR_LAT"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "CARR_LAT"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "CARR_LAT"
+      "UNITS": CDF_CHAR "degrees"
+      "VALIDMIN": CDF_REAL4 -90.0
+      "VALIDMAX": CDF_REAL4 90.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "Degrees Latitude from solar equator"
+    records: 0
+  "SC_VR_kms":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "SC_VR_kms"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SC_VR_kms"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SC_VR"
+      "UNITS": CDF_CHAR "km/s"
+      "VALIDMIN": CDF_REAL4 -1000.0
+      "VALIDMAX": CDF_REAL4 1000.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "Spacecraft radial speed relative to the sun, in km/s "
+    records: 0
+  "SC_VORB_kms":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "SC_VORB_kms"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SC_VORB_kms"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "VORB"
+      "UNITS": CDF_CHAR "km/s"
+      "VALIDMIN": CDF_REAL4 -1000.0
+      "VALIDMAX": CDF_REAL4 1000.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "absolute speed in the solar ecliptic, in a sun-centered inertial frame, in km/s"
+    records: 0
+  "SC_VZ_kms":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "SC_VZ_kms"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SC_VZ_kms"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SC_VZ"
+      "UNITS": CDF_CHAR "km/s"
+      "VALIDMIN": CDF_REAL4 -1000.0
+      "VALIDMAX": CDF_REAL4 1000.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "absolute speed out of the solar ecliptic, in a sun-centered inertial frame, in km/s"
+    records: 0
+  "SC_R_AU":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "spacecraft-sun distance, in AU"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "SC_R_AU"
+      "FILLVAL": CDF_REAL4 -1e+31
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SC_VZ"
+      "UNITS": CDF_CHAR "AU"
+      "VALIDMIN": CDF_REAL4 0.0
+      "VALIDMAX": CDF_REAL4 2.0
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "spacecraft-sun distance, in AU"
+    records: 0

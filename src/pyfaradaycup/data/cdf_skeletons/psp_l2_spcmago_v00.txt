@@ -1,0 +1,125 @@
+# Description of psp_l2_spcmago_v00.cdf, written by
+# `uv run python -m pyfaradaycup._cdf_description`. Do not edit.
+file:
+  CDF version: 3.7.0
+  majority: column
+  compression: none
+  checksum: True
+global attributes:
+  "Project":
+    0: CDF_CHAR "LWS>Living With a Star"
+  "Source_name":
+    0: CDF_CHAR "PSP>Parker Solar Probe"
+  "Discipline":
+    0: CDF_CHAR "Solar Physics>Heliospheric Physics"
+    1: CDF_CHAR "Space Physics>Interplanetary Studies"
+  "Data_type":
+    0: CDF_CHAR "SP>Summary Parameter"
+  "Descriptor":
+    0: CDF_CHAR "SWEAP>Solar Wind Electrons Alphas and Protons"
+  "File_naming_convention":
+    0: CDF_CHAR "source_datatype_descriptor_yyyyMMdd"
+  "Data_version":
+    0: CDF_CHAR "01"
+  "PI_name":
+    0: CDF_CHAR "Stuart Bale"
+  "PI_affiliation":
+    0: CDF_CHAR "UC Berkeley, SSL"
+  "TEXT":
+    0: CDF_CHAR "This is a digested version of the *unverified* and *unvalidated* magnetic field survey data product from PSP FIELDS. This is intended exclusively as a quicklook/reference companion for SWEAP data browsing and preliminary joint data product development. This data product is derived from level 1 mago_survey using latest available SPP SPEDAS/TPLOT tools."
+  "Instrument_type":
+    0: CDF_CHAR "Magnetic Fields (space)"
+  "Mission_group":
+    0: CDF_CHAR "SPP"
+  "Logical_source":
+    0: CDF_CHAR "psp_sp_sweap"
+  "Logical_file_id":
+    0: CDF_CHAR "psp_sp_sweap_00000000_v01"
+  "Logical_source_description":
+    0: CDF_CHAR "SPC FIELDS survey reference"
+  "Time_resolution":
+  "Rules_of_use":
+    0: CDF_CHAR "These data are strictly intended for internal use by the SWEAP team. They are not suitable for any scientific study and may not be shared or reproduced outside of SWEAP *makers list* personnel for any reason."
+  "Generated_by":
+    0: CDF_CHAR "Michael L. Stevens"
+  "Generation_date":
+    0: CDF_CHAR "March 15, 2019"
+  "Acknowledgement":
+    0: CDF_CHAR "No public use of these data is authorized."
+  "MODS":
+    0: CDF_CHAR "03/15/2019- CDF skeleton created (MLS)"
+  "ADID_ref":
+  "LINK_TEXT":
+  "LINK_TITLE":
+    0: CDF_CHAR "FIELDS L1 data source"
+  "HTTP_LINK":
+    0: CDF_CHAR "http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/l1/mago_survey/"
+  "spase_DatasetResourceID":
+variables:
+  "Epoch":
+    type: CDF_TIME_TT2000
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: none
+    pad value: -9223372036854775807
+    attributes:
+      "CATDESC": CDF_CHAR "Time in TT2000 format"
+      "FIELDNAM": CDF_CHAR "Epoch"
+      "FILLVAL": CDF_TIME_TT2000 -9223372036854775808
+      "LABLAXIS": CDF_CHAR "Epoch"
+      "UNITS": CDF_CHAR "ns"
+      "VALIDMIN": CDF_TIME_TT2000 -315575942816000000
+      "VALIDMAX": CDF_TIME_TT2000 946728068183000000
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "This time corresponds to the first measurement of the spectrum. Owing to frequent changes in the operating mode, this is usually NOT regular cadence."
+      "MONOTON": CDF_CHAR "INCREASE"
+      "TIME_BASE": CDF_CHAR "J2000"
+      "TIME_SCALE": CDF_CHAR "Terrestrial Time"
+      "REFERENCE_POSITION": CDF_CHAR "Rotating Earth Geoid"
+    records: 0
+  "B_SC":
+    type: CDF_REAL4
+    number of elements: 1
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: -1.0000000150474662e+30
+    attributes:
+      "CATDESC": CDF_CHAR "magnetic field vector, in nanoTesla [nT], as measured in the spacecraft observatory coordinate system"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "B_SC"
+      "FILLVAL": CDF_REAL4 nan
+      "FORMAT": CDF_CHAR "E12.2"
+      "LABLAXIS": CDF_CHAR "SCX_J2000"
+      "LABL_PTR_1": CDF_CHAR "BXYZ_LABL"
+      "UNITS": CDF_CHAR "nT"
+      "VALIDMIN": CDF_REAL4 [-10000.0, -10000.0, -10000.0]
+      "VALIDMAX": CDF_REAL4 [10000.0, 10000.0, 10000.0]
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+      "VAR_NOTES": CDF_CHAR "measurement performed by the OUTBOARD magnetometer (mago), survey cadence. Best offset and calibration may not be applied. User beware."
+    records: 0
+  "BXYZ_LABL":
+    type: CDF_CHAR
+    number of elements: 22
+    dimensions: [3]
+    dimension variances: [True]
+    record variance: False
+    sparse records: none
+    compression: none
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "spacecraft coordinate system labels"
+      "FIELDNAM": CDF_CHAR "BXYZ_LABL"
+      "FORMAT": CDF_CHAR "A23"
+      "LABLAXIS": CDF_CHAR "pos_HCI_LABL_1"
+      "VAR_TYPE": CDF_CHAR "metadata"
+    records: 1
+      0: ["Bx", "By", "Bz"]

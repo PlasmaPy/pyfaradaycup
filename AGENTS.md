@@ -45,6 +45,13 @@ files into Level 0.5 (L0.5 or L05) CDF files:
 
 - Test data files are in `_psp/data/sci/`. Keep new test data files
   small.
+- Each skeleton CDF file in `src/pyfaradaycup/data/cdf_skeletons/` has a
+  text description with the same name and a `.txt` extension, so that
+  changes to the binary CDF files can be reviewed with `git diff`.
+  `tests/test_cdf_description.py` checks that each description matches
+  its CDF file. After adding or changing a skeleton CDF file, regenerate
+  the descriptions with `uv run python -m pyfaradaycup._cdf_description`
+  and commit them with the CDF file. Don't edit the descriptions by hand.
 - Mark long-running tests with `@pytest.mark.slow`. Deselect them with
   `-m "not slow"`.
 - Warnings are treated as errors during tests.

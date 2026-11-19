@@ -1,0 +1,612 @@
+# Description of psp_swp_spc_l1_352_skeleton.cdf, written by
+# `uv run python -m pyfaradaycup._cdf_description`. Do not edit.
+file:
+  CDF version: 3.7.1
+  majority: column
+  compression: none
+  checksum: True
+global attributes:
+  "Project":
+    0: CDF_CHAR "LWS>Living With a Star"
+  "Source_name":
+    0: CDF_CHAR "SPP>Solar Probe Plus"
+  "Discipline":
+    0: CDF_CHAR "Solar Physics>Heliospheric Physics"
+    1: CDF_CHAR "Space Physics>Interplanetary Studies"
+  "Data_type":
+    0: CDF_CHAR "APID_352"
+  "Descriptor":
+    0: CDF_CHAR "SWEAP>Solar Wind Electrons Alphas and Protons"
+  "File_naming_convention":
+    0: CDF_CHAR "source_datatype_descriptor_yyyyMMdd"
+  "Data_version":
+    0: CDF_CHAR "01"
+  "PI_name":
+    0: CDF_CHAR "Justin C. Kasper"
+  "PI_affiliation":
+    0: CDF_CHAR "Smithsonian Astrophysical Observatory"
+  "TEXT":
+    0: CDF_CHAR "This is a L0.5 port of an APID_352 (SPC time series packet) PTP stream."
+    1: CDF_CHAR "Time series packets (\u201cTIM\u201d packets) can be created for each collector (A, B, C, or D), or for each set of four housekeeping values (HK1 or HK2). These packets contain the raw ADC values captured during 20 modulation cycles, and are created once per NYS. The specific cycles that are sampled can be configured by the user. Multiple time series packets may be created per NYS, depending on the user\u2019s selection."
+  "Instrument_type":
+    0: CDF_CHAR "Plasma and Solar Wind"
+  "Mission_group":
+    0: CDF_CHAR "SPP"
+  "Logical_source":
+    0: CDF_CHAR "spp_apid_352_sweap"
+  "Logical_file_id":
+    0: CDF_CHAR "spp_apid_352_sweap_00000000_v01"
+  "Logical_source_description":
+    0: CDF_CHAR "APID_352"
+  "Time_resolution":
+  "Rules_of_use":
+  "Generated_by":
+  "Generation_date":
+  "Acknowledgement":
+  "MODS":
+  "ADID_ref":
+  "LINK_TEXT":
+  "LINK_TITLE":
+  "HTTP_LINK":
+  "spase_DatasetResourceID":
+variables:
+  "Epoch":
+    type: CDF_TIME_TT2000
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: none
+    pad value: -9223372036854775807
+    attributes:
+      "CATDESC": CDF_CHAR "Default time"
+      "FIELDNAM": CDF_CHAR "Epoch"
+      "FILLVAL": CDF_TIME_TT2000 -9223372036854775808
+      "LABLAXIS": CDF_CHAR "Epoch"
+      "UNITS": CDF_CHAR "ns"
+      "VALIDMIN": CDF_TIME_TT2000 -315575942816000000
+      "VALIDMAX": CDF_TIME_TT2000 946728068183000000
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+      "MONOTON": CDF_CHAR "INCREASE"
+      "TIME_BASE": CDF_CHAR "J2000"
+      "TIME_SCALE": CDF_CHAR "Terrestrial Time"
+      "REFERENCE_POSITION": CDF_CHAR "Rotating Earth Geoid"
+    records: 0
+  "CCSDS_SeqCnt":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "CCSDS_SeqCnt"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "CCSDS_SeqCnt"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "CCSDS_SeqCnt"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 16383
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SW_SPCSUBSEC":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "SW_SPCSUBSEC"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SW_SPCSUBSEC"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SW_SPC_SERVTIME":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SW_SPC_SERVTIME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SW_SPC_SERVTIME"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SW_SPC_SERVTIME"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 63
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SW_SPC_INTTIME":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "SW_SPC_INTTIME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SW_SPC_INTTIME"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPC_INTTIME"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 1023
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SW_SPC_CALFLAG":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SW_SPC_CALFLAG"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SW_SPC_CALFLAG"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SW_SPC_CALFLAG"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 1
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_ELECMODE":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SW_SPC_ELECMODE"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SW_SPC_ELECMODE"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SW_SPC_ELECMODE"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 1
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_TIMESERCOLL":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_TIMESERCOLL"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_TIMESERCOLL"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SW_SPC_SERVTIME"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 63
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_WINWIDTH":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_WINWIDTH"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_WINWIDTH"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SPC_WINWIDTH"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 15
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_FSWBITS":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_FSWBITS"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_FSWBITS"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SPC_FSWBITS"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 15
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_TICKSPARE":
+    type: CDF_UINT1
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 254
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_TICKSPARE"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_TICKSPARE"
+      "FILLVAL": CDF_UINT1 255
+      "FORMAT": CDF_CHAR "I3"
+      "LABLAXIS": CDF_CHAR "SW_SPC_SERVTIME"
+      "VALIDMIN": CDF_UINT1 0
+      "VALIDMAX": CDF_UINT1 63
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_TIMESPARE2":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_TIMESPARE2"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_TIMESPARE2"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_TIMESPARE1":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_TIMESPARE1"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_TIMESPARE1"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "WIN_0":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "WIN_0"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "WIN_0"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "WIN_1":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "WIN_1"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "WIN_1"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "WIN_2":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "WIN_2"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "WIN_2"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "WIN_3":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "WIN_3"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "WIN_3"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "CCSDS_MET":
+    type: CDF_UINT4
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 4294967294
+    attributes:
+      "CATDESC": CDF_CHAR "CCSDS_MET"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "CCSDS_MET"
+      "FILLVAL": CDF_UINT4 4294967295
+      "FORMAT": CDF_CHAR "I8"
+      "LABLAXIS": CDF_CHAR "CCSDS_MET"
+      "UNITS": CDF_CHAR "DN"
+      "VALIDMIN": CDF_UINT4 0
+      "VALIDMAX": CDF_UINT4 4294967294
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "VAR0_NAME":
+    type: CDF_CHAR
+    number of elements: 9
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "VAR0_NAME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "VAR0_NAME"
+      "FORMAT": CDF_CHAR "A10"
+      "LABLAXIS": CDF_CHAR "VAR0_NAME"
+      "VAR_TYPE": CDF_CHAR "support_data"
+    records: 0
+  "VAR1_NAME":
+    type: CDF_CHAR
+    number of elements: 9
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "VAR0_NAME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "VAR0_NAME"
+      "FORMAT": CDF_CHAR "A10"
+      "LABLAXIS": CDF_CHAR "VAR0_NAME"
+      "VAR_TYPE": CDF_CHAR "support_data"
+    records: 0
+  "VAR2_NAME":
+    type: CDF_CHAR
+    number of elements: 9
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "VAR0_NAME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "VAR0_NAME"
+      "FORMAT": CDF_CHAR "A10"
+      "LABLAXIS": CDF_CHAR "VAR0_NAME"
+      "VAR_TYPE": CDF_CHAR "support_data"
+    records: 0
+  "VAR3_NAME":
+    type: CDF_CHAR
+    number of elements: 9
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: " "
+    attributes:
+      "CATDESC": CDF_CHAR "VAR0_NAME"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "VAR0_NAME"
+      "FORMAT": CDF_CHAR "A10"
+      "LABLAXIS": CDF_CHAR "VAR0_NAME"
+      "VAR_TYPE": CDF_CHAR "support_data"
+    records: 0
+  "VAR0":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "VAR0"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "VAR0"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "VAR0"
+      "VALIDMIN": CDF_UINT2 65534
+      "VALIDMAX": CDF_UINT2 65534
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "VAR1":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "VAR1"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "VAR1"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "VAR0"
+      "VALIDMIN": CDF_UINT2 65534
+      "VALIDMAX": CDF_UINT2 65534
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "VAR2":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "VAR2"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "VAR2"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "VAR0"
+      "VALIDMIN": CDF_UINT2 65534
+      "VALIDMAX": CDF_UINT2 65534
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "VAR3":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "VAR3"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "DISPLAY_TYPE": CDF_CHAR "time_series"
+      "FIELDNAM": CDF_CHAR "VAR3"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "VAR0"
+      "VALIDMIN": CDF_UINT2 65534
+      "VALIDMAX": CDF_UINT2 65534
+      "VAR_TYPE": CDF_CHAR "data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
+  "SPC_TIMESERTICK":
+    type: CDF_UINT2
+    number of elements: 1
+    dimensions: []
+    dimension variances: []
+    record variance: True
+    sparse records: none
+    compression: GZIP 6
+    pad value: 65534
+    attributes:
+      "CATDESC": CDF_CHAR "SPC_TIMESERTICK"
+      "DEPEND_0": CDF_CHAR "Epoch"
+      "FIELDNAM": CDF_CHAR "SPC_TIMESERTICK"
+      "FILLVAL": CDF_UINT2 65535
+      "FORMAT": CDF_CHAR "I5"
+      "LABLAXIS": CDF_CHAR "SW_SPCSUBSEC"
+      "VALIDMIN": CDF_UINT2 0
+      "VALIDMAX": CDF_UINT2 65535
+      "VAR_TYPE": CDF_CHAR "support_data"
+      "SCALETYP": CDF_CHAR "linear"
+    records: 0
