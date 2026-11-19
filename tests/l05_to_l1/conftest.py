@@ -27,7 +27,7 @@ skeleton_353 = data_dir / "cdf_skeletons" / "psp_swp_spc_l1_353_skeleton.cdf"
 def tt2000(*args: int) -> int:
     """Return the ``CDF_TIME_TT2000`` value of a UTC time given like `datetime.datetime`."""
     time = datetime.datetime(*args)  # ruff:ignore[DTZ001]  # ty: ignore[invalid-argument-type]
-    return int(pycdf.lib.datetime_to_tt2000(time))  # ty: ignore[missing-argument, invalid-argument-type]
+    return int(pycdf.lib.datetime_to_tt2000(time))
 
 
 def write_l05_file(

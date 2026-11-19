@@ -98,11 +98,7 @@ def _cdf_epoch_tojuldays(epoch: np.ndarray) -> np.ndarray:
     puts times during a leap second, like 2016-12-31T23:59:60.5, in the
     first second of the next day.
     """
-    # spacepy defines the functions in pycdf.lib at run time, which ty
-    # cannot follow
-    cdf_epoch = pycdf.lib.v_tt2000_to_epoch(  # ty: ignore[missing-argument]
-        np.asarray(epoch, dtype=np.int64)  # ty: ignore[invalid-argument-type]
-    )
+    cdf_epoch = pycdf.lib.v_tt2000_to_epoch(np.asarray(epoch, dtype=np.int64))
     return np.asarray(cdf_epoch, dtype=np.float64) / _MS_PER_DAY + _JD_OF_CDF_EPOCH_ZERO
 
 
