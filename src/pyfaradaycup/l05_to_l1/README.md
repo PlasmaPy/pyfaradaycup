@@ -30,6 +30,7 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 - Of a set of duplicate records, the one in the last input file is kept.
   IDL's `sort` is not stable, so which duplicate IDL keeps is not defined.
 - A warning is logged for each input file that is missing, rather than depending only on whether the last file is missing.
+- An L0.5 file that cannot be read, such as one that is truncated or still being written, is skipped with a warning.
 - An existing L1 file is replaced only with `--overwrite`.
 
 ## To do

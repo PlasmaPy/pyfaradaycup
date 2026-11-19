@@ -189,6 +189,10 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
     first, so that they are not opened. The files selected for each
     APID are the same.
 
+    A file that cannot be read, such as one that is truncated or is
+    still being written, is skipped with a warning, so that it does not
+    stop the L1 files for this date from being made from the others.
+
     Parameters
     ----------
     date : datetime.date
@@ -216,8 +220,13 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
     ]
     children = []
     for path in candidates:
-        stat = path.stat()
-        if date in _l05_file_dates(path, stat.st_mtime_ns, stat.st_size):
+        try:
+            stat = path.stat()
+            dates = _l05_file_dates(path, stat.st_mtime_ns, stat.st_size)
+        except (pycdf.CDFError, OSError) as exc:
+            logger.warning("Could not read %s, so it is skipped: %s", path, exc)
+            continue
+        if date in dates:
             children.append(path)
     logger.debug("L0.5 files with records on %s: %s", date, children)
     return children

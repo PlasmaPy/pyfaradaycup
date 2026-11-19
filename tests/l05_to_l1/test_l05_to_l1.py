@@ -148,6 +148,26 @@ def test_l05_children_skips_other_apids(
     assert _l05_children(date, tmp_path) == expected
 
 
+def test_l05_children_skips_unreadable_files(
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """
+    Test that an L0.5 file that cannot be read is skipped with a
+    warning, and that the other files are still found.
+    """
+    expected = [
+        l05_file(tmp_path / "2026/08/APID353/a_APID353_L1.cdf", [tt2000(2026, 8, 3)])
+    ]
+    unreadable = tmp_path / "2026/08/APID353/b_APID353_L1.cdf"
+    unreadable.write_bytes(b"not a CDF file")
+    with caplog.at_level(logging.WARNING, logger="pyfaradaycup"):
+        assert _l05_children(date, tmp_path) == expected
+    assert f"Could not read {unreadable}" in caplog.text
+
+
 def test_l05_children_reads_each_file_once(
     tmp_path: Path,
     l05_file: Callable[..., Path],
