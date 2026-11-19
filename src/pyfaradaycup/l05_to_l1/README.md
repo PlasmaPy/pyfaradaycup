@@ -16,7 +16,7 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 | `_spp_swp_spc_l05_to_l1.py`: `_l05_children`                                | the `unique_dates` and `l05_children` of each `spc_rawfile` in the `sdc_state` registry |
 | `cdf_to_survey.py`: `cdf_merge_to_daily`                                    | `CDF_merge_to_daily` in `idllib/CDF_to_survey.pro`                                      |
 | `cdf_to_survey.py`: `_read_mycdf`, `_read_master_cdf`, `_write_data_to_cdf` | `read_myCDF`, `read_master_cdf`, and `write_data_to_cdf` in CDAWlib                     |
-| `cdf_to_survey.py`: `_cdf_epoch_tojuldays`, `_julday`, `_idl_uniq`          | the IDL built-in functions `CDF_EPOCH_TOJULDAYS`, `JULDAY`, and `UNIQ`                  |
+| `pyfaradaycup.utils.idl`: `cdf_epoch_tojuldays`, `julday`, `uniq`           | the IDL built-in functions `CDF_EPOCH_TOJULDAYS`, `JULDAY`, and `UNIQ`                  |
 
 > [!NOTE]
 > This file was generated with Claude.
@@ -41,4 +41,4 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
   `test_cdf_merge_to_daily_merges_near_duplicates` will need to be changed.
 - [ ] **Check the conversion of times to dates and Julian days against IDL.**
   The documentation of `CDF_EPOCH_TOJULDAYS` does not say how it handles leap seconds, and `CDF_merge_to_daily` calls `CDF_EPOCH, /BREAKDOWN` on `CDF_TIME_TT2000` values without `/TT2000`.
-  Compare `_cdf_epoch_tojuldays` and `_julday` with IDL for times near midnight and during the leap second at the end of 2016.
+  Compare `pyfaradaycup.utils.idl.cdf_epoch_tojuldays` and `pyfaradaycup.utils.idl.julday` with IDL for times near midnight and during the leap second at the end of 2016.

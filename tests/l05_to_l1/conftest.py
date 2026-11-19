@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -22,12 +21,6 @@ l05_dir = spc_dir / "L05"
 l1_dir = spc_dir / "L1"
 
 skeleton_353 = data_dir / "cdf_skeletons" / "psp_swp_spc_l1_353_skeleton.cdf"
-
-
-def tt2000(*args: int) -> int:
-    """Return the ``CDF_TIME_TT2000`` value of a UTC time given like `datetime.datetime`."""
-    time = datetime.datetime(*args)  # ruff:ignore[DTZ001]  # ty: ignore[invalid-argument-type]
-    return int(pycdf.lib.datetime_to_tt2000(time))
 
 
 def write_l05_file(
@@ -92,12 +85,6 @@ def read_raw(path: Path, name: str) -> np.ndarray:
 def l05_file() -> Callable[..., Path]:
     """Return `write_l05_file`, for writing small L0.5 files."""
     return write_l05_file
-
-
-@pytest.fixture(name="tt2000")
-def tt2000_fixture() -> Callable[..., int]:
-    """Return `tt2000`, for converting UTC times into ``CDF_TIME_TT2000`` values."""
-    return tt2000
 
 
 @pytest.fixture(name="read_raw")

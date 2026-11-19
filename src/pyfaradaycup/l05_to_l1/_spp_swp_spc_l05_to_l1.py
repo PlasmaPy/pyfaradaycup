@@ -25,11 +25,8 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1.cdf_to_survey import (
-    _cdf_epoch_tojuldays,
-    _unique_dates,
-    cdf_merge_to_daily,
-)
+from pyfaradaycup.l05_to_l1.cdf_to_survey import _unique_dates, cdf_merge_to_daily
+from pyfaradaycup.utils.idl import cdf_epoch_tojuldays
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -163,7 +160,7 @@ def _l05_children(date: datetime.date, l05dir: pathlib.Path) -> list[pathlib.Pat
                 logger.debug("Skipping %s, which has no Epoch variable", path)
                 continue
             epoch = np.asarray(cdf.raw_var("Epoch")[...])
-        if date in _unique_dates(_cdf_epoch_tojuldays(epoch)):
+        if date in _unique_dates(cdf_epoch_tojuldays(epoch)):
             children.append(path)
     logger.debug("L0.5 files with records on %s: %s", date, children)
     return children

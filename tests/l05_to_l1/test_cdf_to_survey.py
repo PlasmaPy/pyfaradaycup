@@ -14,12 +14,8 @@ from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
 from pyfaradaycup.l05_to_l1 import cdf_merge_to_daily
-from pyfaradaycup.l05_to_l1.cdf_to_survey import (
-    _cdf_epoch_tojuldays,
-    _idl_uniq,
-    _julday,
-    _unique_dates,
-)
+from pyfaradaycup.l05_to_l1.cdf_to_survey import _unique_dates
+from pyfaradaycup.utils.idl import cdf_epoch_tojuldays
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -32,72 +28,23 @@ TT2000_FILL = -9223372036854775808
 TT2000_PAD = -9223372036854775807
 
 
-def _julian_day_number(year: int, month: int, day: int) -> int:
-    """
-    Return the Julian day number at noon on a Gregorian date.
-
-    This uses the algorithm of Fliegel & Van Flandern (1968),
-    Communications of the ACM, 11, 657, to check `_julday` independently.
-    """
-    # Integer division in the algorithm truncates toward zero
-    a = int((month - 14) / 12)
-    return (
-        (1461 * (year + 4800 + a)) // 4
-        + int((367 * (month - 2 - 12 * a)) / 12)
-        - (3 * ((year + 4900 + a) // 100)) // 4
-        + day
-        - 32075
-    )
-
-
-@pytest.mark.parametrize(
-    "date",
-    [
-        datetime.date(2000, 1, 1),
-        datetime.date(2016, 12, 31),
-        datetime.date(2024, 2, 29),
+def test_unique_dates_at_midnight(tt2000: Callable[..., int]) -> None:
+    """Test that a record at midnight is on the new day."""
+    epoch = np.array([tt2000(2026, 8, 2, 23, 59, 59, 999000), tt2000(2026, 8, 3)])
+    assert _unique_dates(cdf_epoch_tojuldays(epoch)) == [
+        datetime.date(2026, 8, 2),
         datetime.date(2026, 8, 3),
-    ],
-)
-def test_julday(date: datetime.date) -> None:
-    """Test that `_julday` is the Julian day of midnight at the start of the date."""
-    assert _julday(date) == _julian_day_number(date.year, date.month, date.day) - 0.5
+    ]
 
 
-def test_cdf_epoch_tojuldays_noon(tt2000: Callable[..., int]) -> None:
-    """Test that noon UTC on 2000-01-01 is Julian day 2451545.0."""
-    jd = _cdf_epoch_tojuldays(np.array([tt2000(2000, 1, 1, 12)]))
-    assert jd.dtype == np.float64
-    assert jd[0] == 2451545.0  # ruff:ignore[PLR2004]
-
-
-def test_cdf_epoch_tojuldays_midnight(tt2000: Callable[..., int]) -> None:
-    """
-    Test that midnight is exactly the start of the day, so that a record
-    at midnight is on the new day.
-    """
-    date = datetime.date(2026, 8, 3)
-    jd = _cdf_epoch_tojuldays(
-        np.array(
-            [
-                tt2000(2026, 8, 2, 23, 59, 59, 999000),
-                tt2000(2026, 8, 3),
-            ]
-        )
-    )
-    assert jd[0] < _julday(date)
-    assert jd[1] == _julday(date)
-    assert _unique_dates(jd) == [datetime.date(2026, 8, 2), date]
-
-
-def test_cdf_epoch_tojuldays_leap_second(tt2000: Callable[..., int]) -> None:
+def test_unique_dates_leap_second(tt2000: Callable[..., int]) -> None:
     """
     Test that a time during the leap second at the end of 2016 is put in
     the next day, as the CDF library converts it.
     """
     before = tt2000(2016, 12, 31, 23, 59, 59, 500000)
     during = before + 1_000_000_000  # 2016-12-31T23:59:60.5
-    jd = _cdf_epoch_tojuldays(np.array([before, during]))
+    jd = cdf_epoch_tojuldays(np.array([before, during]))
     assert _unique_dates(jd[:1]) == [datetime.date(2016, 12, 31)]
     assert _unique_dates(jd[1:]) == [datetime.date(2017, 1, 1)]
 
@@ -105,22 +52,7 @@ def test_cdf_epoch_tojuldays_leap_second(tt2000: Callable[..., int]) -> None:
 def test_unique_dates_skips_fill_and_pad_values(tt2000: Callable[..., int]) -> None:
     """Test that fill and pad values of Epoch are not dates."""
     epoch = np.array([TT2000_FILL, TT2000_PAD, tt2000(2026, 8, 3, 12)])
-    assert _unique_dates(_cdf_epoch_tojuldays(epoch)) == [datetime.date(2026, 8, 3)]
-
-
-@pytest.mark.parametrize(
-    ("values", "expected"),
-    [
-        ([], []),
-        ([5], [0]),
-        ([1, 1, 2, 2, 2, 3], [1, 4, 5]),
-        ([3.0, 3.0, 3.0], [2]),
-        ([1, 2, 1], [0, 1, 2]),
-    ],
-)
-def test_idl_uniq(values: list[float], expected: list[int]) -> None:
-    """Test that `_idl_uniq` gives the last index of each run, like IDL's uniq."""
-    assert _idl_uniq(np.array(values)).tolist() == expected
+    assert _unique_dates(cdf_epoch_tojuldays(epoch)) == [datetime.date(2026, 8, 3)]
 
 
 def _global_attribute(path: Path, name: str) -> str:

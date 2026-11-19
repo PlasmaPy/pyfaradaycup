@@ -23,83 +23,19 @@ from typing import TYPE_CHECKING
 import numpy as np
 from spacepy import pycdf
 
+from pyfaradaycup.utils.idl import cdf_epoch_tojuldays, julday, uniq
+
 if TYPE_CHECKING:
     import os
     from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
 
-_JD_OF_CDF_EPOCH_ZERO = 1721059.5
-"""
-The Julian day of 0000-01-01T00:00:00, which is where ``CDF_EPOCH``
-(milliseconds since that time) is zero.
-"""
-
-_JD_OF_ORDINAL_ZERO = 1721424.5
+_JD_OF_ORDINAL_ZERO = julday(datetime.date.min) - 1
 """
 The Julian day of midnight on the day before 0001-01-01, which is day
 1 of `datetime.date.toordinal`.
 """
-
-_MS_PER_DAY = 86_400_000.0
-
-
-def _julday(date: datetime.date) -> float:
-    """
-    Return the Julian day of midnight at the start of ``date``.
-
-    This is the same as ``julday(month, day, year, 0, 0, 0)`` in IDL.
-
-    Parameters
-    ----------
-    date : datetime.date
-        A calendar date in the proleptic Gregorian calendar.
-
-    Returns
-    -------
-    float
-        The Julian day, which ends in ``.5`` because Julian days start
-        at noon.
-
-    Examples
-    --------
-    >>> import datetime
-    >>> _julday(datetime.date(2000, 1, 1))
-    2451544.5
-    """
-    return date.toordinal() + _JD_OF_ORDINAL_ZERO
-
-
-def _cdf_epoch_tojuldays(epoch: np.ndarray) -> np.ndarray:
-    """
-    Convert ``CDF_TIME_TT2000`` values to Julian days in UTC.
-
-    This replaces the IDL built-in function ``CDF_EPOCH_TOJULDAYS``.
-    The times are first converted to ``CDF_EPOCH`` (milliseconds since
-    0000-01-01 in UTC, without leap seconds) with the CDF library.
-
-    Parameters
-    ----------
-    epoch : numpy.ndarray of numpy.int64
-        Nanoseconds since J2000, including leap seconds, as stored in a
-        ``CDF_TIME_TT2000`` variable.
-
-    Returns
-    -------
-    numpy.ndarray of numpy.float64
-        The Julian day of each time. Near the present, consecutive
-        float64 values differ by about 40 µs.
-
-    Notes
-    -----
-    The documentation of ``CDF_EPOCH_TOJULDAYS`` does not say how it
-    handles leap seconds or exactly how it calculates the result, so
-    the result may differ from IDL in the last bits. The CDF library
-    puts times during a leap second, like 2016-12-31T23:59:60.5, in the
-    first second of the next day.
-    """
-    cdf_epoch = pycdf.lib.v_tt2000_to_epoch(np.asarray(epoch, dtype=np.int64))
-    return np.asarray(cdf_epoch, dtype=np.float64) / _MS_PER_DAY + _JD_OF_CDF_EPOCH_ZERO
 
 
 def _unique_dates(jd: np.ndarray) -> list[datetime.date]:
@@ -116,36 +52,6 @@ def _unique_dates(jd: np.ndarray) -> list[datetime.date]:
         for ordinal in ordinals
         if 1 <= ordinal <= max_ordinal
     ]
-
-
-def _idl_uniq(values: np.ndarray) -> np.ndarray:
-    """
-    Return the index of the last element of each run of equal values.
-
-    This is the same as ``uniq(values)`` in IDL. For sorted values,
-    the result selects one of each value.
-
-    Parameters
-    ----------
-    values : numpy.ndarray
-        A one-dimensional array, which is usually sorted.
-
-    Returns
-    -------
-    numpy.ndarray of numpy.intp
-        The indices of the last element of each run of equal values.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> _idl_uniq(np.array([1, 1, 2, 2, 2, 3])).tolist()
-    [1, 4, 5]
-    """
-    values = np.asarray(values)
-    if values.size == 0:
-        return np.array([], dtype=np.intp)
-    is_last = np.append(values[1:] != values[:-1], True)
-    return np.flatnonzero(is_last)
 
 
 def _read_mycdf(
@@ -383,7 +289,7 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
 
     # For ease of computation, convert to Julian days, and also compute
     # the calendar dates
-    jd = _cdf_epoch_tojuldays(epoch)
+    jd = cdf_epoch_tojuldays(epoch)
     uniquedates = _unique_dates(jd)
 
     # If a particular output date is given, look only for that
@@ -396,7 +302,7 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
     outpath.mkdir(parents=True, exist_ok=True)
     outfiles = []
     for thisdate in uniquedates:
-        jd_start = _julday(thisdate)
+        jd_start = julday(thisdate)
         jd_stop = jd_start + 1.0
         all_thisday = np.flatnonzero((jd >= jd_start) & (jd < jd_stop))
 
@@ -406,7 +312,7 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
         # in Epoch, rather than float64 Julian days, which can treat
         # records less than about 40 µs apart as duplicates.
         o = np.argsort(jd[all_thisday], kind="stable")
-        u = _idl_uniq(jd[all_thisday[o]])
+        u = uniq(jd[all_thisday[o]])
         ind = all_thisday[o[u]]
 
         out_cdf = outpath / f"{outname}_{thisdate:%Y%m%d}_v{outversion:02d}.cdf"
