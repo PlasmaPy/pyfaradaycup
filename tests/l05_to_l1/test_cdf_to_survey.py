@@ -276,6 +276,33 @@ def test_cdf_merge_to_daily_skeleton_mismatch(
     assert not (tmp_path / "out").exists()
 
 
+def test_cdf_merge_to_daily_matches_variables_by_name(
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+    read_raw: Callable[[Path, str], np.ndarray],
+) -> None:
+    """
+    Test that the variables in the input files are matched with those in
+    the skeleton by name, so they can be in a different order.
+    """
+    original = l05_file(
+        tmp_path / "original.cdf", [tt2000(2026, 8, 3, 5), tt2000(2026, 8, 3, 6)]
+    )
+    reordered = tmp_path / "reordered.cdf"
+    with pycdf.CDF(str(original)) as source, pycdf.CDF(str(reordered), "") as cdf:
+        names = list(source)
+        for name in reversed(names):
+            cdf.new(name, type=source[name].type(), recVary=source[name].rv())
+            cdf.raw_var(name)[...] = source.raw_var(name)[...]
+        assert list(cdf) == names[::-1]
+    (outfile,) = _merge([reordered], tmp_path)
+    for name in names:
+        np.testing.assert_array_equal(
+            read_raw(outfile, name), read_raw(original, name), err_msg=name
+        )
+
+
 def test_cdf_merge_to_daily_input_mismatch(
     tmp_path: Path,
     l05_file: Callable[..., Path],

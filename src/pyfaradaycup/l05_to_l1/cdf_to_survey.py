@@ -277,10 +277,12 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
     epoch = odata["Epoch"]
 
     # IDL matches variables by their position in the skeleton and the
-    # input files, so they are checked to be the same.
+    # input files. Instead, they are matched by name, so the skeleton
+    # and the input files are checked to have the same variables, in
+    # any order.
     with pycdf.CDF(str(skeletonfile)) as skeleton:
         varnames = list(skeleton)
-    if varnames != list(odata):
+    if set(varnames) != set(odata):
         msg = (
             f"The variables in {skeletonfile} ({varnames}) are not the "
             f"same as in the input files ({list(odata)})"
