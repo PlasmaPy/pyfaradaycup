@@ -16,3 +16,15 @@ The following files and directories came from `/psp/data/`.
 
 > [!NOTE]
 > Whitespace and permissions changes were made to several of the ASCII files.
+
+## Text descriptions of the skeleton CDF files
+
+Each skeleton CDF file in `cdf_skeletons/` has a text description with the
+same name and a `.txt` extension, so that changes to the binary CDF files can
+be reviewed with `git diff`. The tests check that each description matches
+its CDF file. After changing a skeleton CDF file, regenerate the descriptions
+with:
+
+```sh
+uv run python -m pyfaradaycup._cdf_description
+```

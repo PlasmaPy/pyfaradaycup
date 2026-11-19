@@ -11,8 +11,7 @@ import re
 
 import click
 
-from pyfaradaycup._logging import configure_logging
-from pyfaradaycup._logging import console_level as _console_level
+from pyfaradaycup._logging import configure_logging, console_level
 from pyfaradaycup.decommutator._l0_to_l05 import NoPacketsError, l0_to_l05
 
 logger = logging.getLogger(__name__)
@@ -300,7 +299,7 @@ def _convert(  # ruff:ignore[PLR0913]
     """
     log_file = _log_file_path(logdir, l0file)
     with configure_logging(
-        level=_console_level(verbose=verbose, quiet=quiet),
+        level=console_level(verbose=verbose, quiet=quiet),
         log_file=log_file,
         file_mode="exclusive",
         capture_warnings=True,
