@@ -9,7 +9,7 @@ IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_da
 
 | Python                                                                      | IDL                                                                                     |
 | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `main.py`: the `pfc_l05_to_l1` command line tool                            | step 4.2 of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`                         |
+| `main.py`: the `l05_to_l1` command line tool                                | step 4.2 of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`                         |
 | `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_dates`                  | `spp_swp_spc_l05_to_l1_dates.pro`                                                       |
 | `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_date`                   | `spp_swp_spc_l05_to_l1_date.pro`                                                        |
 | `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_which_apid`                       | `spp_swp_spc_which_apid.pro`                                                            |

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["pfc_l05_to_l1"]
+__all__ = ["l05_to_l1"]
 
 import datetime
 import logging
@@ -60,7 +60,7 @@ def _log_file_path(logdir: pathlib.Path | None, date: datetime.date) -> pathlib.
     return pathlib.Path("." if logdir is None else logdir) / name
 
 
-@click.command(name="pfc_l05_to_l1")
+@click.command(name="l05_to_l1")
 @click.version_option(package_name="pyfaradaycup")
 @click.option(
     "-v",
@@ -113,7 +113,7 @@ def _log_file_path(logdir: pathlib.Path | None, date: datetime.date) -> pathlib.
     required=True,
     callback=_parse_dates,
 )
-def pfc_l05_to_l1(  # ruff:ignore[PLR0913]
+def l05_to_l1(  # ruff:ignore[PLR0913]
     *,
     verbose: int,
     quiet: bool,
@@ -138,7 +138,7 @@ def pfc_l05_to_l1(  # ruff:ignore[PLR0913]
     screen:
 
     \b
-        pfc_l05_to_l1 \\
+        l05_to_l1 \\
             --l05dir=/path/to/L05 \\
             --l1dir=/path/to/L1 \\
             --logdir=/path/to/logdir \\
@@ -231,4 +231,4 @@ def _convert(  # ruff:ignore[PLR0913]
 
 
 if __name__ == "__main__":
-    pfc_l05_to_l1()
+    l05_to_l1()

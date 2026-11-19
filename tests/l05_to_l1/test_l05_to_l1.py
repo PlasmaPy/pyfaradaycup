@@ -28,7 +28,7 @@ from pyfaradaycup.l05_to_l1._spp_swp_spc_l05_to_l1 import (
     _months_around,
     _parse_date,
 )
-from pyfaradaycup.l05_to_l1.main import EXIT_FAILURE, EXIT_NO_DATA, pfc_l05_to_l1
+from pyfaradaycup.l05_to_l1.main import EXIT_FAILURE, EXIT_NO_DATA, l05_to_l1
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -164,10 +164,10 @@ def test_spp_swp_spc_l05_to_l1_dates(
     assert "2026-08-04; skipping this date" in caplog.text
 
 
-def test_pfc_l05_to_l1(tmp_path: Path) -> None:
+def test_l05_to_l1(tmp_path: Path) -> None:
     """Test that the command line tool writes the L1 files and a log file."""
     result = CliRunner().invoke(
-        pfc_l05_to_l1,
+        l05_to_l1,
         [
             f"--l05dir={l05_dir}",
             f"--l1dir={tmp_path / 'L1'}",
@@ -182,7 +182,7 @@ def test_pfc_l05_to_l1(tmp_path: Path) -> None:
     (log_file,) = tmp_path.glob("*.log")
     assert re.fullmatch(r"l05_to_l1_20260803_\d{8}T\d{6}Z\.log", log_file.name)
     log = log_file.read_text(encoding="utf-8")
-    assert "Running pfc_l05_to_l1 with options" in log
+    assert "Running l05_to_l1 with options" in log
     for apid in SPC_L1_APIDS:
         assert f"spp_swp_spc_APID{apid}L1_20260803_v00.cdf" in log
         assert (
@@ -195,13 +195,13 @@ def test_pfc_l05_to_l1(tmp_path: Path) -> None:
         ).is_file()
 
 
-def test_pfc_l05_to_l1_no_data(tmp_path: Path) -> None:
+def test_l05_to_l1_no_data(tmp_path: Path) -> None:
     """
     Test that the exit code is 65 when a date has no data, and that the
     other dates are still converted.
     """
     result = CliRunner().invoke(
-        pfc_l05_to_l1,
+        l05_to_l1,
         [
             f"--l05dir={l05_dir}",
             f"--l1dir={tmp_path / 'L1'}",
@@ -216,7 +216,7 @@ def test_pfc_l05_to_l1_no_data(tmp_path: Path) -> None:
     assert len(list(tmp_path.glob("*.log"))) == 2  # ruff:ignore[PLR2004]
 
 
-def test_pfc_l05_to_l1_overwrite(tmp_path: Path) -> None:
+def test_l05_to_l1_overwrite(tmp_path: Path) -> None:
     """
     Test that the exit code is 1 when an L1 file already exists, and
     that it is replaced with -o.
@@ -230,7 +230,7 @@ def test_pfc_l05_to_l1_overwrite(tmp_path: Path) -> None:
             f"--l1dir={tmp_path / 'L1'}",
             f"--logdir={tmp_path / f'log{run}'}",
         ]
-        return CliRunner().invoke(pfc_l05_to_l1, [*args, *options, "2026-08-03"])
+        return CliRunner().invoke(l05_to_l1, [*args, *options, "2026-08-03"])
 
     assert invoke(1).exit_code == 0
 
@@ -242,7 +242,7 @@ def test_pfc_l05_to_l1_overwrite(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_pfc_l05_to_l1_failure_takes_precedence(
+def test_l05_to_l1_failure_takes_precedence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """
@@ -259,7 +259,7 @@ def test_pfc_l05_to_l1_failure_takes_precedence(
 
     monkeypatch.setattr(main, "spp_swp_spc_l05_to_l1_date", fail)
     result = CliRunner().invoke(
-        pfc_l05_to_l1,
+        l05_to_l1,
         [f"--l05dir={l05_dir}", f"--logdir={tmp_path}", "2026-08-03", "2026-08-04"],
     )
     assert result.exit_code == EXIT_FAILURE
@@ -267,25 +267,25 @@ def test_pfc_l05_to_l1_failure_takes_precedence(
 
 
 @pytest.mark.parametrize("value", ["2026-8-3", "yesterday"])
-def test_pfc_l05_to_l1_invalid_date(tmp_path: Path, value: str) -> None:
+def test_l05_to_l1_invalid_date(tmp_path: Path, value: str) -> None:
     """Test that an invalid date is a usage error."""
-    result = CliRunner().invoke(pfc_l05_to_l1, [f"--l05dir={l05_dir}", value])
+    result = CliRunner().invoke(l05_to_l1, [f"--l05dir={l05_dir}", value])
     assert result.exit_code == 2  # ruff:ignore[PLR2004]
     assert "is not a date like 2026-08-03" in result.output
     assert not list(tmp_path.iterdir())
 
 
-def test_pfc_l05_to_l1_requires_date() -> None:
+def test_l05_to_l1_requires_date() -> None:
     """Test that at least one date is required."""
-    result = CliRunner().invoke(pfc_l05_to_l1, [f"--l05dir={l05_dir}"])
+    result = CliRunner().invoke(l05_to_l1, [f"--l05dir={l05_dir}"])
     assert result.exit_code == 2  # ruff:ignore[PLR2004]
     assert "Missing argument 'DATE...'" in result.output
 
 
-def test_pfc_l05_to_l1_verbose_and_quiet() -> None:
+def test_l05_to_l1_verbose_and_quiet() -> None:
     """Test that -v and -q cannot be used together."""
     result = CliRunner().invoke(
-        pfc_l05_to_l1, [f"--l05dir={l05_dir}", "-v", "-q", "2026-08-03"]
+        l05_to_l1, [f"--l05dir={l05_dir}", "-v", "-q", "2026-08-03"]
     )
     assert result.exit_code == 2  # ruff:ignore[PLR2004]
     assert "cannot be used together" in result.output
@@ -296,7 +296,7 @@ def l1_from_cli(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Return the L1 directory made by the command line tool for 2026-08-03."""
     tmp_path = tmp_path_factory.mktemp("l05_to_l1")
     result = CliRunner().invoke(
-        pfc_l05_to_l1,
+        l05_to_l1,
         [
             f"--l05dir={l05_dir}",
             f"--l1dir={tmp_path / 'L1'}",

@@ -92,7 +92,7 @@ To show log messages from the conversion in the Dagster event log, see
 Converting L0.5 files into L1 files from Python
 ===============================================
 
-The :ref:`pfc_l05_to_l1 <cli>` command line tool calls
+The :ref:`l05_to_l1 <cli>` command line tool calls
 :func:`~pyfaradaycup.l05_to_l1.spp_swp_spc_l05_to_l1_date` for each
 date, which can also be called directly:
 
@@ -108,7 +108,7 @@ This merges the records on that date from every L0.5 file in
 ``/path/to/L05`` into one L1 file for each APID, and returns the paths
 of the L1 files. If no L0.5 files have data for the date,
 :class:`~pyfaradaycup.l05_to_l1.NoL05DataError` is raised, and the
-``pfc_l05_to_l1`` command line tool exits with code 65.
+``l05_to_l1`` command line tool exits with code 65.
 
 The names of the functions are the same as in the IDL code that they
 were ported from, and
