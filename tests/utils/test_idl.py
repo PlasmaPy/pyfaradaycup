@@ -8,7 +8,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
-from pyfaradaycup.utils.idl import cdf_epoch_tojuldays, julday, uniq
+from pyfaradaycup.utils.idl import (
+    cdf_epoch_tojuldays,
+    julday,
+    label_region,
+    median,
+    uniq,
+    value_locate,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -92,3 +99,65 @@ def test_cdf_epoch_tojuldays_leap_second(tt2000: Callable[..., int]) -> None:
 def test_uniq(values: list[float], expected: list[int]) -> None:
     """Test that `uniq` gives the last index of each run, like IDL's uniq."""
     assert uniq(np.array(values)).tolist() == expected
+
+
+@pytest.mark.parametrize(
+    ("vector", "values", "expected"),
+    [
+        ([10, 20, 30], [5, 10, 15, 20, 29, 30, 99], [-1, 0, 0, 1, 1, 2, 2]),
+        ([10], [9, 10, 11], [-1, 0, 0]),
+        ([1.5, 2.5], [2.0], [0]),
+    ],
+)
+def test_value_locate(
+    vector: list[float], values: list[float], expected: list[int]
+) -> None:
+    """
+    Test that `value_locate` gives -1 below the first element and
+    len(vector) - 1 at or above the last, like IDL.
+    """
+    assert value_locate(np.array(vector), np.array(values)).tolist() == expected
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        ([], []),
+        ([1], [0]),
+        ([0, 1, 1, 0, 1, 0], [0, 1, 1, 0, 2, 0]),
+        # Any nonzero value is part of a region
+        ([0, 1, 2, 3, 0, 5, 0], [0, 1, 1, 1, 0, 2, 0]),
+        # The first and last elements are treated as zero
+        ([1, 1, 0, 1, 1], [0, 1, 0, 2, 0]),
+    ],
+)
+def test_label_region(data: list[int], expected: list[int]) -> None:
+    """Test that `label_region` numbers runs of nonzero elements, like IDL."""
+    labels = label_region(np.array(data))
+    assert labels.dtype == np.uint32
+    assert labels.tolist() == expected
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ([3], 3),
+        ([3, 1, 2], 2),
+        ([4, 1, 3, 2], 3),  # the larger of the two middle values
+        ([1.5, 0.5], 1.5),
+    ],
+)
+def test_median(values: list[float], expected: float) -> None:
+    """Test that `median` gives the upper middle value of an even number of elements."""
+    assert median(np.array(values)) == expected
+
+
+def test_median_keeps_type() -> None:
+    """Test that `median` returns one of the elements, with their type."""
+    assert median(np.array([7, 9], dtype=np.uint8)).dtype == np.uint8
+
+
+def test_median_empty() -> None:
+    """Test that the median of an empty array is an error."""
+    with pytest.raises(ValueError, match="empty"):
+        median(np.array([]))

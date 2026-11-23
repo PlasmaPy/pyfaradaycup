@@ -281,6 +281,10 @@ lint.isort.known-first-party = [ "pyfaradaycup" ]
 lint.pydocstyle.convention = "numpy"
 lint.pylint.max-positional-args = 6
 
+[tool.codespell]
+# agains is the name of the gains of sensor plate A in the IDL code
+ignore-words-list = "agains"
+
 # Settings are in tool.pytest.ini_options rather than directly in
 # tool.pytest, which only pytest >= 9 reads, so that they also apply on
 # Python 3.9, where the newest pytest is 8.x.

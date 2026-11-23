@@ -2,6 +2,7 @@ The data files in this directory were transferred from the server used to proces
 
 The following files and directories came from `/psp/code/`.
 
+- `calibration/` (only the calibration files used so far)
 - `cdf_skeletons/`
 - `conversion_formulas.qlf`
 - `SC_HK.blk`
