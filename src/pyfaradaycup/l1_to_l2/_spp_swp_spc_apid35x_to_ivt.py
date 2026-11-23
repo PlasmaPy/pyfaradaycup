@@ -51,6 +51,9 @@ class Ivt:
     IDL, flattened. For example, ``ivt.mv_lo.dat`` becomes `mv_lo`,
     ``ivt.mv_lo.index`` becomes `mv_lo_index`, and ``ivt.a.gain``
     becomes `a_gain`. Each array has one value for each sample.
+
+    Like IDL, an IVT merged by `spp_swp_spc_merge_ivt` has no gain stages
+    or gain offsets file, so those are `None`.
     """
 
     time: np.ndarray
@@ -80,17 +83,17 @@ class Ivt:
     d: np.ndarray
     """The current on sensor plate D."""
 
-    a_gain: np.ndarray
-    """The gain stage of sensor plate A."""
+    a_gain: np.ndarray | None
+    """The gain stage of sensor plate A, or `None` for a merged IVT."""
 
-    b_gain: np.ndarray
-    """The gain stage of sensor plate B."""
+    b_gain: np.ndarray | None
+    """The gain stage of sensor plate B, or `None` for a merged IVT."""
 
-    c_gain: np.ndarray
-    """The gain stage of sensor plate C."""
+    c_gain: np.ndarray | None
+    """The gain stage of sensor plate C, or `None` for a merged IVT."""
 
-    d_gain: np.ndarray
-    """The gain stage of sensor plate D."""
+    d_gain: np.ndarray | None
+    """The gain stage of sensor plate D, or `None` for a merged IVT."""
 
     mode: np.ndarray
     """The SPC electron mode flag: 0 for ions and 1 for electrons."""
@@ -110,7 +113,9 @@ class Ivt:
     voltage_calfile: pathlib.Path
     thermal_calfile: str
     gain_calfile: pathlib.Path
-    offset_calfile: pathlib.Path
+    offset_calfile: pathlib.Path | None
+    """The gain offsets file, or `None` for a merged IVT."""
+
     crosstalk_calfile: pathlib.Path | str = "none"
 
 
