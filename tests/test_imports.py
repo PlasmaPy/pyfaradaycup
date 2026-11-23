@@ -21,6 +21,8 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.l05_to_l1",
         "pyfaradaycup.l05_to_l1.cdf_to_survey",
         "pyfaradaycup.l05_to_l1.main",
+        "pyfaradaycup.l1_to_l2",
+        "pyfaradaycup.l1_to_l2.swp_spc_l12l2_35f",
         "pyfaradaycup.utils",
         "pyfaradaycup.utils.idl",
     ],

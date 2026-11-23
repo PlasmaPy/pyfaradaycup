@@ -3,6 +3,7 @@ The data files in this directory were transferred from the server used to proces
 The following files and directories came from `/psp/code/`.
 
 - `cdf_skeletons/`
+- `conversion_formulas.qlf`
 - `SC_HK.blk`
 - `SC_HK.qlf`
 - `sc_hk_def/`
