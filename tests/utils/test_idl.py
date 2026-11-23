@@ -10,9 +10,11 @@ import pytest
 
 from pyfaradaycup.utils.idl import (
     cdf_epoch_tojuldays,
+    interpol,
     julday,
     label_region,
     median,
+    median_filter,
     uniq,
     value_locate,
 )
@@ -161,3 +163,46 @@ def test_median_empty() -> None:
     """Test that the median of an empty array is an error."""
     with pytest.raises(ValueError, match="empty"):
         median(np.array([]))
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ([5.0, 1.0, 9.0, 2.0, 8.0], [5.0, 5.0, 2.0, 8.0, 8.0]),
+        # NaNs are ignored, and the larger middle value of two is used
+        ([1.0, np.nan, 3.0, 4.0], [1.0, 3.0, 4.0, 4.0]),
+        ([np.nan, np.nan, np.nan], [np.nan, np.nan, np.nan]),
+        ([2.0], [2.0]),
+    ],
+)
+def test_median_filter(values: list[float], expected: list[float]) -> None:
+    """Test the running median of width 3, which leaves the ends unchanged."""
+    np.testing.assert_array_equal(median_filter(np.array(values), 3), expected)
+
+
+def test_median_filter_width() -> None:
+    """Test a running median of width 5, and that the width must be odd."""
+    values = np.array([9.0, 1.0, 5.0, 2.0, 8.0, 3.0])
+    assert median_filter(values, 5).tolist() == [9.0, 1.0, 5.0, 3.0, 8.0, 3.0]
+    with pytest.raises(ValueError, match="odd"):
+        median_filter(values, 2)
+
+
+def test_interpol() -> None:
+    """Test linear interpolation and extrapolation from the end intervals."""
+    v = np.array([0.0, 10.0, 30.0])
+    x = np.array([0.0, 1.0, 2.0])
+    result = interpol(v, x, np.array([-1.0, 0.0, 0.25, 1.5, 2.0, 3.0]))
+    np.testing.assert_array_equal(result, [-10.0, 0.0, 2.5, 20.0, 30.0, 50.0])
+
+
+def test_interpol_types_and_nan() -> None:
+    """
+    Test that integer abscissas give the type of the values, as in IDL,
+    and that NaN values are left out with nan=True.
+    """
+    v = np.array([1.0, np.nan, 3.0], dtype=np.float32)
+    x = np.array([0, 10, 20], dtype=np.int64)
+    result = interpol(v, x, np.array([5, 10]), nan=True)
+    assert result.dtype == np.float32
+    np.testing.assert_array_equal(result, [1.5, 2.0])

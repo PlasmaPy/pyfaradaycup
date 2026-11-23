@@ -23,6 +23,10 @@ ci:
   # skip hooks that require network access, which pre-commit.ci forbids
   skip: [uv-lock]
 
+# The calibration files that end in .idl are binary IDL save files, which
+# identify tags as IDL source code, so the text hooks would change them
+exclude: ^src/pyfaradaycup/data/calibration/.*\.idl$
+
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks

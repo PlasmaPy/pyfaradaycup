@@ -100,7 +100,12 @@ def _format_value(value: Any) -> str:  # noqa: ANN401
         return json.dumps(value)
     if isinstance(value, (list, tuple)):
         return "[" + ", ".join(_format_value(v) for v in value) + "]"
-    # str gives the shortest repr of NumPy floats at their own precision.
+    if isinstance(value, (float, np.floating)) and np.isfinite(value):
+        # Take the fewest digits that identify the value at its own
+        # precision, and write them like Python's repr. NumPy's str of a
+        # float32 depends on the version of NumPy: 1e6 is "1000000.0" with
+        # NumPy 1.21 and "1e+06" with NumPy 2.5.
+        return repr(float(np.format_float_scientific(value, unique=True)))
     if isinstance(value, (bool, np.bool_, int, np.integer, float, np.floating)):
         return str(value)
     msg = f"Cannot describe a value of type {type(value).__name__}: {value!r}"

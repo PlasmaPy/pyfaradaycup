@@ -9,7 +9,6 @@ import numpy as np
 import pytest
 from spacepy import pycdf
 
-from pyfaradaycup.l1_to_l2._spp_swp_spc_apid35x_to_ivt import spp_swp_spc_apid35x_to_ivt
 from pyfaradaycup.l1_to_l2._spp_swp_spc_ivt_to_spectra import (
     FILL,
     MAX_WINDOWS,
@@ -18,10 +17,9 @@ from pyfaradaycup.l1_to_l2._spp_swp_spc_ivt_to_spectra import (
     _split_long_cycles,
     spp_swp_spc_ivt_to_spectra,
 )
-from pyfaradaycup.l1_to_l2._spp_swp_spc_merge_ivt import spp_swp_spc_merge_ivt
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable
 
     from pyfaradaycup.l1_to_l2._spp_swp_spc_apid35x_to_ivt import Ivt
 
@@ -150,17 +148,6 @@ def test_ivt_to_spectra_non_contiguous_cycle(make_ivt: Callable[..., Ivt]) -> No
         spp_swp_spc_ivt_to_spectra(
             make_ivt(list(range(1, len(mv_lo) + 1)), mv_lo=mv_lo)
         )
-
-
-@pytest.fixture(scope="module")
-def spectra(l1_data: Mapping[str, Mapping[str, np.ndarray]]) -> Spectra:
-    """Return the spectra for 2026-08-03, merging the IVTs in the order IDL does."""
-    ivt = None
-    for apid in ("351", "353", "354"):
-        this = spp_swp_spc_apid35x_to_ivt(l1_data[apid], l1dir=l1_dir, l2dir=l2_dir)
-        ivt = this if ivt is None else spp_swp_spc_merge_ivt(ivt, this)
-    assert ivt is not None
-    return spp_swp_spc_ivt_to_spectra(ivt)
 
 
 def test_spectra_match_idl_l2(spectra: Spectra) -> None:
