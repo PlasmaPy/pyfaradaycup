@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-__all__ = ["close_cdf", "temporary_path"]
+__all__ = ["close_cdf", "ignore_chararray_deprecation", "temporary_path"]
 
+import contextlib
 import secrets
 import warnings
 from typing import TYPE_CHECKING
@@ -12,6 +13,7 @@ from spacepy import pycdf
 
 if TYPE_CHECKING:
     import pathlib
+    from collections.abc import Generator
 
 
 def close_cdf(cdf: pycdf.CDF) -> None:
@@ -32,6 +34,21 @@ def close_cdf(cdf: pycdf.CDF) -> None:
             "ignore", message="DID_NOT_COMPRESS", category=pycdf.CDFWarning
         )
         cdf.close()
+
+
+@contextlib.contextmanager
+def ignore_chararray_deprecation() -> Generator[None, None, None]:
+    """
+    Do not show the deprecation warning for `numpy.char.array`.
+
+    spacepy 0.7.0 reads and copies string attributes with
+    `numpy.char.array`, which NumPy 2.5 deprecates.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", "The chararray class is deprecated", DeprecationWarning
+        )
+        yield
 
 
 def temporary_path(path: pathlib.Path) -> pathlib.Path:
