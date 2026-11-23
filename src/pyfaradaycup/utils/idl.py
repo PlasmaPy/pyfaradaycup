@@ -11,9 +11,11 @@ from __future__ import annotations
 
 __all__ = [
     "cdf_epoch_tojuldays",
+    "interpol",
     "julday",
     "label_region",
     "median",
+    "median_filter",
     "uniq",
     "value_locate",
 ]
@@ -246,3 +248,120 @@ def median(array: np.ndarray) -> np.generic:
         msg = "The median of an empty array is not defined"
         raise ValueError(msg)
     return np.sort(values)[values.size // 2]
+
+
+def median_filter(array: np.ndarray, width: int) -> np.ndarray:
+    """
+    Apply a running median to a one-dimensional array, like ``median(array, width)`` in IDL.
+
+    Each element is replaced by the median of the ``width`` elements
+    centered on it, ignoring NaNs. For an even number of values that are
+    not NaN, the larger of the two middle values is used, as in
+    `median`. The ``(width - 1) // 2`` elements at each end are not
+    changed, and an element whose neighborhood is all NaN becomes NaN.
+
+    Parameters
+    ----------
+    array : numpy.ndarray
+        A one-dimensional array.
+    width : int
+        The odd width of the neighborhood.
+
+    Returns
+    -------
+    numpy.ndarray
+        The filtered array, with the type of ``array``.
+
+    Raises
+    ------
+    ValueError
+        If ``width`` is not a positive odd integer.
+
+    Notes
+    -----
+    The documentation of IDL's ``median`` does not say how it treats the
+    ends of the array or NaNs. This behavior reproduces the flow angles
+    in an L2 file made by IDL with ``width = 3``, which is the only width
+    that has been checked.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> median_filter(np.array([5.0, 1.0, 9.0, 2.0, 8.0]), 3).tolist()
+    [5.0, 5.0, 2.0, 8.0, 8.0]
+    >>> median_filter(np.array([1.0, np.nan, 3.0, 4.0]), 3).tolist()
+    [1.0, 3.0, 4.0, 4.0]
+    """
+    if width < 1 or width % 2 == 0:
+        msg = f"The width must be a positive odd integer, not {width}"
+        raise ValueError(msg)
+    values = np.asarray(array)
+    result = values.copy()
+    half = (width - 1) // 2
+    for i in range(half, values.size - half):
+        window = values[i - half : i + half + 1]
+        window = np.sort(window[~np.isnan(window)])
+        result[i] = window[window.size // 2] if window.size else np.nan
+    return result
+
+
+def interpol(
+    v: np.ndarray, x: np.ndarray, u: np.ndarray, *, nan: bool = False
+) -> np.ndarray:
+    """
+    Linearly interpolate ``v(x)`` at ``u``, like ``interpol(v, x, u)`` in IDL.
+
+    This uses the same arithmetic as IDL's ``interpol.pro``::
+
+        s = value_locate(x, u) clipped to [0, len(x) - 2]
+        p = (u - x[s]) * (v[s + 1] - v[s]) / (x[s + 1] - x[s]) + v[s]
+
+    so values of ``u`` outside ``x`` are extrapolated from the first or
+    last interval. As in IDL, an integer difference that is combined with
+    floating-point values takes their type.
+
+    Parameters
+    ----------
+    v : numpy.ndarray
+        The values to interpolate.
+    x : numpy.ndarray
+        The monotonically increasing abscissas of ``v``.
+    u : numpy.ndarray
+        The abscissas to interpolate at.
+    nan : bool, default: False
+        Whether to leave out the points where ``v`` or ``x`` is NaN, like
+        IDL's ``/NAN``.
+
+    Returns
+    -------
+    numpy.ndarray
+        The interpolated values.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> interpol(
+    ...     np.array([0.0, 10.0, 30.0]),
+    ...     np.array([0.0, 1.0, 2.0]),
+    ...     np.array([0.5, 1.5, 3.0]),
+    ... ).tolist()
+    [5.0, 20.0, 50.0]
+    """
+    v = np.asarray(v)
+    x = np.asarray(x)
+    u = np.asarray(u)
+    if nan:
+        keep = ~np.isnan(v)
+        if np.issubdtype(x.dtype, np.floating):
+            keep &= ~np.isnan(x)
+        v = v[keep]
+        x = x[keep]
+    s = np.clip(value_locate(x, u), 0, x.size - 2)
+    du = u - x[s]
+    dx = x[s + 1] - x[s]
+    if np.issubdtype(v.dtype, np.floating):
+        if np.issubdtype(du.dtype, np.integer):
+            du = du.astype(v.dtype)
+        if np.issubdtype(dx.dtype, np.integer):
+            dx = dx.astype(v.dtype)
+    return du * (v[s + 1] - v[s]) / dx + v[s]
