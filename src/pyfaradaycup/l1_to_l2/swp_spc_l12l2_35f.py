@@ -15,27 +15,22 @@ from __future__ import annotations
 __all__ = ["convert_one", "hk_dn2eng"]
 
 import ast
-import contextlib
 import logging
 import os  # ruff:ignore[TC003]  # see below
 import pathlib
-import warnings
 
 # os, Callable, and Iterable are only used in annotations, but are imported
 # at run time so that Sphinx can evaluate the annotations of the public
 # functions, which contain np.ndarray
 from collections.abc import Callable, Iterable  # ruff:ignore[TC003]
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
 from pyfaradaycup.l05_to_l1.cdf_to_survey import _temporary_path
-from pyfaradaycup.utils._cdf import close_cdf
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
+from pyfaradaycup.utils._cdf import close_cdf, ignore_chararray_deprecation
 
 logger = logging.getLogger(__name__)
 
@@ -145,21 +140,6 @@ def hk_dn2eng(
     return conv_fxns
 
 
-@contextlib.contextmanager
-def _ignore_chararray_deprecation() -> Generator[None, None, None]:
-    """
-    Do not show the deprecation warning for `numpy.char.array`.
-
-    spacepy 0.7.0 reads and copies string attributes with
-    `numpy.char.array`, which NumPy 2.5 deprecates.
-    """
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", "The chararray class is deprecated", DeprecationWarning
-        )
-        yield
-
-
 def _l2filename(l1filename: str) -> str:
     """
     Return the name of the L2 file for an L1 file, replacing ``L1`` with
@@ -264,7 +244,7 @@ def convert_one(
         try:
             l2cdf = pycdf.CDF(str(tmp_file), str(SKELETON_35F))
             try:
-                with _ignore_chararray_deprecation():
+                with ignore_chararray_deprecation():
                     for key in l1data:
                         if key in conv_fxns:
                             # As in the original script, the values are a
