@@ -33,6 +33,8 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.l1_to_l2._spp_swp_spc_get_gainoffsets",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_get_gains",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_hvpsthermalcorrection",
+        "pyfaradaycup.l1_to_l2._spp_swp_spc_ivt_to_spectra",
+        "pyfaradaycup.l1_to_l2._spp_swp_spc_merge_ivt",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_parse_cycles",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_sincosgain2curr",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_totalharmonicdistortion",
