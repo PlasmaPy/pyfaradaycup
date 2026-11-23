@@ -41,10 +41,9 @@ So the `CDF_TIME_TT2000` values in the L2 file can differ from the L1 file by up
 
 ## To do
 
-- [ ] **Get the production copy of `cdf_skeletons/psp_swp_spc_l2_35f_skeleton.cdf`.**
-  The data, the variable types, and the global attributes of the L2 housekeeping file for 2026-08-03 match the file made in production.
-  The attributes of the 25 converted variables do not.
-  In the production file they are the DN attributes of the L1 variables (such as `UNITS` of `DN` and a `UINT2` `FILLVAL`), while the packaged skeleton gives them engineering-unit attributes.
-  `test_convert_one_variable_attributes_match_original` is marked as an expected failure until this is resolved.
+- [ ] **Give the converted housekeeping variables the attributes in the skeleton.**
+  Like the original script, each variable converted into engineering units gets the attributes of the L1 variable, such as a `UNITS` of `DN`, a `UINT2` `FILLVAL`, and a `VALIDMAX` in DN, because spacepy copies the attributes of the `VarCopy` that is assigned to it.
+  The skeleton `psp_swp_spc_l2_35f_skeleton.cdf`, which is the same as the copy in `/psp/code/cdf_skeletons/`, has engineering-unit attributes for these variables, which are not used.
+  `test_convert_one_attributes` will need to be changed.
 - [ ] **Copy `Epoch` without rounding it to the nearest microsecond.**
   `test_convert_one_rounds_epoch_to_microseconds` will need to be changed.

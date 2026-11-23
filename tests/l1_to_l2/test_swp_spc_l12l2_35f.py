@@ -123,48 +123,44 @@ def test_convert_one_name(l2file: Path) -> None:
 def test_convert_one_matches_original(
     l2file: Path, cdf_metadata: Callable[[str], dict[str, Any]]
 ) -> None:
-    """
-    Test that the data and the CDF metadata, apart from variable
-    attributes, match the L2 file made by the original script.
-    """
+    """Test that the L2 file matches the one made by the original script."""
     # Keep times as datetime64[ns] so that the full nanosecond precision of
     # CDF_TIME_TT2000 is compared
     expected = cdflib.xarray.cdf_to_xarray(str(expected_l2file))
     actual = cdflib.xarray.cdf_to_xarray(str(l2file))
-    xarray.testing.assert_equal(actual, expected)
-    assert actual.attrs == expected.attrs
+    xarray.testing.assert_identical(actual, expected)
     for name, variable in expected.variables.items():
         with pytest_check.check:
             assert actual[name].dtype == variable.dtype, name
 
+    # Compare the CDF metadata that is lost in the conversion to xarray
     expected_metadata = cdf_metadata(str(expected_l2file))
     actual_metadata = cdf_metadata(str(l2file))
-    for metadata in (expected_metadata, actual_metadata):
-        for variable in metadata["variables"].values():
-            del variable["attrs"]
     for key, value in expected_metadata.items():
         with pytest_check.check:
             assert actual_metadata[key] == value, key
 
 
-@pytest.mark.xfail(
-    reason=(
-        "The packaged psp_swp_spc_l2_35f_skeleton.cdf gives the converted "
-        "variables engineering-unit attributes, while the L2 file made in "
-        "production has the DN attributes of the L1 variables, so production "
-        "used a different skeleton."
-    ),
-    strict=True,
-)
-def test_convert_one_variable_attributes_match_original(
+def test_convert_one_attributes(
     l2file: Path, cdf_metadata: Callable[[str], dict[str, Any]]
 ) -> None:
-    """Test that the variable attributes match the L2 file made by the original script."""
-    expected = cdf_metadata(str(expected_l2file))["variables"]
-    actual = cdf_metadata(str(l2file))["variables"]
-    assert {name: var["attrs"] for name, var in actual.items()} == {
-        name: var["attrs"] for name, var in expected.items()
-    }
+    """
+    Test that the converted variables have the attributes of the L1
+    variables, and the others have the attributes in the skeleton, like
+    the original script.
+    """
+    l1_variables = cdf_metadata(str(l1file))["variables"]
+    skeleton_variables = cdf_metadata(str(SKELETON_35F))["variables"]
+    l2_variables = cdf_metadata(str(l2file))["variables"]
+    conv_fxns = hk_dn2eng(l2_variables)
+    assert l2_variables["SW_SPC_LVTEMP"]["attrs"]["UNITS"] == (
+        b"DN",
+        pycdf.const.CDF_CHAR.value,
+    )
+    for name, variable in l2_variables.items():
+        source = l1_variables if name in conv_fxns else skeleton_variables
+        with pytest_check.check:
+            assert variable["attrs"] == source[name]["attrs"], name
 
 
 def test_convert_one_rounds_epoch_to_microseconds(l2file: Path) -> None:

@@ -15,9 +15,11 @@ from __future__ import annotations
 __all__ = ["convert_one", "hk_dn2eng"]
 
 import ast
+import contextlib
 import logging
 import pathlib
-from typing import TYPE_CHECKING
+import warnings
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from spacepy import pycdf
@@ -28,7 +30,7 @@ from pyfaradaycup.utils._cdf import close_cdf
 
 if TYPE_CHECKING:
     import os
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Generator, Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +140,21 @@ def hk_dn2eng(
     return conv_fxns
 
 
+@contextlib.contextmanager
+def _ignore_chararray_deprecation() -> Generator[None, None, None]:
+    """
+    Do not show the deprecation warning for `numpy.char.array`.
+
+    spacepy 0.7.0 reads and copies string attributes with
+    `numpy.char.array`, which NumPy 2.5 deprecates.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", "The chararray class is deprecated", DeprecationWarning
+        )
+        yield
+
+
 def _l2filename(l1filename: str) -> str:
     """
     Return the name of the L2 file for an L1 file, replacing ``L1`` with
@@ -207,6 +224,11 @@ def convert_one(
     `datetime.datetime` values, which spacepy rounds to the nearest
     microsecond, so the ``CDF_TIME_TT2000`` values in the L2 file can
     differ from the L1 file by up to 500 ns.
+
+    Also like the original script, each converted variable gets the
+    attributes of the L1 variable, such as a ``UNITS`` of ``DN`` and a
+    ``FILLVAL`` of the L1 type, rather than the attributes in the
+    skeleton. The other variables keep the attributes in the skeleton.
     """
     l1file = pathlib.Path(l1file)
     l2dir = l1file.parent if l2dir is None else pathlib.Path(l2dir)
@@ -237,13 +259,20 @@ def convert_one(
         try:
             l2cdf = pycdf.CDF(str(tmp_file), str(SKELETON_35F))
             try:
-                for key in l1data:
-                    if key in conv_fxns:
-                        # Like np.double(...) in the original script
-                        dn = np.asarray(l1data[key][...], dtype=np.double)
-                        l2cdf[key] = conv_fxns[key](dn)
-                    else:
-                        l2cdf[key] = np.array(l1data[key][...])
+                with _ignore_chararray_deprecation():
+                    for key in l1data:
+                        if key in conv_fxns:
+                            # As in the original script, the values are a
+                            # spacepy VarCopy, which keeps the attributes of
+                            # the L1 variable through the arithmetic. When it
+                            # is assigned, spacepy replaces the attributes from
+                            # the skeleton with them.
+                            dn = cast("pycdf.VarCopy", np.double(l1data[key].copy()))
+                            l2cdf[key] = conv_fxns[key](dn)
+                        else:
+                            # np.array drops the attributes, so the ones from
+                            # the skeleton are kept
+                            l2cdf[key] = np.array(l1data[key].copy())
             finally:
                 close_cdf(l2cdf)
             tmp_file.replace(l2file)
