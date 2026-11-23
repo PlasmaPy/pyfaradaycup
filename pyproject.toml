@@ -33,6 +33,7 @@ dependencies = [
   "pyparsing<3.3; python_version<'3.11'",
   "python-dateutil>=2.9",
   "rich>=13",
+  "scipy>=1.11.4",
   "spacepy>=0.7",
   "spiceypy>=6",
 ]

@@ -8,8 +8,16 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pytest
 
-from pyfaradaycup.l1_to_l2._spp_swp_spc_apid35x_to_ivt import Ivt
+from pyfaradaycup.l1_to_l2._spp_swp_spc_apid35x_to_ivt import (
+    Ivt,
+    spp_swp_spc_apid35x_to_ivt,
+)
 from pyfaradaycup.l1_to_l2._spp_swp_spc_config_and_hsk_lookup import _read_lowercase
+from pyfaradaycup.l1_to_l2._spp_swp_spc_ivt_to_spectra import (
+    Spectra,
+    spp_swp_spc_ivt_to_spectra,
+)
+from pyfaradaycup.l1_to_l2._spp_swp_spc_merge_ivt import spp_swp_spc_merge_ivt
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -96,3 +104,15 @@ def make_ivt(time: list[int], mv_lo: list[float] | None = None, **fields: Any) -
 def make_ivt_fixture() -> Callable[..., Ivt]:
     """Return `make_ivt`, for making small IVTs."""
     return make_ivt
+
+
+@pytest.fixture(scope="session")
+def spectra(l1_data: dict[str, dict[str, np.ndarray]]) -> Spectra:
+    """Return the spectra for 2026-08-03, merging the IVTs in the order IDL does."""
+    ivt = None
+    for apid in ("351", "353", "354"):
+        this = spp_swp_spc_apid35x_to_ivt(l1_data[apid], l1dir=l1_dir, l2dir=l2_dir)
+        ivt = this if ivt is None else spp_swp_spc_merge_ivt(ivt, this)
+    if ivt is None:  # for type checkers
+        raise AssertionError
+    return spp_swp_spc_ivt_to_spectra(ivt)
