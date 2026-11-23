@@ -131,6 +131,10 @@ def test_main_writes_description(skeleton_copy: pathlib.Path) -> None:
         (b"x_HCI", '"x_HCI"'),
         ('say "hi"', '"say \\"hi\\""'),
         (np.float32(-1e31), "-1e+31"),
+        # the same with every version of NumPy, unlike str()
+        (np.float32(1e6), "1000000.0"),
+        (np.float32(1.5707964), "1.5707964"),
+        (np.float32(np.nan), "nan"),
         (np.float64(0.1), "0.1"),
         (np.int64(-9223372036854775808), "-9223372036854775808"),
         (np.uint8(254), "254"),
