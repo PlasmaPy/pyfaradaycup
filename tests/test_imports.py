@@ -37,6 +37,7 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.l1_to_l2._spp_swp_spc_merge_ivt",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_parse_cycles",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_sincosgain2curr",
+        "pyfaradaycup.l1_to_l2._spp_swp_spc_split_l2cdf_by_mode",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_totalharmonicdistortion",
         "pyfaradaycup.l1_to_l2._spp_swp_spc_win2volt",
         "pyfaradaycup.utils",

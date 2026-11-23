@@ -1,29 +1,38 @@
 """
-Merge CDF files into daily CDF files.
+Merge, subset, and change CDF files.
 
-This module is a port of ``CDF_merge_to_daily`` from the IDL file
+This module is a port of ``CDF_merge_to_daily``, ``CDF_subset``,
+``CDF_operate_on``, and ``make_temp_CDFskeleton`` from the IDL file
 ``idllib/CDF_to_survey.pro`` by Michael L. Stevens, along with the parts
-of CDAWlib (``read_myCDF.pro`` and ``IDLmakecdf.pro``) that it calls.
-Only the parts needed to convert L0.5 files into L1 files are ported.
-IDL names are case-insensitive, so ``CDF_merge_to_daily`` becomes
-`cdf_merge_to_daily`.
+of CDAWlib (``read_myCDF.pro`` and ``IDLmakecdf.pro``) that they call.
+Only the parts needed to convert L0.5 files into L1 files, and to split
+L2 files by mode, are ported. IDL names are case-insensitive, so
+``CDF_merge_to_daily`` becomes `cdf_merge_to_daily`.
 """
 
 from __future__ import annotations
 
-__all__ = ["cdf_merge_to_daily"]
+__all__ = [
+    "cdf_merge_to_daily",
+    "cdf_operate_on",
+    "cdf_subset",
+    "make_temp_cdfskeleton",
+]
 
 import datetime
 import logging
 import pathlib
+import re
 import secrets
+import shutil
+import tempfile
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from spacepy import pycdf
 
-from pyfaradaycup.utils._cdf import close_cdf
+from pyfaradaycup.utils._cdf import close_cdf, ignore_chararray_deprecation
 from pyfaradaycup.utils.idl import (
     _JD_OF_ORDINAL_ZERO,
     cdf_epoch_tojuldays,
@@ -33,7 +42,7 @@ from pyfaradaycup.utils.idl import (
 
 if TYPE_CHECKING:
     import os
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -350,3 +359,290 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
         )
         outfiles.append(out_cdf)
     return outfiles
+
+
+_FORTRAN_FORMAT = re.compile(r"^\s*\d*([EFG])(\d+)\.(\d+)\s*$", re.IGNORECASE)
+"""A Fortran ``FORMAT`` attribute like ``E12.2``, ``F7.3``, or ``G10.4``."""
+
+_REAL_TYPES = (
+    pycdf.const.CDF_REAL4.value,
+    pycdf.const.CDF_FLOAT.value,
+    pycdf.const.CDF_REAL8.value,
+    pycdf.const.CDF_DOUBLE.value,
+)
+
+_OPERATIONS: dict[str, Callable[[np.ndarray], np.ndarray]] = {"abs": np.abs}
+"""The IDL functions that `cdf_operate_on` can apply, by name."""
+
+
+def _format_like_skeletontable(value: Any, fmt: str) -> Any:  # ruff:ignore[ANN401]
+    """
+    Round a floating-point attribute value to its Fortran ``FORMAT``.
+
+    ``skeletontable`` writes attribute values with the ``FORMAT`` of the
+    variable, so ``1.5707964`` with ``E7.2`` becomes ``1.57``.
+    """
+    match = _FORTRAN_FORMAT.match(fmt)
+    if match is None:
+        return value
+    kind, _, digits = match.group(1).upper(), match.group(2), int(match.group(3))
+    code = "f" if kind == "F" else "E"
+
+    def rounded(x: Any) -> float:  # ruff:ignore[ANN401]
+        return float(f"{float(x):.{digits}{code}}")
+
+    array = np.asarray(value)
+    result = np.vectorize(rounded, otypes=[np.float64])(array).astype(array.dtype)
+    return result if array.ndim else result[()]
+
+
+def make_temp_cdfskeleton(
+    cdffile: str | os.PathLike[str], skeletonfile: str | os.PathLike[str]
+) -> pathlib.Path:
+    """
+    Make a skeleton CDF file from a CDF file.
+
+    This replaces ``make_temp_CDFskeleton`` in IDL, which copies the file
+    into a hard-coded temporary directory, and converts it into a
+    skeleton table and back into a CDF file with the CDF command line
+    tools ``skeletontable`` and ``skeletoncdf``. Here, the file is copied
+    and the records of its record-varying variables are deleted. The
+    changes that the round trip through a skeleton table makes, as seen
+    in the L2 files split by IDL, are made too:
+
+    - newlines in the string attributes of variables become spaces,
+    - floating-point attributes of variables are rounded to the
+      ``FORMAT`` of the variable, such as ``E7.2``, and
+    - the pad value of each ``CDF_CHAR`` or ``CDF_UCHAR`` variable
+      becomes one space.
+
+    Parameters
+    ----------
+    cdffile : path-like
+        The CDF file.
+    skeletonfile : path-like
+        The skeleton CDF file to make, which must not exist.
+
+    Returns
+    -------
+    pathlib.Path
+        ``skeletonfile``.
+    """
+    skeletonfile = pathlib.Path(skeletonfile)
+    shutil.copyfile(cdffile, skeletonfile)
+    cdf = pycdf.CDF(str(skeletonfile))
+    try:
+        cdf.readonly(False)  # ruff:ignore[FBT003]
+        with ignore_chararray_deprecation():
+            for name in cdf:
+                var = cdf.raw_var(name)
+                if var.rv() and len(var) > 0:
+                    del cdf[name][...]
+                if var.type() in (
+                    pycdf.const.CDF_CHAR.value,
+                    pycdf.const.CDF_UCHAR.value,
+                ):
+                    var.pad(" ")
+                attrs = var.attrs
+                fmt = attrs.get("FORMAT")
+                if isinstance(fmt, bytes):
+                    fmt = fmt.decode("ascii")
+                for attr in list(attrs):
+                    value = attrs[attr]
+                    attr_type = attrs.type(attr)
+                    if isinstance(value, (str, bytes)):
+                        text = (
+                            value.decode("ascii") if isinstance(value, bytes) else value
+                        )
+                        if "\n" in text:
+                            attrs[attr] = text.replace("\n", " ")
+                            attrs.type(attr, attr_type)
+                    elif fmt is not None and attr_type in _REAL_TYPES:
+                        attrs[attr] = _format_like_skeletontable(value, fmt)
+                        attrs.type(attr, attr_type)
+    finally:
+        close_cdf(cdf)
+    return skeletonfile
+
+
+def _variable_types(path: pathlib.Path) -> dict[str, str]:
+    """Return the ``VAR_TYPE`` attribute of each variable, in lower case."""
+    with pycdf.CDF(str(path)) as cdf, ignore_chararray_deprecation():
+        return {name: str(cdf[name].attrs.get("VAR_TYPE", "")).lower() for name in cdf}
+
+
+def _write_from_skeleton(
+    infile: pathlib.Path, out_cdf: pathlib.Path, buffer: dict[str, np.ndarray]
+) -> None:
+    """
+    Write ``buffer`` into ``out_cdf``, with a skeleton made from ``infile``.
+
+    Like `cdf_merge_to_daily`, the file is written at a temporary path and
+    then renamed, so ``out_cdf`` can be ``infile``.
+    """
+    with tempfile.TemporaryDirectory() as tempdir:
+        skeletonfile = make_temp_cdfskeleton(
+            infile, pathlib.Path(tempdir) / "skeleton.cdf"
+        )
+        tmp_cdf = _temporary_path(out_cdf)
+        try:
+            _read_master_cdf(skeletonfile, tmp_cdf)
+            _write_data_to_cdf(tmp_cdf, buffer, logical_file_id=out_cdf.stem)
+            tmp_cdf.replace(out_cdf)
+        except BaseException:
+            tmp_cdf.unlink(missing_ok=True)
+            raise
+
+
+def _find_variable(odata: dict[str, np.ndarray], tag: str) -> str:
+    """
+    Return the name of the variable called ``tag``, ignoring case like IDL.
+
+    Raises
+    ------
+    KeyError
+        If there is no such variable.
+    """
+    for name in odata:
+        if name.upper() == tag.upper():
+            return name
+    msg = f"No variable named {tag!r}"
+    raise KeyError(msg)
+
+
+def cdf_subset(
+    infile: str | os.PathLike[str],
+    tag: str,
+    value_range: float | Sequence[float],
+    outfile: str | os.PathLike[str] | None = None,
+) -> pathlib.Path | None:
+    """
+    Write the records of a CDF file where a variable is in a range.
+
+    The records in which the variable ``tag`` is between the smallest and
+    largest of ``value_range``, inclusive, are written into a new file,
+    whose skeleton is made from ``infile`` with `make_temp_cdfskeleton`.
+    Variables that are not record-varying are copied unchanged.
+
+    Parameters
+    ----------
+    infile : path-like
+        The CDF file, which must have a variable named ``Epoch``.
+    tag : str
+        The name of the record-varying variable to select on, in any case.
+    value_range : float or `~collections.abc.Sequence` of float
+        The value, or the range of values, to select.
+    outfile : path-like, optional
+        The file to write. Defaults to the name of ``infile`` with
+        ``_subset`` added before ``.cdf``.
+
+    Returns
+    -------
+    pathlib.Path or None
+        The file that was written, or `None` if no records are selected,
+        in which case no file is written, as in IDL.
+
+    Raises
+    ------
+    KeyError
+        If there is no variable named ``tag``.
+    ValueError
+        If there is no ``Epoch`` variable.
+
+    Notes
+    -----
+    IDL matches the variables of the file and the skeleton by position,
+    and selects each variable along its first dimension with as many
+    elements as ``Epoch`` has records. Here, variables are selected along
+    their record dimension, which is the first, if they are
+    record-varying. These are the same for the L2 files.
+    """
+    infile = pathlib.Path(infile)
+    out_cdf = (
+        infile.with_name(f"{infile.stem}_subset.cdf")
+        if outfile is None
+        else pathlib.Path(outfile)
+    )
+    odata, record_varying = _read_mycdf([infile])
+    if "Epoch" not in odata:
+        msg = f"No Epoch variable in {infile}"
+        raise ValueError(msg)
+    values = odata[_find_variable(odata, tag)]
+    sel = np.flatnonzero(
+        (values >= np.min(value_range)) & (values <= np.max(value_range))
+    )
+    if sel.size == 0:
+        logger.info("No records of %s have %s in %s", infile, tag, value_range)
+        return None
+    buffer = {
+        name: data[sel] if record_varying[name] else data
+        for name, data in odata.items()
+    }
+    _write_from_skeleton(infile, out_cdf, buffer)
+    logger.info("Wrote %d records of %s to %s", sel.size, infile, out_cdf)
+    return out_cdf
+
+
+def cdf_operate_on(
+    infile: str | os.PathLike[str],
+    tag: str,
+    func: str,
+    outfile: str | os.PathLike[str] | None = None,
+) -> pathlib.Path | None:
+    """
+    Apply a function to the values of a variable of a CDF file that are not fill.
+
+    The file is rewritten with a skeleton made from ``infile`` with
+    `make_temp_cdfskeleton`. Like IDL, only the variables whose
+    ``VAR_TYPE`` is ``data`` or ``support_data`` are written, so others
+    keep the values in the skeleton.
+
+    Parameters
+    ----------
+    infile : path-like
+        The CDF file.
+    tag : str
+        The name of the variable to change, in any case.
+    func : {"abs"}
+        The name of the IDL function to apply.
+    outfile : path-like, optional
+        The file to write. Defaults to ``infile``, which is replaced.
+
+    Returns
+    -------
+    pathlib.Path or None
+        The file that was written, or `None` if every value is fill, in
+        which case no file is written, as in IDL.
+
+    Raises
+    ------
+    KeyError
+        If there is no variable named ``tag``.
+    ValueError
+        If ``func`` is not supported.
+    """
+    if func not in _OPERATIONS:
+        msg = f"The function must be one of {sorted(_OPERATIONS)}, not {func!r}"
+        raise ValueError(msg)
+    infile = pathlib.Path(infile)
+    out_cdf = infile if outfile is None else pathlib.Path(outfile)
+    odata, _ = _read_mycdf([infile])
+    name = _find_variable(odata, tag)
+    with pycdf.CDF(str(infile)) as cdf, ignore_chararray_deprecation():
+        fillval = cdf[name].attrs["FILLVAL"]
+    values = odata[name].copy()
+    sel = values != fillval
+    if not sel.any():
+        logger.info("Every value of %s in %s is fill", tag, infile)
+        return None
+    values[sel] = _OPERATIONS[func](values[sel])
+    odata[name] = values
+    var_types = _variable_types(infile)
+    buffer = {
+        name: data
+        for name, data in odata.items()
+        if var_types[name] in ("data", "support_data")
+    }
+    _write_from_skeleton(infile, out_cdf, buffer)
+    logger.info("Applied %s to %s in %s", func, tag, out_cdf)
+    return out_cdf
