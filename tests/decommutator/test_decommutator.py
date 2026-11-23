@@ -753,10 +753,10 @@ def test_l0_to_l05_deletes_cdf_that_could_not_be_filled(
         patch.setattr(_l0_to_l05, "_cdf352", _fail_to_fill)
         result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
 
-    assert result.failures[0x352].startswith(f"Could not fill {l1path} (deleted)")
+    assert result.failures[0x352].startswith(f"Could not fill {l1path}: ")
     assert "made-up error while filling" in result.failures[0x352]
     assert set(result.cdf_files) == set()
-    assert not l1path.exists()
+    assert list(l1path.parent.iterdir()) == []
 
     retry = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
     assert retry.succeeded
@@ -784,4 +784,135 @@ def test_l0_to_l05_close_error_keeps_fill_error(
     assert any(
         record.getMessage().startswith("Could not close") for record in caplog.records
     )
-    assert not (tmp_path / "APID352" / "0523462910_4_EA_APID352_L1.cdf").exists()
+    assert list((tmp_path / "APID352").iterdir()) == []
+
+
+def _interrupt_filling(cdf: pycdf.CDF, _dat: object) -> None:
+    """Write a global attribute to a CDF, and then interrupt filling it."""
+    cdf.attrs["Partial"] = "yes"
+    raise KeyboardInterrupt
+
+
+@pytest.mark.parametrize("fill", [_fail_to_fill, _interrupt_filling])
+def test_l0_to_l05_overwrite_failure_keeps_cdf(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fill: Callable[..., None]
+) -> None:
+    """
+    Test that when a CDF cannot be filled or is interrupted with
+    ``overwrite``, the existing CDF is left unchanged, and the partial
+    one is deleted.
+    """
+    (l1path,) = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352).cdf_files.values()
+    contents = l1path.read_bytes()
+    monkeypatch.setattr(_l0_to_l05, "_cdf352", fill)
+    try:
+        result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+    except KeyboardInterrupt:
+        assert fill is _interrupt_filling
+    else:
+        assert fill is _fail_to_fill
+        assert "made-up error while filling" in result.failures[0x352]
+    assert l1path.read_bytes() == contents
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_l0_to_l05_overwrite_leaves_only_cdf(tmp_path: Path) -> None:
+    """Test that overwriting a CDF leaves no temporary files behind."""
+    l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352)
+    result = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+    (l1path,) = result.cdf_files.values()
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_l0_to_l05_create_failure_skips_apid(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that when a CDF for one APID cannot be created, that APID is
+    recorded as a failure, the existing CDF for it is left unchanged,
+    and the other APIDs are still converted.
+    """
+    (l1path,) = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352).cdf_files.values()
+    contents = l1path.read_bytes()
+    original_cdf = pycdf.CDF
+
+    def fail_for_apid352(path: str, *args: object, **kwargs: object) -> pycdf.CDF:
+        if Path(path).parent == l1path.parent:
+            raise pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR)
+        return original_cdf(path, *args, **kwargs)
+
+    monkeypatch.setattr(_l0_to_l05.pycdf, "CDF", fail_for_apid352)
+    result = l0_to_l05(l0file, l05dir=tmp_path, overwrite=True)
+
+    assert result.failures[0x352].startswith(f"Could not create {l1path}: ")
+    assert l1path not in result.cdf_files.values()
+    assert result.cdf_files, "the other APIDs should still be converted"
+    assert l1path.read_bytes() == contents
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_l0_to_l05_close_failure_keeps_cdf(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that an error from closing a completely filled CDF is raised,
+    the existing CDF is left unchanged, and the new one is deleted.
+    """
+    (l1path,) = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352).cdf_files.values()
+    contents = l1path.read_bytes()
+
+    def fail_to_close(cdf: pycdf.CDF) -> None:
+        cdf.close()
+        raise pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR)
+
+    monkeypatch.setattr(_l0_to_l05, "close_cdf", fail_to_close)
+    with pytest.raises(pycdf.CDFError):
+        l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+
+    assert l1path.read_bytes() == contents
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_l0_to_l05_rename_failure_keeps_cdf(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that an error from renaming a complete CDF to its final path is
+    raised, the existing CDF is left unchanged, and the new one is
+    deleted.
+    """
+    (l1path,) = l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352).cdf_files.values()
+    contents = l1path.read_bytes()
+
+    def fail_to_replace(_self: Path, _target: object) -> Path:
+        msg = "made-up error while renaming"
+        raise OSError(msg)
+
+    monkeypatch.setattr(Path, "replace", fail_to_replace)
+    with pytest.raises(OSError, match="made-up error while renaming"):
+        l0_to_l05(l0file, l05dir=tmp_path, apidreq=0x352, overwrite=True)
+
+    assert l1path.read_bytes() == contents
+    assert list(l1path.parent.iterdir()) == [l1path]
+
+
+def test_discard_partial_cdf_logs_delete_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test that an error from deleting a partial CDF is logged as a warning
+    rather than raised.
+    """
+    tmp_cdf = tmp_path / ".partial.tmp.cdf"
+    tmp_cdf.touch()
+
+    def fail_to_unlink(_self: Path, **_kwargs: object) -> None:
+        msg = "made-up error while deleting"
+        raise OSError(msg)
+
+    monkeypatch.setattr(Path, "unlink", fail_to_unlink)
+    with caplog.at_level(logging.WARNING, logger=_l0_to_l05.__name__):
+        _l0_to_l05._discard_partial_cdf(None, tmp_cdf)
+
+    assert [r.getMessage() for r in caplog.records] == [f"Could not delete {tmp_cdf}"]
+    assert tmp_cdf.exists()

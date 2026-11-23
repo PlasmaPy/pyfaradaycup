@@ -28,8 +28,9 @@ Dagster decides whether a step succeeded from the exit code of a subprocess, or 
 ### Make retries and parallel runs safe
 
 - **Write each CDF to a temporary file, and rename it when it is complete.**
-  CDF files are currently written in place.
-  A CDF that could not be filled is closed and deleted, but a run that is interrupted or killed while writing a CDF file still leaves an incomplete one behind.
+  This is done: each CDF is written at a hidden temporary path in the same directory, like `.0523462910_4_EA_APID352_L1.<random>.tmp.cdf`, and renamed when it is complete.
+  An existing CDF is replaced only by a complete one, so it is kept if writing the new one fails.
+  A run that is killed while writing a CDF can still leave a temporary file behind, but never an incomplete file with the final name.
 - **Decide what a retry should do.**
   Without `--overwrite`, a retry stops at the first L0.5 CDF file that already exists.
   A Dagster step should either always overwrite, or skip files that are already complete.
