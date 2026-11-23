@@ -9,7 +9,14 @@ are case-insensitive, so ``CDF_EPOCH_TOJULDAYS`` becomes
 
 from __future__ import annotations
 
-__all__ = ["cdf_epoch_tojuldays", "julday", "uniq"]
+__all__ = [
+    "cdf_epoch_tojuldays",
+    "julday",
+    "label_region",
+    "median",
+    "uniq",
+    "value_locate",
+]
 
 from typing import TYPE_CHECKING
 
@@ -122,3 +129,120 @@ def uniq(values: np.ndarray) -> np.ndarray:
         return np.array([], dtype=np.intp)
     is_last = np.append(values[1:] != values[:-1], True)
     return np.flatnonzero(is_last)
+
+
+def value_locate(vector: np.ndarray, value: np.ndarray) -> np.ndarray:
+    """
+    Return the index of the interval of a monotonically increasing
+    vector that contains each value.
+
+    This is the same as ``value_locate(vector, value)`` in IDL for a
+    monotonically increasing ``vector``: each index ``i`` is such that
+    ``vector[i] <= value < vector[i + 1]``. The index is ``-1`` for
+    values below ``vector[0]``, and ``len(vector) - 1`` for values at or
+    above ``vector[-1]``.
+
+    Parameters
+    ----------
+    vector : numpy.ndarray
+        A one-dimensional, monotonically increasing array.
+    value : numpy.ndarray
+        The values to locate.
+
+    Returns
+    -------
+    numpy.ndarray
+        The index (of dtype ``intp``) for each value.
+
+    Notes
+    -----
+    IDL also accepts a monotonically decreasing ``vector``, which is not
+    supported here.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> value_locate(np.array([10, 20, 30]), np.array([5, 10, 25, 30, 99])).tolist()
+    [-1, 0, 1, 2, 2]
+    """
+    return np.searchsorted(np.asarray(vector), np.asarray(value), side="right") - 1
+
+
+def label_region(data: np.ndarray) -> np.ndarray:
+    """
+    Label each run of nonzero elements of a one-dimensional array.
+
+    This is the same as ``label_region(data, /ulong)`` in IDL for a
+    one-dimensional array. The runs are numbered ``1, 2, 3, ...`` from
+    the start of the array, and zero elements are labeled 0. Like IDL,
+    the first and last elements are treated as zero, so callers usually
+    pad the array with a zero at each end.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        A one-dimensional array.
+
+    Returns
+    -------
+    numpy.ndarray
+        The label (of dtype ``uint32``) of each element.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> label_region(np.array([0, 1, 1, 0, 2, 0, 1, 1, 0])).tolist()
+    [0, 1, 1, 0, 2, 0, 3, 3, 0]
+    >>> label_region(np.array([1, 1, 0, 1, 1])).tolist()
+    [0, 1, 0, 2, 0]
+    """
+    nonzero = np.asarray(data) != 0
+    if nonzero.size == 0:
+        return np.zeros(0, dtype=np.uint32)
+    nonzero[0] = False
+    nonzero[-1] = False
+    starts = nonzero & ~np.concatenate(([False], nonzero[:-1]))
+    return (np.cumsum(starts) * nonzero).astype(np.uint32)
+
+
+def median(array: np.ndarray) -> np.generic:
+    """
+    Return the median of an array, like IDL's ``median`` without ``/EVEN``.
+
+    For an even number of elements, IDL returns the larger of the two
+    middle values rather than their mean, so the result is always one of
+    the elements and keeps their type.
+
+    Parameters
+    ----------
+    array : numpy.ndarray
+        A nonempty array without NaNs.
+
+    Returns
+    -------
+    numpy.generic
+        The median.
+
+    Raises
+    ------
+    ValueError
+        If ``array`` is empty.
+
+    Notes
+    -----
+    The documentation of IDL's ``median`` does not say whether it keeps
+    the type of integer input. Here, it does.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> int(median(np.array([4, 1, 3, 2])))
+    3
+    >>> int(median(np.array([3, 1, 2])))
+    2
+    """
+    values = np.ravel(array)
+    if values.size == 0:
+        msg = "The median of an empty array is not defined"
+        raise ValueError(msg)
+    return np.sort(values)[values.size // 2]
