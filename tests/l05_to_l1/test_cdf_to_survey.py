@@ -6,14 +6,14 @@ import datetime
 import logging
 import time
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pytest
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1 import cdf_merge_to_daily
+from pyfaradaycup.l05_to_l1 import cdf_merge_to_daily, cdf_to_survey
 from pyfaradaycup.l05_to_l1.cdf_to_survey import _unique_dates
 from pyfaradaycup.utils.idl import cdf_epoch_tojuldays
 
@@ -259,6 +259,56 @@ def test_cdf_merge_to_daily_overwrite(
     assert read_raw(outfile, "CCSDS_SeqCnt").tolist() == [1]
     _merge([file2], tmp_path, overwrite=True)
     assert read_raw(outfile, "CCSDS_SeqCnt").tolist() == [2]
+    assert list((tmp_path / "out").iterdir()) == [outfile]
+
+
+@pytest.mark.parametrize(
+    "error", [pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR), KeyboardInterrupt()]
+)
+def test_cdf_merge_to_daily_overwrite_failure_keeps_file(  # ruff:ignore[PLR0913]
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+    read_raw: Callable[[Path, str], np.ndarray],
+    monkeypatch: pytest.MonkeyPatch,
+    error: BaseException,
+) -> None:
+    """
+    Test that when writing a file fails with ``overwrite``, the existing
+    file is left unchanged, and the partial file is deleted.
+    """
+    file1 = l05_file(tmp_path / "a.cdf", [tt2000(2026, 8, 3, 5)], [1])
+    file2 = l05_file(tmp_path / "b.cdf", [tt2000(2026, 8, 3, 6)], [2])
+    (outfile,) = _merge([file1], tmp_path)
+    write_data_to_cdf = cdf_to_survey._write_data_to_cdf
+
+    def fail_after_writing(*args: Any, **kwargs: Any) -> None:  # ruff:ignore[ANN401]
+        write_data_to_cdf(*args, **kwargs)
+        raise error
+
+    monkeypatch.setattr(cdf_to_survey, "_write_data_to_cdf", fail_after_writing)
+    with pytest.raises(type(error)):
+        _merge([file2], tmp_path, overwrite=True)
+    assert read_raw(outfile, "CCSDS_SeqCnt").tolist() == [1]
+    assert list((tmp_path / "out").iterdir()) == [outfile]
+
+
+def test_cdf_merge_to_daily_failure_writes_nothing(
+    tmp_path: Path,
+    l05_file: Callable[..., Path],
+    tt2000: Callable[..., int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that no file is left behind when writing a new file fails."""
+    file1 = l05_file(tmp_path / "a.cdf", [tt2000(2026, 8, 3, 5)])
+
+    def fail(*_args: object, **_kwargs: object) -> None:
+        raise pycdf.CDFError(pycdf.const.CDF_INTERNAL_ERROR)
+
+    monkeypatch.setattr(cdf_to_survey, "_write_data_to_cdf", fail)
+    with pytest.raises(pycdf.CDFError):
+        _merge([file1], tmp_path)
+    assert list((tmp_path / "out").iterdir()) == []
 
 
 def test_cdf_merge_to_daily_skeleton_mismatch(
