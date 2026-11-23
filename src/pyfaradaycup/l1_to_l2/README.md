@@ -7,51 +7,64 @@ It makes two kinds of L2 file for each day:
 - a housekeeping file (APID 35F), such as `spp_swp_spc_APID35Fl2hsk_20260803_v00.cdf`, in which the raw values (DN) are converted into engineering units, and
 - a science file of current spectra from APIDs 351, 353, and 354, such as `spp_swp_spc_l2_20260803_v00.cdf`, which is then split into a file for each mode, such as `spp_swp_spc_l2i_20260803_v00.cdf`.
 
-So far, the housekeeping files are made, and the steps of making the main science file are ported:
+The whole step is ported, and the `l1_to_l2` command line tool runs it for each date:
 
+1. converting the housekeeping L1 file into an L2 housekeeping file, with `swp_spc_l12l2_35f.convert_one`,
 1. converting the packets of each science L1 file into a current–voltage–time (IVT) series, with `spp_swp_spc_apid35x_to_ivt`,
 1. merging the IVTs, with `spp_swp_spc_merge_ivt`,
-1. dividing the merged IVT into spectra, with `spp_swp_spc_ivt_to_spectra`, and
-1. writing the spectra, flow angles, and differential charge flux density into the L2 file, with `spp_swp_spc_spectra_to_l2cdf`.
+1. dividing the merged IVT into spectra, with `spp_swp_spc_ivt_to_spectra`,
+1. writing the spectra, flow angles, and differential charge flux density into the main L2 science file, with `spp_swp_spc_spectra_to_l2cdf`, and
+1. splitting the main L2 science file into a file for each mode, with `spp_swp_spc_split_l2cdf_by_mode`.
 
-For 2026-08-03, every value of the L2 file is exactly the same as in the file made in production, and so is its CDF metadata, apart from `Generation_date`.
+`spp_swp_spc_l1_to_l2_date` does steps 1 to 5, like the IDL function of the same name.
 
-The split of the main L2 file into a file for each mode is also ported, with `spp_swp_spc_split_l2cdf_by_mode`.
-Splitting the main L2 file made in production for 2026-08-03 gives exactly the same `l2i`, `l2ifs`, and `l2ical` files as in production, apart from `Generation_date`.
+For 2026-08-03, `l1_to_l2` makes exactly the same five L2 files as were made in production (`l2hsk`, `l2`, `l2i`, `l2ifs`, and `l2ical`), in every value and in the CDF metadata, apart from `Generation_date`.
 
 The code is a port of IDL and Python code, and keeps the names of the IDL routines and Python functions where possible.
 
-| Python                                                                                          | Original                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `swp_spc_l12l2_35f.py`: `convert_one`                                                           | `convert_one` in `swp_spc_l12l2_35f.py`, spawned by `spp_swp_spc_l1_to_l2_date`                                                          |
-| `swp_spc_l12l2_35f.py`: `hk_dn2eng`                                                             | `hk_dn2eng` in `swp_spc_l12l2_35f.py`                                                                                                    |
-| `_spp_swp_spc_apid35x_to_ivt.py`: `spp_swp_spc_apid35x_to_ivt`, `Ivt`                           | `spp_swp_spc_apid35x_to_ivt.pro` and the structure it returns                                                                            |
-| `_spp_swp_spc_apid35x_get_currents.py`                                                          | `spp_swp_spc_apid351_get_currents.pro`, `spp_swp_spc_apid353_get_currents.pro`, and `spp_swp_spc_apid354_get_currents.pro`               |
-| `_spp_swp_spc_sincosgain2curr.py`                                                               | `spp_swp_spc_sincosgain2curr.pro`                                                                                                        |
-| `_spp_swp_spc_get_gains.py`, `_spp_swp_spc_get_gainoffsets.py`                                  | `spp_swp_spc_get_gains.pro`, `spp_swp_spc_get_gainoffsets.pro`                                                                           |
-| `_spp_swp_spc_config_and_hsk_lookup.py`                                                         | `spp_swp_spc_config_and_hsk_lookup.pro`                                                                                                  |
-| `_spp_swp_spc_flagfullscanwindows.py`                                                           | `spp_swp_spc_flagfullscanwindows.pro`, which also defines `spp_swp_spc_fullscanseqlookup` and `spp_swp_spc_fullscanseqlookup_defaultkey` |
-| `_spp_swp_spc_parse_cycles.py`                                                                  | `spp_swp_spc_parse_cycles.pro`                                                                                                           |
-| `_spp_swp_spc_win2volt.py`                                                                      | `spp_swp_spc_win2volt.pro`                                                                                                               |
-| `_spp_swp_spc_hvpsthermalcorrection.py`                                                         | `spp_swp_spc_hvpsthermalcorrection.pro`                                                                                                  |
-| `_spp_swp_spc_totalharmonicdistortion.py`                                                       | `spp_swp_spc_totalharmonicdistortion.pro`                                                                                                |
-| `_spp_swp_spc_crosstalk_correct.py`, `_spp_swp_spc_crosstalks.py`                               | `spp_swp_spc_crosstalk_correct.pro`, `spp_swp_spc_crosstalks.pro`                                                                        |
-| `_spp_swp_spc_merge_ivt.py`: `spp_swp_spc_merge_ivt`                                            | `spp_swp_spc_merge_ivt.pro`                                                                                                              |
-| `_spp_swp_spc_ivt_to_spectra.py`: `spp_swp_spc_ivt_to_spectra`, `Spectra`                       | `spp_swp_spc_ivt_to_spectra.pro` and the structure it returns                                                                            |
-| `_spp_swp_spc_spectra_to_l2cdf.py`: `spp_swp_spc_spectra_to_l2cdf`                              | `spp_swp_spc_spectra_to_l2cdf.pro`                                                                                                       |
-| `_spp_swp_spc_get_startdate.py`                                                                 | `spp_swp_spc_get_startdate.pro`                                                                                                          |
-| `_spp_swp_spc_moments.py`                                                                       | the flow angle part of `spp_swp_spc_moments.pro`                                                                                         |
-| `_spp_swp_spc_voltwin2kmswin.py`                                                                | `spp_swp_spc_voltwin2kmswin.pro`                                                                                                         |
-| `_spp_swp_spc_get_effective_area.py`                                                            | the cold plasma part of `spp_swp_spc_get_effective_area.pro`                                                                             |
-| `_spp_swp_spc_crosstalk_correction_factor.py`                                                   | `spp_swp_spc_crosstalk_correction_factor.pro`                                                                                            |
-| `_spp_swp_spc_split_l2cdf_by_mode.py`: `spp_swp_spc_split_l2cdf_by_mode`                        | `spp_swp_spc_split_l2cdf_by_mode.pro`                                                                                                    |
-| `_calibration.py`                                                                               | finding the last calibration file with `file_search`, and reading it with `read_ascii`                                                   |
-| `pyfaradaycup.utils.idl`: `interpol`, `label_region`, `median`, `median_filter`, `value_locate` | the IDL functions `INTERPOL` (linear), `LABEL_REGION` (for 1-D arrays), `MEDIAN` (without `/EVEN`, and with a width), and `VALUE_LOCATE` |
+| Python                                                                                          | Original                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `main.py`: the `l1_to_l2` command line tool                                                     | step 5 of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`, which calls `spp_swp_spc_l1_to_l2_date` and then `spp_swp_spc_split_l2cdf_by_mode` for each L2 file |
+| `_spp_swp_spc_l1_to_l2_date.py`: `spp_swp_spc_l1_to_l2_date`                                    | `spp_swp_spc_l1_to_l2_date.pro`                                                                                                                                    |
+| `swp_spc_l12l2_35f.py`: `convert_one`                                                           | `convert_one` in `swp_spc_l12l2_35f.py`, spawned by `spp_swp_spc_l1_to_l2_date`                                                                                    |
+| `swp_spc_l12l2_35f.py`: `hk_dn2eng`                                                             | `hk_dn2eng` in `swp_spc_l12l2_35f.py`                                                                                                                              |
+| `_spp_swp_spc_apid35x_to_ivt.py`: `spp_swp_spc_apid35x_to_ivt`, `Ivt`                           | `spp_swp_spc_apid35x_to_ivt.pro` and the structure it returns                                                                                                      |
+| `_spp_swp_spc_apid35x_get_currents.py`                                                          | `spp_swp_spc_apid351_get_currents.pro`, `spp_swp_spc_apid353_get_currents.pro`, and `spp_swp_spc_apid354_get_currents.pro`                                         |
+| `_spp_swp_spc_sincosgain2curr.py`                                                               | `spp_swp_spc_sincosgain2curr.pro`                                                                                                                                  |
+| `_spp_swp_spc_get_gains.py`, `_spp_swp_spc_get_gainoffsets.py`                                  | `spp_swp_spc_get_gains.pro`, `spp_swp_spc_get_gainoffsets.pro`                                                                                                     |
+| `_spp_swp_spc_config_and_hsk_lookup.py`                                                         | `spp_swp_spc_config_and_hsk_lookup.pro`                                                                                                                            |
+| `_spp_swp_spc_flagfullscanwindows.py`                                                           | `spp_swp_spc_flagfullscanwindows.pro`, which also defines `spp_swp_spc_fullscanseqlookup` and `spp_swp_spc_fullscanseqlookup_defaultkey`                           |
+| `_spp_swp_spc_parse_cycles.py`                                                                  | `spp_swp_spc_parse_cycles.pro`                                                                                                                                     |
+| `_spp_swp_spc_win2volt.py`                                                                      | `spp_swp_spc_win2volt.pro`                                                                                                                                         |
+| `_spp_swp_spc_hvpsthermalcorrection.py`                                                         | `spp_swp_spc_hvpsthermalcorrection.pro`                                                                                                                            |
+| `_spp_swp_spc_totalharmonicdistortion.py`                                                       | `spp_swp_spc_totalharmonicdistortion.pro`                                                                                                                          |
+| `_spp_swp_spc_crosstalk_correct.py`, `_spp_swp_spc_crosstalks.py`                               | `spp_swp_spc_crosstalk_correct.pro`, `spp_swp_spc_crosstalks.pro`                                                                                                  |
+| `_spp_swp_spc_merge_ivt.py`: `spp_swp_spc_merge_ivt`                                            | `spp_swp_spc_merge_ivt.pro`                                                                                                                                        |
+| `_spp_swp_spc_ivt_to_spectra.py`: `spp_swp_spc_ivt_to_spectra`, `Spectra`                       | `spp_swp_spc_ivt_to_spectra.pro` and the structure it returns                                                                                                      |
+| `_spp_swp_spc_spectra_to_l2cdf.py`: `spp_swp_spc_spectra_to_l2cdf`                              | `spp_swp_spc_spectra_to_l2cdf.pro`                                                                                                                                 |
+| `_spp_swp_spc_get_startdate.py`                                                                 | `spp_swp_spc_get_startdate.pro`                                                                                                                                    |
+| `_spp_swp_spc_moments.py`                                                                       | the flow angle part of `spp_swp_spc_moments.pro`                                                                                                                   |
+| `_spp_swp_spc_voltwin2kmswin.py`                                                                | `spp_swp_spc_voltwin2kmswin.pro`                                                                                                                                   |
+| `_spp_swp_spc_get_effective_area.py`                                                            | the cold plasma part of `spp_swp_spc_get_effective_area.pro`                                                                                                       |
+| `_spp_swp_spc_crosstalk_correction_factor.py`                                                   | `spp_swp_spc_crosstalk_correction_factor.pro`                                                                                                                      |
+| `_spp_swp_spc_split_l2cdf_by_mode.py`: `spp_swp_spc_split_l2cdf_by_mode`                        | `spp_swp_spc_split_l2cdf_by_mode.pro`                                                                                                                              |
+| `_calibration.py`                                                                               | finding the last calibration file with `file_search`, and reading it with `read_ascii`                                                                             |
+| `pyfaradaycup.utils.idl`: `interpol`, `label_region`, `median`, `median_filter`, `value_locate` | the IDL functions `INTERPOL` (linear), `LABEL_REGION` (for 1-D arrays), `MEDIAN` (without `/EVEN`, and with a width), and `VALUE_LOCATE`                           |
 
 > [!NOTE]
 > This file was generated with Claude.
 
 ## Differences from the original code
+
+### The command line tool and driver (`main.py` and `spp_swp_spc_l1_to_l2_date`)
+
+- The L1 and L2 directories are options, rather than the `l1_path` and `l2_path` of the `spp_swp_spc_paths` COMMON block, and log files are written for each date into the directory given by `--logdir`.
+- The housekeeping files are converted by calling a Python function, rather than by spawning `swp_spc_l12l2_35f.py`.
+- A date without L1 files is skipped with a warning, and `l1_to_l2` exits with code 65, while IDL skips it silently.
+- The dates are sorted and duplicates are removed.
+- The `sdc_state` argument, which IDL does not use, and the `control` structure are not supported.
+- Like IDL, the L2 housekeeping file is replaced on each run, while a new version of the science files is written.
+  Also like IDL, the science step reads the L2 housekeeping files of each date and the day before it, so dates should be processed in order.
 
 ### Housekeeping (`swp_spc_l12l2_35f.py`)
 
