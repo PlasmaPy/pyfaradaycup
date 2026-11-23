@@ -17,8 +17,14 @@ __all__ = ["convert_one", "hk_dn2eng"]
 import ast
 import contextlib
 import logging
+import os  # ruff:ignore[TC003]  # see below
 import pathlib
 import warnings
+
+# os, Callable, and Iterable are only used in annotations, but are imported
+# at run time so that Sphinx can evaluate the annotations of the public
+# functions, which contain np.ndarray
+from collections.abc import Callable, Iterable  # ruff:ignore[TC003]
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
@@ -29,8 +35,7 @@ from pyfaradaycup.l05_to_l1.cdf_to_survey import _temporary_path
 from pyfaradaycup.utils._cdf import close_cdf
 
 if TYPE_CHECKING:
-    import os
-    from collections.abc import Callable, Generator, Iterable
+    from collections.abc import Generator
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +113,7 @@ def hk_dn2eng(
 
     Parameters
     ----------
-    keys : iterable of str
+    keys : `~collections.abc.Iterable` of str
         The names of the variables in an APID 35F L1 file.
     fxn_path : path-like, optional
         The GSEOS file of conversion formulas. Defaults to the copy of
@@ -116,7 +121,7 @@ def hk_dn2eng(
 
     Returns
     -------
-    dict of str to callable
+    dict of str to `~collections.abc.Callable`
         For each variable that has a formula, a function that converts
         an array of float64 DN into engineering units. Variables without
         a formula are left out.
