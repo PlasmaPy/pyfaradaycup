@@ -15,7 +15,9 @@ So far, the housekeeping files are made, and the steps of making the main scienc
 1. writing the spectra, flow angles, and differential charge flux density into the L2 file, with `spp_swp_spc_spectra_to_l2cdf`.
 
 For 2026-08-03, every value of the L2 file is exactly the same as in the file made in production, and so is its CDF metadata, apart from `Generation_date`.
-The split of the L2 file by mode and the command line tool are not ported yet.
+
+The split of the main L2 file into a file for each mode is also ported, with `spp_swp_spc_split_l2cdf_by_mode`.
+Splitting the main L2 file made in production for 2026-08-03 gives exactly the same `l2i`, `l2ifs`, and `l2ical` files as in production, apart from `Generation_date`.
 
 The code is a port of IDL and Python code, and keeps the names of the IDL routines and Python functions where possible.
 
@@ -42,6 +44,7 @@ The code is a port of IDL and Python code, and keeps the names of the IDL routin
 | `_spp_swp_spc_voltwin2kmswin.py`                                                                | `spp_swp_spc_voltwin2kmswin.pro`                                                                                                         |
 | `_spp_swp_spc_get_effective_area.py`                                                            | the cold plasma part of `spp_swp_spc_get_effective_area.pro`                                                                             |
 | `_spp_swp_spc_crosstalk_correction_factor.py`                                                   | `spp_swp_spc_crosstalk_correction_factor.pro`                                                                                            |
+| `_spp_swp_spc_split_l2cdf_by_mode.py`: `spp_swp_spc_split_l2cdf_by_mode`                        | `spp_swp_spc_split_l2cdf_by_mode.pro`                                                                                                    |
 | `_calibration.py`                                                                               | finding the last calibration file with `file_search`, and reading it with `read_ascii`                                                   |
 | `pyfaradaycup.utils.idl`: `interpol`, `label_region`, `median`, `median_filter`, `value_locate` | the IDL functions `INTERPOL` (linear), `LABEL_REGION` (for 1-D arrays), `MEDIAN` (without `/EVEN`, and with a width), and `VALUE_LOCATE` |
 
@@ -128,6 +131,20 @@ These behaviors of IDL are reproduced. NV5 does not document them, and they were
 Like the original script, `Epoch` is copied by reading it as `datetime.datetime` values, which spacepy rounds to the nearest microsecond.
 So the `CDF_TIME_TT2000` values in the L2 file can differ from the L1 file by up to 500 ns.
 
+### Splitting by mode (`spp_swp_spc_split_l2cdf_by_mode`)
+
+- `cdf_subset` and `cdf_operate_on` in `pyfaradaycup.l05_to_l1.cdf_to_survey` make their skeleton with `make_temp_cdfskeleton`, which does not run the CDF command line tools `skeletontable` and `skeletoncdf`, or use the hard-coded directory `/home/mstevens/temp/`.
+  Instead, it copies the file, deletes its records, and makes the changes that the round trip through a skeleton table makes, as seen in the files split in production:
+  newlines in the string attributes of variables become spaces, floating-point attributes are rounded to the `FORMAT` of the variable (so the `VALIDMIN` and `VALIDMAX` of `flow_angle`, with `E7.2`, become ±1.57), and the pad value of each character variable becomes one space.
+- Variables are matched by name rather than by position, and selected along their record dimension rather than along their first dimension with as many elements as there are records.
+- Only the name of the file is changed to name the split files, while IDL replaces `spc_l2_` anywhere in the path.
+- When there are electron flux angle spectra but no electron calibration spectra, IDL tries to make the voltages of the missing `l2ecal` file positive and lists it among the files it wrote. Here, the file is skipped.
+
+Behaviors of IDL that are reproduced, and could be changed later:
+
+- The `l2ecal` file is only written when there are electron flux angle spectra (mode 6), since IDL checks the number of those rather than of electron calibration spectra (mode 7).
+- A main L2 file with only one spectrum is not split.
+
 ## To do
 
 - [ ] **Give the converted housekeeping variables the attributes in the skeleton.**
@@ -144,6 +161,8 @@ So the `CDF_TIME_TT2000` values in the L2 file can differ from the L1 file by up
   `spp_swp_spc_moments` averages the peak windows of 7 consecutive spectra instead, because of how IDL's `max(..., dim=2)` returns subscripts.
   This would change the flow angles and the differential charge flux density.
 - [ ] **Use `db` in the north–south crosstalk correction factor.**
+- [ ] **Write the `l2ecal` file when there are electron calibration spectra.**
+  `spp_swp_spc_split_l2cdf_by_mode` checks for electron flux angle spectra instead, as IDL does.
 - [ ] **Use the cosine DN in `spp_swp_spc_sincosgain2curr`.**
   This would change the currents of APIDs 351 and 353.
 - [ ] **Copy `Epoch` without rounding it to the nearest microsecond.**
