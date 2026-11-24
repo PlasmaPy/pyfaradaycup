@@ -33,7 +33,10 @@ dependencies = [
   "pyparsing<3.3; python_version<'3.11'",
   "python-dateutil>=2.9",
   "rich>=13",
-  "scipy>=1.11.4",
+  # SciPy 1.9 and later build their Windows wheels for Python 3.10 against
+  # NumPy 1.22.3, so they cannot import with numpy < 1.22 (used on Python < 3.11).
+  "scipy>=1.8.1,<1.9; python_full_version<'3.11'",
+  "scipy>=1.11.4; python_full_version>='3.11'",
   "spacepy>=0.7",
   "spiceypy>=6",
 ]
