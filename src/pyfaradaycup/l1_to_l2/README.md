@@ -178,9 +178,9 @@ Items marked with ⚠️ would change the numerical results, so the L2 files wou
 - [ ] **Average the flow angles over the windows around the peak of each spectrum, as intended.** ⚠️
   `spp_swp_spc_moments` averages the peak windows of 7 consecutive spectra instead, because of how IDL's `max(..., dim=2)` returns subscripts.
   This would change the flow angles and the differential charge flux density.
-- [ ] **Check whether using `cb` twice in the north–south crosstalk correction factor is a bug, and fix it if so (#160).** ⚠️
-  `spp_swp_spc_crosstalk_correction_factor` uses `ca + da + cb + cb`, rather than `db`, as in IDL.
-  If this is a bug, determine the size of the error, and whether fixing it changes the results appreciably.
+- [ ] **Fix the bug in the north–south crosstalk correction factor is a bug after it is fixed in the original pipeline (#160).** ⚠️
+  `spp_swp_spc_crosstalk_correction_factor` uses `ca + da + cb + cb`, as in IDL, but one of the `cb` should be changed into `db`.
+  Determine the size of the error, and whether fixing it changes the results appreciably.
   The factor is only applied with `ns_timedep_correct` in `spp_swp_spc_spectra_to_l2cdf`, which the L1 to L2 step does not set (#157).
 - [ ] **Write the `l2ecal` file when there are electron calibration spectra.**
   `spp_swp_spc_split_l2cdf_by_mode` checks for electron flux angle spectra instead, as IDL does.
