@@ -472,7 +472,8 @@ def _interpolation_weights(
     each coordinate, after clamping the coordinates to ``[0, size - 1]``.
     """
     coordinate = np.clip(np.asarray(coordinate, dtype=dtype), 0, size - 1)
-    index = np.minimum(np.floor(coordinate).astype(np.intp), size - 2)
+    # NaN subscripts get index 0 here, and a NaN fraction, so the result is NaN
+    index = np.minimum(np.floor(np.nan_to_num(coordinate)).astype(np.intp), size - 2)
     return index, coordinate - index.astype(dtype)
 
 
@@ -520,6 +521,8 @@ def interpolate(
 
     Notes
     -----
+    A NaN subscript gives NaN, which NV5 does not document for IDL.
+
     IDL's ``/GRID``, ``CUBIC``, and ``MISSING`` are not ported. The order
     in which IDL does the arithmetic is not documented, so results in
     single precision can differ from IDL's in the last bit.

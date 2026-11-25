@@ -497,3 +497,13 @@ def test_fitcurve_wrong_shapes() -> None:
         fitcurve(
             _X, _Y, None, _GUESS, lambda x, a: (_gfunct(x, a)[0], np.zeros((10, 2)))
         )
+
+
+def test_interpolate_nan() -> None:
+    """A NaN subscript gives NaN, and the other points are not affected."""
+    p = np.arange(6, dtype=np.float32).reshape(2, 3)
+    result = interpolate(p, np.array([np.nan, 0.5]), np.array([1.0, np.nan]))
+    assert np.all(np.isnan(result))
+    result = interpolate(p, np.array([np.nan, 0.5]), np.array([1.0, 1.0]))
+    assert np.isnan(result[0])
+    assert result[1] == interpolate(p, np.array([0.5]), np.array([1.0]))[0]

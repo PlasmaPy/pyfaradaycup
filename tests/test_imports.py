@@ -50,6 +50,7 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.l1_to_l2.main",
         "pyfaradaycup.l2_to_l3",
         "pyfaradaycup.l2_to_l3._spp_swp_spc_get_angle_table",
+        "pyfaradaycup.l2_to_l3._spp_swp_spc_get_angles",
         "pyfaradaycup.l2_to_l3._spp_swp_spc_l3i_flagnames",
         "pyfaradaycup.l2_to_l3._spp_swp_spc_load_l2",
         "pyfaradaycup.l2_to_l3._spp_swp_spc_pmax_response",
