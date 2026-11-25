@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from scipy.special import erfc
 
 from pyfaradaycup.l2_to_l3._spp_swp_spc_splineinvert import spp_swp_spc_splineinvert
 
@@ -23,8 +24,10 @@ def _currents(p: np.ndarray, p2: np.ndarray, dvolt: np.ndarray) -> np.ndarray:
     ``p2``, from ``I = (dV / 2) * (P + P'' * dV**2 / 32)``, the response to
     second order with sinusoidal modulation that the spline inverts.
 
-    The IDL code subtracts ``dV**2 * b / 16`` from ``2 * I / dV``, where
-    ``b = P'' / 2`` is the quadratic coefficient of the spline.
+    This is the first Fourier amplitude of the collected current to
+    third order in ``dV`` (see `_fourier_currents`), and the IDL code
+    subtracts it as ``dV**2 * b / 16``, with the quadratic coefficient
+    ``b = P'' / 2`` of the spline.
     """
     return 0.5 * dvolt * (p + p2 * dvolt**2 / 32)
 
@@ -148,3 +151,51 @@ def test_splineinvert_too_few_voltages() -> None:
     """Fewer than 3 distinct voltages raise `ValueError`, where IDL has a subscript error."""
     with pytest.raises(ValueError, match="at least 3"):
         spp_swp_spc_splineinvert(np.array([1.0, 2.0, 2.0]), np.ones(3), np.ones(3))
+
+
+def _fourier_currents(
+    volt: np.ndarray, dvolt: np.ndarray, v0: float, width: float
+) -> np.ndarray:
+    """
+    Return the currents for the flux function ``P(V) = exp(-((V - v0) /
+    width)**2)`` with sinusoidal modulation, without expanding in ``dV``.
+
+    The collected current at ``V`` is ``Q(V) = sqrt(pi) * width / 2 *
+    erfc((V - v0) / width)``, the integral of ``P`` from ``V`` to infinity.
+    With the voltage ``V + (dV / 2) sin(theta)``, the measured current is
+    the first Fourier amplitude ``-(1 / pi) * integral of Q sin(theta)
+    dtheta`` over a period, which is computed here with the trapezoid
+    rule, which converges exponentially for periodic functions.
+    """
+    theta = np.linspace(0, 2 * np.pi, 1024, endpoint=False)
+    voltage = volt[:, np.newaxis] + dvolt[:, np.newaxis] / 2 * np.sin(theta)
+    collected = np.sqrt(np.pi) * width / 2 * erfc((voltage - v0) / width)
+    return -2 * np.mean(collected * np.sin(theta), axis=1)
+
+
+def test_splineinvert_fourier_amplitude() -> None:
+    """
+    The spline recovers ``P`` from currents computed from the modulation
+    without approximation, which checks the normalization of the
+    curvature term.
+    """
+    volt, dvolt = _windows(n=60, start=300.0, step=10.0)
+    v0, width = 600.0, 80.0
+    p = np.exp(-(((volt - v0) / width) ** 2))
+    current = _fourier_currents(volt, dvolt, v0, width)
+    result = spp_swp_spc_splineinvert(volt, dvolt, current, nofilter=True)
+    interior = slice(5, -5)
+    spline_error = np.max(np.abs(result.result - p)[interior])
+    naive_error = np.max(np.abs(2 * current / dvolt - p)[interior])
+    assert spline_error < MAX_SPLINE_ERROR
+    assert spline_error < naive_error / 20
+    # with a curvature term twice as large, the spline would be worse
+    doubled = current + (current - 0.5 * dvolt * p)
+    assert (
+        np.max(
+            np.abs(
+                spp_swp_spc_splineinvert(volt, dvolt, doubled, nofilter=True).result - p
+            )[interior]
+        )
+        > 5 * spline_error
+    )

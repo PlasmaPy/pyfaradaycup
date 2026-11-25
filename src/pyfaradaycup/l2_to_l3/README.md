@@ -91,6 +91,10 @@ Behaviors of IDL that are reproduced, and could be changed later:
   A point below the first window gets the value of the last segment, extrapolated, since IDL adds `9999999` to `V - x` for the windows above `V` and then takes the minimum.
 - The spline is double precision, and the coefficients and the model are single precision.
 
+The curvature term of the response is `P'' * dV^2 / 32`, which the IDL code computes as `dV^2 * b / 16` with the quadratic coefficient `b = P'' / 2` of the spline.
+This is what expanding the first Fourier amplitude of the current under sinusoidal modulation gives, and it agrees with the series of `spp_swp_spc_pmax_response` (see its tests).
+The header of `spp_swp_spc_splineinvert.pro` writes the term as `(1/16) * (P") * dvolt^2`, which is right only if `P"` means `b`.
+
 ### Moments (`spp_swp_spc_zmoments`)
 
 - The results are a dataclass with the moments (which IDL returns) and the `SIGMA`, `SKEWNESS`, and `KURTOSIS` outputs of IDL.
@@ -125,9 +129,6 @@ They will be checked as the routines are ported.
 - The time is converted for SPICE with `et = 1e-9 * TT2000`, which treats TT as TDB (an error of up to about 1.7 ms).
 - In `get_lte_kernels`, the swap for reversed limits sets `jdmax = jdmin`.
 - The output directories are made with `mkdir`, without `-p`.
-- `spp_swp_spc_splineinvert` subtracts `dV^2 * b / 16` from `2 * I / dV`, where `b` is the quadratic coefficient of the spline, which is `P'' / 2`, so the curvature term is `P'' * dV^2 / 32`.
-  Its header writes the term as `(1/16) * (P") * dvolt^2`.
-  The memo "FC response with sinusoidal modulation" (M. L. Stevens, 2018-12-21, revised 2019-01-15), which is not in the snapshot of the IDL code, would settle which is intended.
 
 ## To do
 
@@ -135,7 +136,6 @@ Items marked with ⚠️ would change the numerical results, so the L3i files wo
 
 - [ ] Port the remaining routines (see the table above), and the `l2_to_l3` command line tool.
 - [ ] Find the SPICE kernels for 2026-08-03 (`de430.bsp`, `psp_dyn_2018_135_100.tf`, an SPK for the spacecraft that covers 2026-08, and the attitude kernels for 2026-08-02 to 2026-08-04), or the ephemeris cache file `spp_swp_spc_l3ephem_20260803.idl`, to test the ephemeris and RTN velocities.
-- [ ] Find the memo "FC response with sinusoidal modulation", to check the normalization of the curvature term in `spp_swp_spc_splineinvert`. ⚠️
 - [ ] Check which flow angle lookup table and effective area table were used in production.
   The `Calibrations_used` global attribute of the skeleton lists `uvphithetalookup_20200417` and `effectiveAreaTable_v1`, while IDL uses `uvphithetalookup_20190819` and `effectiveAreaTable_v0` by default.
 - [ ] Use `astropy.constants` instead of the hard-coded constants, such as `13842`, `9.58e7`, `1.04396848e-8`, `15.348852`, and those of `spp_swp_spc_ev2kms`. ⚠️

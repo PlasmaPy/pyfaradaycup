@@ -92,7 +92,7 @@ def spp_swp_spc_splineinvert(
     modulation, as a spline.
 
     The current in a voltage window of width ``dV`` centered at ``V`` is
-    taken to be ``I = (dV / 2) * (P(V) + b * dV**2 / 16)`` to second order,
+    ``I = (dV / 2) * (P(V) + b * dV**2 / 16)`` to second order,
     where ``b = P''(V) / 2`` is the quadratic coefficient of the spline at
     ``V``, so a natural cubic spline of ``P`` gives the tridiagonal system
     that is solved here. This is from the SPC memo "FC response with sinusoidal
@@ -131,11 +131,14 @@ def spp_swp_spc_splineinvert(
 
     Notes
     -----
-    The normalization of the curvature term is ambiguous. The IDL code
-    uses ``b * dV**2 / 16``, which is ``P'' * dV**2 / 32``, while the
-    header of ``spp_swp_spc_splineinvert.pro`` writes it as ``(1/16) *
-    (P") * dvolt^2``. The memo would settle which is intended. This port
-    does what the IDL code does.
+    The curvature term follows from the modulation. With the voltage
+    ``V + (dV / 2) sin(theta)``, the current is the first Fourier
+    amplitude of the collected current ``Q(V) = integral of P from V to
+    infinity``, and expanding ``Q`` to third order gives ``I = (dV / 2) *
+    (P + P'' * dV**2 / 32)``, since the average of ``sin(theta)**4`` is
+    3/8. This is the ``b * dV**2 / 16`` of the IDL code, with ``b = P'' /
+    2``. The header of ``spp_swp_spc_splineinvert.pro`` writes the term as
+    ``(1/16) * (P") * dvolt^2``, which is right if ``P"`` means ``b``.
 
     As in IDL:
 
