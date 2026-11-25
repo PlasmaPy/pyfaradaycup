@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -84,5 +85,5 @@ def test_angle_table_default_from_environment(
 ) -> None:
     """The default file is looked for in the directory given by the environment variable."""
     monkeypatch.setenv(CALIBRATION_DIR_ENV, str(tmp_path))
-    with pytest.raises(FileNotFoundError, match=str(tmp_path)):
+    with pytest.raises(FileNotFoundError, match=re.escape(str(tmp_path))):
         spp_swp_spc_get_angle_table()
