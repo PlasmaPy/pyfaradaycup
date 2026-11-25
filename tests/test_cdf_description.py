@@ -21,7 +21,7 @@ SKELETONS = sorted(skeleton_dir.glob("*.cdf"))
 REGENERATE = "uv run python -m pyfaradaycup._cdf_description"
 
 #: The number of skeleton CDF files in ``pyfaradaycup/data/cdf_skeletons/``.
-N_SKELETONS = 19
+N_SKELETONS = 20
 
 
 def test_skeletons_found() -> None:
