@@ -160,23 +160,116 @@ Behaviors of IDL that are reproduced, and could be changed later:
 
 ## To do
 
+These items come from porting the code and from the code reviews of #153, #155, #156, #157, #158, and #159.
+Items marked with ⚠️ would change the numerical results, so the L2 files would no longer match the ones made in production exactly.
+
+### Behaviors inherited from IDL
+
 - [ ] **Give the converted housekeeping variables the attributes in the skeleton.**
   Like the original script, each variable converted into engineering units gets the attributes of the L1 variable, such as a `UNITS` of `DN`, a `UINT2` `FILLVAL`, and a `VALIDMAX` in DN, because spacepy copies the attributes of the `VarCopy` that is assigned to it.
   The skeleton `psp_swp_spc_l2_35f_skeleton.cdf`, which is the same as the copy in `/psp/code/cdf_skeletons/`, has engineering-unit attributes for these variables, which are not used.
   `test_convert_one_attributes` will need to be changed.
-- [ ] **Choose the full scan candidates deterministically, or as intended.**
+- [ ] **Choose the full scan candidates deterministically, or as intended.** ⚠️
   `spp_swp_spc_apid35x_to_ivt` takes `cyclenum[uniq(has_dble, sort(has_dble))]`, which indexes `cyclenum` rather than `has_dble`.
   For the many samples where `has_dble` is 0, this selects the cycle number of an arbitrary sample, which depends on how IDL's unstable `sort` orders ties; the same applies to `has_fseq`.
   That cycle gets an extra count, so it can be flagged as a full scan when it is not one, or not flagged when it is.
   Here, the sort is stable, so it is the cycle of the last such sample.
   This gives the same results as IDL for 2026-08-03.
-- [ ] **Average the flow angles over the windows around the peak of each spectrum, as intended.**
+- [ ] **Average the flow angles over the windows around the peak of each spectrum, as intended.** ⚠️
   `spp_swp_spc_moments` averages the peak windows of 7 consecutive spectra instead, because of how IDL's `max(..., dim=2)` returns subscripts.
   This would change the flow angles and the differential charge flux density.
-- [ ] **Use `db` in the north–south crosstalk correction factor.**
+- [ ] **Fix the bug in the north–south crosstalk correction factor is a bug after it is fixed in the original pipeline (#160).** ⚠️
+  `spp_swp_spc_crosstalk_correction_factor` uses `ca + da + cb + cb`, as in IDL, but one of the `cb` should be changed into `db`.
+  Determine the size of the error, and whether fixing it changes the results appreciably.
+  The factor is only applied with `ns_timedep_correct` in `spp_swp_spc_spectra_to_l2cdf`, which the L1 to L2 step does not set (#157).
 - [ ] **Write the `l2ecal` file when there are electron calibration spectra.**
   `spp_swp_spc_split_l2cdf_by_mode` checks for electron flux angle spectra instead, as IDL does.
-- [ ] **Use the cosine DN in `spp_swp_spc_sincosgain2curr`.**
-  This would change the currents of APIDs 351 and 353.
-- [ ] **Copy `Epoch` without rounding it to the nearest microsecond.**
-  `test_convert_one_rounds_epoch_to_microseconds` will need to be changed.
+- [ ] **Check whether the overwritten cosine in `spp_swp_spc_sincosgain2curr` is intentional, and handle it cleanly.** ⚠️
+  IDL's `c = sen eq 'c'` overwrites the cosine argument, so the cosine DN of APIDs 351 and 353 are never used.
+  If that is intended, remove the `c` argument; if not, use the cosine DN, which would change the currents of APIDs 351 and 353 (#155).
+- [ ] **Decide whether to keep rounding `Epoch` of the L2 housekeeping files to the nearest microsecond.**
+  Like the original script, `swp_spc_l12l2_35f` reads `Epoch` as `datetime.datetime` values, which spacepy rounds to the nearest microsecond, while the current–voltage–time series keep nanoseconds.
+  Check whether a few hundred nanoseconds matter, compared with the time between measurements (#153, #155).
+  `test_convert_one_rounds_epoch_to_microseconds` will need to be changed if `Epoch` is not rounded.
+- [ ] **Check whether never storing the highest-numbered cycle in `spp_swp_spc_ivt_to_spectra` is intended, or a bug.** ⚠️
+  The rows of the spectra are for cycles 0 to `max(cyclenum) - 1`, so the last cycle of each day is dropped (#156, #157).
+- [ ] **Check that a main L2 file with only one spectrum should not be split** by `spp_swp_spc_split_l2cdf_by_mode` (#158).
+- [ ] **Decide whether to implement the full scan sequence for data before 2019-09-18.**
+  `spp_swp_spc_fullscanseqlookup` raises `NotImplementedError` for these dates, where IDL stops.
+  Also document what a full scan sequence of windows is (#155).
+- [ ] **Decide whether to implement the `sw_spc_doublewidth` argument of `spp_swp_spc_flagfullscanwindows`, or remove it** (#155).
+- [ ] **Remove other unused arguments that were ported from IDL**, such as `it` of `spp_swp_spc_sincosgain2curr` (#155).
+- [ ] **Check whether any time in the crosstalk history equals one of the hard-coded coupling transitions.**
+  If so, the order of their correction factors depends on how IDL's unstable `sort` orders ties (#157).
+- [ ] **Decide what `_max_dim2` in `spp_swp_spc_moments` should return for a row that is all NaN.**
+  It returns column 0, as IDL does; NaN would raise an `IndexError` later, which may be better (#157).
+- [ ] **Investigate whether `make_temp_cdfskeleton` needs to round floating-point attributes to the `FORMAT` of each variable.**
+  This reduces precision, such as for the `VALIDMIN` and `VALIDMAX` of `flow_angle`, only to match the round trip through `skeletontable` and `skeletoncdf` in IDL (#158).
+- [ ] **Evaluate replacing the IDL equivalents in `pyfaradaycup.utils.idl` with Python built-ins or functions from commonly used packages.** ⚠️
+  Examples include `median`, `median_filter`, and `interpol`.
+  The IDL equivalents reproduce IDL's results exactly, so replacing them could change the results (#155, #157).
+- [ ] **Evaluate using `scipy.special.ellipe` instead of Hastings' approximation in `spp_swp_spc_voltwin2kmswin`.** ⚠️
+  This would change the speeds slightly, and so the flow angles (#157).
+
+### Calibration and data files
+
+- [ ] **Decide how to handle calibration files, which are updated periodically, and investigate how to improve how they are handled and updated.**
+  - Should a new version of pyfaradaycup be released whenever a calibration file is updated, or should the calibration files be kept outside the package, such as in a database (#155)?
+  - How should the crosstalk files be updated, if the crosstalk changes with time (#155)?
+  - Using the alphabetically last match of a pattern, as IDL does, is brittle (#156).
+  - Consider how the calibration files are chosen with the keyword arguments of `spp_swp_spc_apid35x_to_ivt`, such as `hv_calfile`, `gain_calfile`, `offset_calfile`, and `crosstalk_calfile` (#155).
+- [ ] **Decide how to handle `.qlf` files, such as `conversion_formulas.qlf`.**
+  This file was generated from an Excel file (`SWEAP_FSW_000_CTM.xls`), which will make it hard to update.
+  If it does not change, its formulas could be in Python code, rather than parsed with `ast` (#153).
+- [ ] **Decide how to handle IDL save files (`.idl`), such as the effective area table and the crosstalk history.**
+  They could be converted into a text format, such as JSON or YAML, or into Python code, with tests that the conversion is correct (#157).
+- [ ] **Remove the need for skeleton CDF files (#154)**, including in `make_temp_cdfskeleton`, which `cdf_subset` and `cdf_operate_on` use (#158).
+- [ ] **Decide whether to replace fill values with NaN**, such as `-99999` in the spectra, `-9999.` in `spp_swp_spc_hvpsthermalcorrection`, and the cycle number 0 for samples that are not in a cycle.
+  Be cautious about whether this could cause problems downstream (#155, #157, #158).
+- [ ] **Decide whether to port the other capabilities of `spp_swp_spc_get_effective_area`**: angles in degrees, the warm plasma (Mach number) method, and the analytic approximation (#157).
+- [ ] **Consider how prefixes of file names, such as `spp_swp_spc_l2_`, should be handled, to support other missions** (#157).
+
+### Names, documentation, and units
+
+- [ ] **Improve the names of variables, functions, and classes once the port from IDL is closer to done** (#153, #155, #156, #157, #159).
+  Examples include `Ivt` (perhaps `CurrentVoltageTimeSeries`), `Spectra`, `_read_ascii`, `spp_swp_spc_sincosgain2curr`, the fields of `SensorGains` and `SensorGainOffsets`, `HvpsThermalCorrection`, `_TRANSITIONS` (transitions of what?), `_at`, `_COLD_LINEAR`, the variables in `spp_swp_spc_ivt_to_spectra`, and `_convert` in `main.py`.
+  Consider including units in names, such as for `_C` in `spp_swp_spc_voltwin2kmswin`.
+- [ ] **Make the public-looking constants and classes in the private `l1_to_l2` modules private**, such as `CROSSTALK_HISTORY`, `EFFECTIVE_AREA_TABLE`, `L2_SKELETON`, `DTOR`, `FILL`, `MAX_WINDOWS`, `SPLITS`, and the dataclasses (#157).
+- [ ] **Improve module docstrings and other docstrings**, such as those of `_spp_swp_spc_config_and_hsk_lookup.py`, `_spp_swp_spc_crosstalks.py`, `_spp_swp_spc_get_gainoffsets.py`, and `_spp_swp_spc_voltwin2kmswin.py`.
+  Add more context to `spp_swp_spc_ivt_to_spectra`, and a docstring to `_MAX_MODE_FLAG` (#155, #156, #157).
+- [ ] **Document the quantities that are used:**
+  - DN as a unit (`astropy.units` has `DN`) (#153),
+  - the units of the currents, such as `Current.dat` (#155),
+  - what a gain stage is (#155),
+  - what a coupling or decoupling transition is, and how the sensor plates A, B, C, and D relate to coupling coefficients such as `bc` (#157), and
+  - the placeholder uncertainties in `spp_swp_spc_spectra_to_l2cdf`, and whether they are specific to the instrument or mission (#157).
+- [ ] **Write the equations in docstrings with LaTeX, and add references to the bibliography**, such as for Hastings' approximation (#157).
+- [ ] **Move the description of where the HVPS thermal model came from into a comment in the source code**, rather than the docstring of `spp_swp_spc_hvpsthermalcorrection` (#155).
+- [ ] **Decide whether to use `astropy.units`**, such as `Quantity` objects for the effective area and flow angles (#157).
+- [ ] **Use `datetime` or `astropy.time` rather than functions ported from IDL for dates and times**, such as in `spp_swp_spc_config_and_hsk_lookup` (#155).
+- [ ] **Address the `DTZ001` findings from ruff**, where naive `datetime.datetime` objects are used as UTC times (#157).
+
+### Code structure
+
+- [ ] **Remove duplicated code**, such as sorting stably and keeping the last of each run of equal values, which `_uniq_sorted` in `spp_swp_spc_apid35x_to_ivt`, `spp_swp_spc_merge_ivt`, and `cdf_merge_to_daily` each do (#155).
+- [ ] **Move helpers that are shared into `pyfaradaycup.utils`**, such as `_last_match` and `_read_lowercase` in `spp_swp_spc_config_and_hsk_lookup` (#155) and `_indgen_increment` in `spp_swp_spc_ivt_to_spectra` (#157).
+- [ ] **Split `spp_swp_spc_spectra_to_l2cdf` into smaller functions** (#157).
+- [ ] **Find a cleaner way than `_find_variable` in `cdf_to_survey` to match variable names that differ in case** (#158).
+- [ ] **Make `_Split` in `spp_swp_spc_split_l2cdf_by_mode` a dataclass** (#158).
+- [ ] **Represent electron and ion modes with names, such as `"electron"` and `"ion"`, rather than 1 and 0** (#157).
+- [ ] **Consider using parameter objects rather than functions with many arguments** (#159).
+
+### Tests
+
+- [ ] **Add a testing utility to compare CDF files (#20)**, such as `assert_cdf_file_allclose`, since the comparisons of CDF files are repeated in many tests (#153, #159).
+- [ ] **Evaluate comparing with the files made in production with nonzero tolerances.** ⚠️
+  The tests now require the files to be exactly the same, so that any difference from IDL is an intentional decision; nonzero tolerances would make them less strict (#158).
+- [ ] **Add tests with data from between different coupling and decoupling transitions** (#157).
+- [ ] **Check that the tests of `hsk_only` and `sci_only` are good enough** (#159).
+- [ ] **Avoid hard-coding the number of skeleton files in `tests/test_cdf_description.py`** (#157).
+
+### Command line tool and pipeline
+
+- [ ] **Choose the input and output directories by default**, with their `YYYY/MM/` subdirectories, while still letting users of the command line tool give them (#159).
+- [ ] **Revisit the logging levels in the L1 to L2 step**, such as for the messages of `cdf_subset` and `cdf_operate_on`, and for a date without L1 files, which could be a warning only when the date was specifically requested (#158, #159).
+- [ ] **Check that writing a new version of the L2 science files on each run works well with Dagster** (#157).
