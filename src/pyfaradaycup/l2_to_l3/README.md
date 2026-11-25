@@ -8,20 +8,21 @@ That reads the L2i file with `spp_swp_spc_load_l2`, and `spp_swp_spc_write_l3_sp
 The L3 step is commented out of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`; the release session scripts (`scripts/psp_swp_spc_vv_rel2*_session_script*`) run it by hand with `ew_timedep_correct=1`.
 
 The port is in progress.
-So far, it reads the L2i file, the names of the data quality flags, and the flow angle lookup table, and finds the flux function and its moments.
+So far, it reads the L2i file, the names of the data quality flags, and the flow angle lookup table, finds the flux function and its moments, and models the response to a Maxwellian.
 
 The code is a port of IDL code, and keeps the names of the IDL routines where possible.
 Routines that the L1 to L2 step also uses, such as `spp_swp_spc_get_effective_area` and `spp_swp_spc_crosstalk_correction_factor`, are ported in `pyfaradaycup.l1_to_l2` and imported from there.
 
-| Python                                                                                    | Original                                                                        |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `_spp_swp_spc_load_l2.py`: `spp_swp_spc_load_l2`, `L2i`, `L2Variable`                     | `spp_swp_spc_load_l2.pro`, and the structure from `read_myCDF`                  |
-| `_spp_swp_spc_l3i_flagnames.py`: `spp_swp_spc_l3i_flagnames`                              | `spp_swp_spc_l3i_flagnames.pro`                                                 |
-| `_spp_swp_spc_get_angle_table.py`: `spp_swp_spc_get_angle_table`, `AngleTable`            | `spp_swp_spc_get_angle_table.pro`, and the `table` structure it restores        |
-| `_spp_swp_spc_splineinvert.py`: `spp_swp_spc_splineinvert`, `SplineInvert`, `SplineModel` | `spp_swp_spc_splineinvert.pro`, and its `coeffs` and `model` outputs            |
-| `_spp_swp_spc_zmoments.py`: `spp_swp_spc_zmoments`, `ZMoments`, `sign`                    | `spp_swp_spc_zmoments.pro`, and `SIGN` from CDAWlib (`idllib/CDAWlib/sign.pro`) |
-| `pyfaradaycup.l1_to_l2._spp_swp_spc_ev2kms`: `spp_swp_spc_ev2kms`                         | `spp_swp_spc_ev2kms.pro`                                                        |
-| `pyfaradaycup.utils.idl`: `fitcurve`, `trisol`, `interpolate`                             | IDL's `CURVEFIT` (`idllib/curvefit.pro`), `TRISOL`, and `INTERPOLATE`           |
+| Python                                                                                                                                        | Original                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `_spp_swp_spc_load_l2.py`: `spp_swp_spc_load_l2`, `L2i`, `L2Variable`                                                                         | `spp_swp_spc_load_l2.pro`, and the structure from `read_myCDF`                  |
+| `_spp_swp_spc_l3i_flagnames.py`: `spp_swp_spc_l3i_flagnames`                                                                                  | `spp_swp_spc_l3i_flagnames.pro`                                                 |
+| `_spp_swp_spc_get_angle_table.py`: `spp_swp_spc_get_angle_table`, `AngleTable`                                                                | `spp_swp_spc_get_angle_table.pro`, and the `table` structure it restores        |
+| `_spp_swp_spc_splineinvert.py`: `spp_swp_spc_splineinvert`, `SplineInvert`, `SplineModel`                                                     | `spp_swp_spc_splineinvert.pro`, and its `coeffs` and `model` outputs            |
+| `_spp_swp_spc_zmoments.py`: `spp_swp_spc_zmoments`, `ZMoments`, `sign`                                                                        | `spp_swp_spc_zmoments.pro`, and `SIGN` from CDAWlib (`idllib/CDAWlib/sign.pro`) |
+| `_spp_swp_spc_pmax_response.py`: `spp_swp_spc_pmax_response`, `PmaxResponse`, `spc_fluxfunction`, `spp_swp_spc_pmax_response_normal_curvefit` | the routines of the same names in `spp_swp_spc_pmax_response.pro`               |
+| `pyfaradaycup.l1_to_l2._spp_swp_spc_ev2kms`: `spp_swp_spc_ev2kms`                                                                             | `spp_swp_spc_ev2kms.pro`                                                        |
+| `pyfaradaycup.utils.idl`: `fitcurve`, `trisol`, `interpolate`                                                                                 | IDL's `CURVEFIT` (`idllib/curvefit.pro`), `TRISOL`, and `INTERPOLATE`           |
 
 These routines remain to be ported:
 
@@ -31,7 +32,6 @@ These routines remain to be ported:
 | `spp_swp_spc_l2i_to_l3_date.pro`             | makes the L3i file for each date                                          |
 | `spp_swp_spc_write_l3_spci_cdf.pro`          | analyzes every spectrum of a day and writes the L3i file (also `crosspn`) |
 | `spp_swp_spc_get1rdf.pro`                    | moments, fits, flow angles, and flags of one spectrum                     |
-| `spp_swp_spc_pmax_response.pro`              | forward model of the response to a Maxwellian, fitted with `CURVEFIT`     |
 | `spp_swp_spc_get_angles.pro`                 | flow angles from the lookup table                                         |
 | `spp_swp_spc_get_effective_area.pro`         | warm (Mach number) and `/approx` branches, in `pyfaradaycup.l1_to_l2`     |
 | `spp_swp_spc_get_l3ephempars.pro`            | spacecraft ephemeris, with a cache file                                   |
@@ -105,6 +105,22 @@ Behaviors of IDL that are reproduced:
 - The spacing of the grid has the type of the grid, so it is single precision for the 1 V model.
 - The exponent `1./3.` of the third moment is single precision.
 
+### Response to a Maxwellian (`spp_swp_spc_pmax_response`)
+
+- `spp_swp_spc_pmax_response` returns a dataclass with the current and the terms `I0` to `I3`, rather than setting arguments.
+- `spp_swp_spc_pmax_response_normal_curvefit` returns the current, for `fitcurve` with `noderivative=True`, rather than setting `f`.
+  Its `x` has shape `(n, 2)`, so that `x[:, 0]` is the lower voltages, as `x[*, 0]` is in IDL.
+- The other procedures in `spp_swp_spc_pmax_response.pro`, such as `spp_swp_spc_pdoublemax_response` and the other `*_curvefit` procedures, are not ported, since the L2 to L3 step does not use them.
+- The unused variables of `spp_swp_spc_pmax_response`, such as the Mach numbers `um` and `vm`, are not ported.
+
+Behaviors of IDL that are reproduced:
+
+- The single precision literals `sqrt(2.)`, `1./192.`, `1./9216.`, and the default area `131.78035` mm².
+- The hard-coded `e / m_p` of 9.58e7 C/kg, which is larger than that of CODATA 2018 by 1.2 parts in 10⁴, and `e (e / m_p)` of 15.348852 pC C/kg.
+- An area, charge, or mass of 0 is taken as the default, since IDL uses `keyword_set`.
+
+The series agrees with the first Fourier amplitude of the collected current with sinusoidal modulation, computed without expanding, to 6e-8 of the peak current for windows 10% wide, and the flux function integrates to the charge flux `e n u`.
+
 ### Speed (`spp_swp_spc_ev2kms`)
 
 The elementary charge (1.6021892e-19 C) and proton mass (1.67262178e-27 kg) hard-coded in IDL are used.
@@ -138,7 +154,7 @@ Items marked with ⚠️ would change the numerical results, so the L3i files wo
 - [ ] Find the SPICE kernels for 2026-08-03 (`de430.bsp`, `psp_dyn_2018_135_100.tf`, an SPK for the spacecraft that covers 2026-08, and the attitude kernels for 2026-08-02 to 2026-08-04), or the ephemeris cache file `spp_swp_spc_l3ephem_20260803.idl`, to test the ephemeris and RTN velocities.
 - [ ] Check which flow angle lookup table and effective area table were used in production.
   The `Calibrations_used` global attribute of the skeleton lists `uvphithetalookup_20200417` and `effectiveAreaTable_v1`, while IDL uses `uvphithetalookup_20190819` and `effectiveAreaTable_v0` by default.
-- [ ] Use `astropy.constants` instead of the hard-coded constants, such as `13842`, `9.58e7`, `1.04396848e-8`, `15.348852`, and those of `spp_swp_spc_ev2kms`. ⚠️
+- [ ] Use `astropy.constants` instead of the hard-coded constants, such as `13842`, `9.58e7`, `1.04396848e-8`, `15.348852`, and those of `spp_swp_spc_ev2kms` and `spp_swp_spc_pmax_response`. ⚠️
 - [ ] Decide whether to process dates in parallel, as IDL does.
 - [ ] Decide whether to port `spp_swp_spc_saltandpepper_filter`, which is only used with the `saltandpepper_filter` tag of `control`.
 - [ ] Decide whether to port the release steps that follow L3: `spp_swp_spc_cleanup_low_versions`, `psp_swp_spc_validate_date`, and `spp_swp_spc_L3_ephem_patch`, which redoes the ephemeris of existing L3 files.
