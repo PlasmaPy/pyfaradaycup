@@ -10,6 +10,8 @@ import pytest
 from pyfaradaycup.l2_to_l3._spp_swp_spc_get_angle_table import (
     ANGLE_TABLE_NAME,
     CALIBRATION_DIR_ENV,
+    AngleTable,
+    spp_swp_spc_get_angle_table,
 )
 
 repo_root = Path(__file__).parent.parent.parent
@@ -40,6 +42,12 @@ def angle_table_file() -> Path:
     if not path.is_file():
         pytest.skip(f"{path} does not exist")
     return path
+
+
+@pytest.fixture(scope="session")
+def angle_table(angle_table_file: Path) -> AngleTable:
+    """Return the flow angle lookup table, which is read once."""
+    return spp_swp_spc_get_angle_table(angle_table_file)
 
 
 @pytest.fixture(name="l2_dir")

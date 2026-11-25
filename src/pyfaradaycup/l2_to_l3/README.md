@@ -8,21 +8,23 @@ That reads the L2i file with `spp_swp_spc_load_l2`, and `spp_swp_spc_write_l3_sp
 The L3 step is commented out of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`; the release session scripts (`scripts/psp_swp_spc_vv_rel2*_session_script*`) run it by hand with `ew_timedep_correct=1`.
 
 The port is in progress.
-So far, it reads the L2i file, the names of the data quality flags, and the flow angle lookup table, finds the flux function and its moments, and models the response to a Maxwellian.
+So far, it reads the L2i file, the names of the data quality flags, and the flow angle lookup table, finds the flux function and its moments, models the response to a Maxwellian, and looks up flow angles and effective areas.
 
 The code is a port of IDL code, and keeps the names of the IDL routines where possible.
 Routines that the L1 to L2 step also uses, such as `spp_swp_spc_get_effective_area` and `spp_swp_spc_crosstalk_correction_factor`, are ported in `pyfaradaycup.l1_to_l2` and imported from there.
 
-| Python                                                                                                                                        | Original                                                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `_spp_swp_spc_load_l2.py`: `spp_swp_spc_load_l2`, `L2i`, `L2Variable`                                                                         | `spp_swp_spc_load_l2.pro`, and the structure from `read_myCDF`                  |
-| `_spp_swp_spc_l3i_flagnames.py`: `spp_swp_spc_l3i_flagnames`                                                                                  | `spp_swp_spc_l3i_flagnames.pro`                                                 |
-| `_spp_swp_spc_get_angle_table.py`: `spp_swp_spc_get_angle_table`, `AngleTable`                                                                | `spp_swp_spc_get_angle_table.pro`, and the `table` structure it restores        |
-| `_spp_swp_spc_splineinvert.py`: `spp_swp_spc_splineinvert`, `SplineInvert`, `SplineModel`                                                     | `spp_swp_spc_splineinvert.pro`, and its `coeffs` and `model` outputs            |
-| `_spp_swp_spc_zmoments.py`: `spp_swp_spc_zmoments`, `ZMoments`, `sign`                                                                        | `spp_swp_spc_zmoments.pro`, and `SIGN` from CDAWlib (`idllib/CDAWlib/sign.pro`) |
-| `_spp_swp_spc_pmax_response.py`: `spp_swp_spc_pmax_response`, `PmaxResponse`, `spc_fluxfunction`, `spp_swp_spc_pmax_response_normal_curvefit` | the routines of the same names in `spp_swp_spc_pmax_response.pro`               |
-| `pyfaradaycup.l1_to_l2._spp_swp_spc_ev2kms`: `spp_swp_spc_ev2kms`                                                                             | `spp_swp_spc_ev2kms.pro`                                                        |
-| `pyfaradaycup.utils.idl`: `fitcurve`, `trisol`, `interpolate`                                                                                 | IDL's `CURVEFIT` (`idllib/curvefit.pro`), `TRISOL`, and `INTERPOLATE`           |
+| Python                                                                                                                                        | Original                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `_spp_swp_spc_load_l2.py`: `spp_swp_spc_load_l2`, `L2i`, `L2Variable`                                                                         | `spp_swp_spc_load_l2.pro`, and the structure from `read_myCDF`                                  |
+| `_spp_swp_spc_l3i_flagnames.py`: `spp_swp_spc_l3i_flagnames`                                                                                  | `spp_swp_spc_l3i_flagnames.pro`                                                                 |
+| `_spp_swp_spc_get_angle_table.py`: `spp_swp_spc_get_angle_table`, `AngleTable`                                                                | `spp_swp_spc_get_angle_table.pro`, and the `table` structure it restores                        |
+| `_spp_swp_spc_splineinvert.py`: `spp_swp_spc_splineinvert`, `SplineInvert`, `SplineModel`                                                     | `spp_swp_spc_splineinvert.pro`, and its `coeffs` and `model` outputs                            |
+| `_spp_swp_spc_zmoments.py`: `spp_swp_spc_zmoments`, `ZMoments`, `sign`                                                                        | `spp_swp_spc_zmoments.pro`, and `SIGN` from CDAWlib (`idllib/CDAWlib/sign.pro`)                 |
+| `_spp_swp_spc_pmax_response.py`: `spp_swp_spc_pmax_response`, `PmaxResponse`, `spc_fluxfunction`, `spp_swp_spc_pmax_response_normal_curvefit` | the routines of the same names in `spp_swp_spc_pmax_response.pro`                               |
+| `_spp_swp_spc_get_angles.py`: `spp_swp_spc_get_angles`, `Angles`                                                                              | the table lookup of `spp_swp_spc_get_angles.pro`                                                |
+| `pyfaradaycup.l1_to_l2._spp_swp_spc_get_effective_area`: `spp_swp_spc_get_effective_area`                                                     | `spp_swp_spc_get_effective_area.pro`, now with the warm plasma and analytic approximation cases |
+| `pyfaradaycup.l1_to_l2._spp_swp_spc_ev2kms`: `spp_swp_spc_ev2kms`                                                                             | `spp_swp_spc_ev2kms.pro`                                                                        |
+| `pyfaradaycup.utils.idl`: `fitcurve`, `trisol`, `interpolate`                                                                                 | IDL's `CURVEFIT` (`idllib/curvefit.pro`), `TRISOL`, and `INTERPOLATE`                           |
 
 These routines remain to be ported:
 
@@ -32,8 +34,6 @@ These routines remain to be ported:
 | `spp_swp_spc_l2i_to_l3_date.pro`             | makes the L3i file for each date                                          |
 | `spp_swp_spc_write_l3_spci_cdf.pro`          | analyzes every spectrum of a day and writes the L3i file (also `crosspn`) |
 | `spp_swp_spc_get1rdf.pro`                    | moments, fits, flow angles, and flags of one spectrum                     |
-| `spp_swp_spc_get_angles.pro`                 | flow angles from the lookup table                                         |
-| `spp_swp_spc_get_effective_area.pro`         | warm (Mach number) and `/approx` branches, in `pyfaradaycup.l1_to_l2`     |
 | `spp_swp_spc_get_l3ephempars.pro`            | spacecraft ephemeris, with a cache file                                   |
 | `spp_swp_spc_load_ephemeris_standardset.pro` | SPICE lookups (also `get_lte_kernels`)                                    |
 
@@ -121,6 +121,35 @@ Behaviors of IDL that are reproduced:
 
 The series agrees with the first Fourier amplitude of the collected current with sinusoidal modulation, computed without expanding, to 6e-8 of the peak current for windows 10% wide, and the flux function integrates to the charge flux `e n u`.
 
+### Flow angles (`spp_swp_spc_get_angles`)
+
+- The table is an argument, read once with `spp_swp_spc_get_angle_table`, rather than a pointer or a file.
+- An `IndexError` is raised where IDL stops with a subscript error, when the closest cell is on the edge of the table, rather than taking a subscript of -1 as the last element, as NumPy would.
+  This does not happen with the default table, whose ratios are NaN beyond about 50°.
+- If every residual is NaN, as for NaN ratios, the angles are NaN; what IDL returns then is not documented.
+- The cold linear approximation, currents instead of ratios, and the time-dependent crosstalk correction with `epoch` are not ported, since the L2 to L3 step does not use them.
+
+Behaviors of IDL that are reproduced:
+
+- The slice of the table at or below the Mach number is used (`value_locate`), not the nearest one, despite the comment in IDL.
+  Below the first slice, or for a Mach number that is not finite, the angles are NaN.
+- Cells beyond the 80° field of view are excluded by adding NaN to their residuals, and of equal residuals, the first in IDL's order of elements is used.
+- The off table flag compares the ratios with the range of the slice, skipping NaNs.
+
+At Mach 100 and small angles, the table agrees with the cold linear approximation `theta = u / 0.035` degrees of the L1 to L2 step to 1%.
+
+### Effective area (`spp_swp_spc_get_effective_area`)
+
+The port in `pyfaradaycup.l1_to_l2` now has the warm plasma case (with `machnum`) and the analytic approximation (with `approx`), and the `units` of the angles, which IDL takes from structures, with plain arrays in degrees.
+The cold plasma limit, which the L1 to L2 step uses, is unchanged.
+
+Behaviors of IDL that are reproduced:
+
+- The analytic approximation uses `ac = 24.35`, since IDL overwrites `ac = 24.35 * rad`, so for angles in radians the area is `A0 * (1 - 1.17 * alpha)`, and the 45° limit is 45 radians.
+  `spp_swp_spc_get1rdf` only uses it at normal incidence, where it is `A0` = 131.783 mm².
+- In the warm plasma case, the subscript of the Mach number is limited to the largest Mach number (100) rather than to the last subscript, and a NaN angle is taken as 90° and a NaN Mach number as the largest one, since IDL's `<` ignores a NaN operand.
+- The arithmetic has the precision of the angles, with correctly rounded single precision `tan`, `sqrt`, and `atan`.
+
 ### Speed (`spp_swp_spc_ev2kms`)
 
 The elementary charge (1.6021892e-19 C) and proton mass (1.67262178e-27 kg) hard-coded in IDL are used.
@@ -140,11 +169,12 @@ They will be checked as the routines are ported.
 - `spp_swp_spc_crosstalk_correction_factor` uses `cb` twice and not `db` in the north–south factor, which the L3 step applies only with `ns_timedep_correct` (#160).
 - In `spp_swp_spc_get1rdf`, `dtheta` uses `kp` instead of `kt`, and `sigma_theta` uses `dphi` instead of `dtheta`.
 - In `spp_swp_spc_write_l3_spci_cdf`, `vp_moment_SC_deltahigh` and `vp_moment_SC_deltalow` look swapped compared with those of the density and thermal speed, and `vp_moment_RTN_deltalow` is computed from `deltahigh`.
-- The densities from the moments are normalized with an area of 137.260 mm², and those from the fits with 131.78035 mm².
+- The densities from the moments are normalized with an area of 137.260 mm², and those from the fits with 131.78035 mm², and the fits are corrected with the ratio to the 131.783 mm² of the analytic approximation of `spp_swp_spc_get_effective_area`, whose comment says that 137.260 mm² is the revised area.
 - `spp_swp_spc_get_l3ephempars` reuses a cache file when the sum of the differences of the times is 0, rather than when every time is the same.
 - The time is converted for SPICE with `et = 1e-9 * TT2000`, which treats TT as TDB (an error of up to about 1.7 ms).
 - In `get_lte_kernels`, the swap for reversed limits sets `jdmax = jdmin`.
 - The output directories are made with `mkdir`, without `-p`.
+- In the analytic approximation of `spp_swp_spc_get_effective_area`, `ac = 24.35 * rad` is overwritten with `ac = 24.35`, so the first term of the approximation never applies for angles in radians.
 
 ## To do
 

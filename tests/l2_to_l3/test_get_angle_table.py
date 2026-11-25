@@ -22,12 +22,6 @@ MAX_ANGLE = 90
 """The largest magnitude of the angles in the table, in degrees."""
 
 
-@pytest.fixture(scope="module")
-def angle_table(angle_table_file: Path) -> AngleTable:
-    """Return the flow angle lookup table."""
-    return spp_swp_spc_get_angle_table(angle_table_file)
-
-
 def test_angle_table_shapes(angle_table: AngleTable) -> None:
     """The arrays have IDL's order of dimensions."""
     nmach = angle_table.machnum.size
