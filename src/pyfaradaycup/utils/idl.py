@@ -28,6 +28,10 @@ __all__ = [
 
 import dataclasses
 import itertools
+
+# Callable is imported at run time so that Sphinx can evaluate the
+# annotations of fitcurve, and link their types
+from collections.abc import Callable  # ruff:ignore[TC003]
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -35,7 +39,6 @@ from spacepy import pycdf
 
 if TYPE_CHECKING:
     import datetime
-    from collections.abc import Callable
 
 _JD_OF_CDF_EPOCH_ZERO = 1721059.5
 """
