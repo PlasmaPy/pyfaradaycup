@@ -353,16 +353,31 @@ _WEIGHTS = np.float32(1) / _Y
 _GUESS = np.array([10.0, -0.1, 2.0], dtype=np.float32)
 
 
+NV5_PARAMETERS = [9.91120, -0.100883, 2.07773]
+"""The parameters that IDL prints for the example in NV5's documentation of ``CURVEFIT``."""
+
+NV5_RTOL = 1e-5
+"""
+The relative tolerance for comparing with `NV5_PARAMETERS`.
+
+IDL prints 6 significant digits, which is a rounding of up to 2.4e-6.
+The fit is in single precision (with a machine precision of 1.2e-7),
+and its result differs by up to about 5e-6 between platforms and NumPy
+builds, because of how single precision functions such as ``exp`` are
+rounded.
+"""
+
+
 def test_fitcurve_nv5_example() -> None:
     """
     `fitcurve` gives the parameters that IDL prints for the example in
-    NV5's documentation of ``CURVEFIT``: 9.91120, -0.100883, and 2.07773.
+    NV5's documentation of ``CURVEFIT``, to the precision of the printed
+    values and of single precision arithmetic.
     """
     result = fitcurve(_X, _Y, _WEIGHTS, _GUESS, _gfunct)
     assert result.status == 0
     assert result.a.dtype == np.float32
-    # IDL prints single precision values with 6 significant digits
-    assert [float(f"{value:.6g}") for value in result.a] == [9.9112, -0.100883, 2.07773]
+    np.testing.assert_allclose(result.a, NV5_PARAMETERS, rtol=NV5_RTOL)
 
 
 def test_fitcurve_matches_curve_fit() -> None:
