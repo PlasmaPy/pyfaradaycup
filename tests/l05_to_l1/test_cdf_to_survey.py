@@ -13,8 +13,9 @@ import pytest
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1 import cdf_merge_to_daily, cdf_to_survey
-from pyfaradaycup.l05_to_l1.cdf_to_survey import _unique_dates
+from pyfaradaycup.l05_to_l1 import cdf_merge_to_daily
+from pyfaradaycup.utils import cdf_to_survey
+from pyfaradaycup.utils.cdf_to_survey import _unique_dates
 from pyfaradaycup.utils.idl import cdf_epoch_tojuldays
 
 if TYPE_CHECKING:

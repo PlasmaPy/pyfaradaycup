@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from pyfaradaycup.l05_to_l1.cdf_to_survey import _read_mycdf
+from pyfaradaycup.utils.cdf_to_survey import _read_mycdf
 from pyfaradaycup.utils.idl import cdf_epoch_tojuldays, value_locate
 
 if TYPE_CHECKING:

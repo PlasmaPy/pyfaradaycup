@@ -23,7 +23,6 @@ import datetime
 import logging
 import pathlib
 import re
-import secrets
 import shutil
 import tempfile
 import time
@@ -32,7 +31,11 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 from spacepy import pycdf
 
-from pyfaradaycup.utils._cdf import close_cdf, ignore_chararray_deprecation
+from pyfaradaycup.utils._cdf import (
+    close_cdf,
+    ignore_chararray_deprecation,
+    temporary_path,
+)
 from pyfaradaycup.utils.idl import (
     _JD_OF_ORDINAL_ZERO,
     cdf_epoch_tojuldays,
@@ -140,17 +143,6 @@ def _read_master_cdf(skeletonfile: pathlib.Path, out_cdf: pathlib.Path) -> None:
     """
     with pycdf.CDF(str(out_cdf), str(skeletonfile)):
         pass
-
-
-def _temporary_path(out_cdf: pathlib.Path) -> pathlib.Path:
-    """
-    Return a new path, next to ``out_cdf``, to write it to first.
-
-    The name starts with ``.`` so that it is hidden, and ends with
-    ``.cdf``, because the CDF library adds ``.cdf`` to names that do not
-    end with it.
-    """
-    return out_cdf.with_name(f".{out_cdf.stem}.{secrets.token_hex(8)}.tmp.cdf")
 
 
 def _write_data_to_cdf(
@@ -332,7 +324,7 @@ def cdf_merge_to_daily(  # ruff:ignore[PLR0913]
         # Unlike IDL, which copies the skeleton over the output file, the
         # file is written at a temporary path and then renamed, so that
         # an existing file is only replaced by a complete one.
-        tmp_cdf = _temporary_path(out_cdf)
+        tmp_cdf = temporary_path(out_cdf)
         try:
             _read_master_cdf(skeletonfile, tmp_cdf)
             # For each variable, select the content for this day. IDL
@@ -484,7 +476,7 @@ def _write_from_skeleton(
         skeletonfile = make_temp_cdfskeleton(
             infile, pathlib.Path(tempdir) / "skeleton.cdf"
         )
-        tmp_cdf = _temporary_path(out_cdf)
+        tmp_cdf = temporary_path(out_cdf)
         try:
             _read_master_cdf(skeletonfile, tmp_cdf)
             _write_data_to_cdf(tmp_cdf, buffer, logical_file_id=out_cdf.stem)

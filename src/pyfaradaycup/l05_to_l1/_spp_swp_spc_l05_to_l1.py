@@ -26,7 +26,7 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1.cdf_to_survey import (
+from pyfaradaycup.utils.cdf_to_survey import (
     _outfile,
     _unique_dates,
     cdf_merge_to_daily,

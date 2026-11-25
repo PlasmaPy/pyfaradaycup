@@ -19,7 +19,6 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.decommutator",
         "pyfaradaycup.decommutator.ccsds_reader",
         "pyfaradaycup.l05_to_l1",
-        "pyfaradaycup.l05_to_l1.cdf_to_survey",
         "pyfaradaycup.l05_to_l1.main",
         "pyfaradaycup.l1_to_l2",
         "pyfaradaycup.l1_to_l2.swp_spc_l12l2_35f",
@@ -49,6 +48,7 @@ from pyfaradaycup.decommutator import (
         "pyfaradaycup.l1_to_l2._spp_swp_spc_win2volt",
         "pyfaradaycup.l1_to_l2.main",
         "pyfaradaycup.utils",
+        "pyfaradaycup.utils.cdf_to_survey",
         "pyfaradaycup.utils.idl",
     ],
 )

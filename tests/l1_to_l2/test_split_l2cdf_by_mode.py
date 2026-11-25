@@ -14,16 +14,16 @@ import pytest_check
 import xarray
 from spacepy import pycdf
 
-from pyfaradaycup.l05_to_l1.cdf_to_survey import (
+from pyfaradaycup.l1_to_l2._spp_swp_spc_split_l2cdf_by_mode import (
+    spp_swp_spc_split_l2cdf_by_mode,
+)
+from pyfaradaycup.utils._cdf import close_cdf
+from pyfaradaycup.utils.cdf_to_survey import (
     _format_like_skeletontable,
     cdf_operate_on,
     cdf_subset,
     make_temp_cdfskeleton,
 )
-from pyfaradaycup.l1_to_l2._spp_swp_spc_split_l2cdf_by_mode import (
-    spp_swp_spc_split_l2cdf_by_mode,
-)
-from pyfaradaycup.utils._cdf import close_cdf
 
 if TYPE_CHECKING:
     from collections.abc import Callable
