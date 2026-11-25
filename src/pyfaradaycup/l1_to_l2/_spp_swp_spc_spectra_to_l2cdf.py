@@ -14,11 +14,6 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1.cdf_to_survey import (
-    _read_master_cdf,
-    _temporary_path,
-    _write_data_to_cdf,
-)
 from pyfaradaycup.l1_to_l2._spp_swp_spc_crosstalk_correction_factor import (
     spp_swp_spc_crosstalk_correction_factor,
 )
@@ -28,6 +23,11 @@ from pyfaradaycup.l1_to_l2._spp_swp_spc_get_effective_area import (
 from pyfaradaycup.l1_to_l2._spp_swp_spc_get_startdate import spp_swp_spc_get_startdate
 from pyfaradaycup.l1_to_l2._spp_swp_spc_ivt_to_spectra import MAX_WINDOWS
 from pyfaradaycup.l1_to_l2._spp_swp_spc_moments import spp_swp_spc_moments
+from pyfaradaycup.utils.cdf_to_survey import (
+    _read_master_cdf,
+    _temporary_path,
+    _write_data_to_cdf,
+)
 
 if TYPE_CHECKING:
     import os

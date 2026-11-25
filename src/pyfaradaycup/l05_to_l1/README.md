@@ -7,17 +7,17 @@ For historical reasons, the L0.5 files are named `*_L1.cdf`.
 The code is a port of IDL code, and keeps the names of the IDL functions where possible.
 IDL names are case-insensitive, so `CDF_merge_to_daily` becomes `cdf_merge_to_daily`.
 
-| Python                                                                      | IDL                                                                                                                                                     |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.py`: the `l05_to_l1` command line tool                                | step 4.2 of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`                                                                                         |
-| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_dates`                  | `spp_swp_spc_l05_to_l1_dates.pro`                                                                                                                       |
-| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_date`                   | `spp_swp_spc_l05_to_l1_date.pro`                                                                                                                        |
-| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_which_apid`                       | `spp_swp_spc_which_apid.pro`                                                                                                                            |
-| `_spp_swp_spc_l05_to_l1.py`: `_l05_children`                                | the `unique_dates` and `l05_children` of each `spc_rawfile` in the `sdc_state` registry                                                                 |
-| `cdf_to_survey.py`: `cdf_merge_to_daily`                                    | `CDF_merge_to_daily` in `idllib/CDF_to_survey.pro`                                                                                                      |
-| `cdf_to_survey.py`: `cdf_subset`, `cdf_operate_on`, `make_temp_cdfskeleton` | `CDF_subset`, `CDF_operate_on`, and `make_temp_CDFskeleton` in `idllib/CDF_to_survey.pro`, used to split L2 files by mode (see `../l1_to_l2/README.md`) |
-| `cdf_to_survey.py`: `_read_mycdf`, `_read_master_cdf`, `_write_data_to_cdf` | `read_myCDF`, `read_master_cdf`, and `write_data_to_cdf` in CDAWlib                                                                                     |
-| `pyfaradaycup.utils.idl`: `cdf_epoch_tojuldays`, `julday`, `uniq`           | the IDL built-in functions `CDF_EPOCH_TOJULDAYS`, `JULDAY`, and `UNIQ`                                                                                  |
+| Python                                                                                      | IDL                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.py`: the `l05_to_l1` command line tool                                                | step 4.2 of `scripts/spp_swp_spc_soc_L0L2_processing_idlscript`                                                                                         |
+| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_dates`                                  | `spp_swp_spc_l05_to_l1_dates.pro`                                                                                                                       |
+| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_l05_to_l1_date`                                   | `spp_swp_spc_l05_to_l1_date.pro`                                                                                                                        |
+| `_spp_swp_spc_l05_to_l1.py`: `spp_swp_spc_which_apid`                                       | `spp_swp_spc_which_apid.pro`                                                                                                                            |
+| `_spp_swp_spc_l05_to_l1.py`: `_l05_children`                                                | the `unique_dates` and `l05_children` of each `spc_rawfile` in the `sdc_state` registry                                                                 |
+| `pyfaradaycup.utils.cdf_to_survey`: `cdf_merge_to_daily`                                    | `CDF_merge_to_daily` in `idllib/CDF_to_survey.pro`                                                                                                      |
+| `pyfaradaycup.utils.cdf_to_survey`: `cdf_subset`, `cdf_operate_on`, `make_temp_cdfskeleton` | `CDF_subset`, `CDF_operate_on`, and `make_temp_CDFskeleton` in `idllib/CDF_to_survey.pro`, used to split L2 files by mode (see `../l1_to_l2/README.md`) |
+| `pyfaradaycup.utils.cdf_to_survey`: `_read_mycdf`, `_read_master_cdf`, `_write_data_to_cdf` | `read_myCDF`, `read_master_cdf`, and `write_data_to_cdf` in CDAWlib                                                                                     |
+| `pyfaradaycup.utils.idl`: `cdf_epoch_tojuldays`, `julday`, `uniq`                           | the IDL built-in functions `CDF_EPOCH_TOJULDAYS`, `JULDAY`, and `UNIQ`                                                                                  |
 
 > [!NOTE]
 > This file was generated with Claude.

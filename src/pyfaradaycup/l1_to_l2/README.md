@@ -146,7 +146,7 @@ So the `CDF_TIME_TT2000` values in the L2 file can differ from the L1 file by up
 
 ### Splitting by mode (`spp_swp_spc_split_l2cdf_by_mode`)
 
-- `cdf_subset` and `cdf_operate_on` in `pyfaradaycup.l05_to_l1.cdf_to_survey` make their skeleton with `make_temp_cdfskeleton`, which does not run the CDF command line tools `skeletontable` and `skeletoncdf`, or use the hard-coded directory `/home/mstevens/temp/`.
+- `cdf_subset` and `cdf_operate_on` in `pyfaradaycup.utils.cdf_to_survey` make their skeleton with `make_temp_cdfskeleton`, which does not run the CDF command line tools `skeletontable` and `skeletoncdf`, or use the hard-coded directory `/home/mstevens/temp/`.
   Instead, it copies the file, deletes its records, and makes the changes that the round trip through a skeleton table makes, as seen in the files split in production:
   newlines in the string attributes of variables become spaces, floating-point attributes are rounded to the `FORMAT` of the variable (so the `VALIDMIN` and `VALIDMAX` of `flow_angle`, with `E7.2`, become ±1.57), and the pad value of each character variable becomes one space.
 - Variables are matched by name rather than by position, and selected along their record dimension rather than along their first dimension with as many elements as there are records.

@@ -29,8 +29,8 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.l05_to_l1.cdf_to_survey import _temporary_path
 from pyfaradaycup.utils._cdf import close_cdf, ignore_chararray_deprecation
+from pyfaradaycup.utils.cdf_to_survey import _temporary_path
 
 logger = logging.getLogger(__name__)
 

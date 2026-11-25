@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 from spacepy import pycdf
 
-from pyfaradaycup.l05_to_l1.cdf_to_survey import cdf_operate_on, cdf_subset
+from pyfaradaycup.utils.cdf_to_survey import cdf_operate_on, cdf_subset
 
 if TYPE_CHECKING:
     import os
@@ -70,9 +70,9 @@ def spp_swp_spc_split_l2cdf_by_mode(
     ``spc_l2ifa_`` (ion flux angle), ``spc_l2ifs_`` (ion full scans),
     ``spc_l2ical_`` (ion calibration), ``spc_l2e_``, ``spc_l2efa_``, or
     ``spc_l2ecal_`` (the same for electrons). Each file has the spectra of
-    its modes, made with `~pyfaradaycup.l05_to_l1.cdf_to_survey.cdf_subset`.
+    its modes, made with `~pyfaradaycup.utils.cdf_to_survey.cdf_subset`.
     In the electron files, the voltages ``mv_lo`` and ``mv_hi`` are made
-    positive with `~pyfaradaycup.l05_to_l1.cdf_to_survey.cdf_operate_on`.
+    positive with `~pyfaradaycup.utils.cdf_to_survey.cdf_operate_on`.
 
     Parameters
     ----------
@@ -93,7 +93,7 @@ def spp_swp_spc_split_l2cdf_by_mode(
     - The electron calibration file is written only if there are electron
       flux angle spectra, since IDL checks the number of those rather
       than of electron calibration spectra. If there are none in that
-      case, `~pyfaradaycup.l05_to_l1.cdf_to_survey.cdf_subset` writes no
+      case, `~pyfaradaycup.utils.cdf_to_survey.cdf_subset` writes no
       file, and the voltages of the electron calibration file are not
       changed.
     - Ion full scans are in both the ``l2i`` and ``l2ifs`` files.
