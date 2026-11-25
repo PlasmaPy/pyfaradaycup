@@ -45,6 +45,7 @@ napoleon_preprocess_types = True
 
 # Link type specifications that are not class names to glossary terms
 napoleon_type_aliases = {
+    "callable": ":term:`callable`",
     "path-like": ":term:`path-like <path-like object>`",
 }
 
@@ -52,6 +53,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "python": ("https://docs.python.org/3/", None),
     "rich": ("https://rich.readthedocs.io/en/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "spacepy": ("https://spacepy.github.io/", None),
 }
 

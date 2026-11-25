@@ -4,23 +4,35 @@ Python equivalents of IDL built-in functions.
 These give the same results as the IDL functions of the same names, so
 that code ported from IDL can be compared with the original. IDL names
 are case-insensitive, so ``CDF_EPOCH_TOJULDAYS`` becomes
-`cdf_epoch_tojuldays`.
+`cdf_epoch_tojuldays`. The exception is `fitcurve`, the equivalent of
+IDL's ``CURVEFIT``, which is named so that it is not confused with
+`scipy.optimize.curve_fit`.
 """
 
 from __future__ import annotations
 
 __all__ = [
+    "FitCurveResult",
     "cdf_epoch_tojuldays",
+    "fitcurve",
     "interpol",
+    "interpolate",
     "julday",
     "label_region",
     "median",
     "median_filter",
+    "trisol",
     "uniq",
     "value_locate",
 ]
 
-from typing import TYPE_CHECKING
+import dataclasses
+import itertools
+
+# Callable is imported at run time so that Sphinx can evaluate the
+# annotations of fitcurve, and link their types
+from collections.abc import Callable  # ruff:ignore[TC003]
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from spacepy import pycdf
@@ -365,3 +377,494 @@ def interpol(
         if np.issubdtype(dx.dtype, np.integer):
             dx = dx.astype(v.dtype)
     return du * (v[s + 1] - v[s]) / dx + v[s]
+
+
+def trisol(
+    a: np.ndarray, b: np.ndarray, c: np.ndarray, r: np.ndarray, *, double: bool = False
+) -> np.ndarray:
+    """
+    Solve a tridiagonal system of linear equations, like ``TRISOL`` in IDL.
+
+    The equations are ``a[i] * u[i - 1] + b[i] * u[i] + c[i] * u[i + 1]
+    = r[i]``, where ``a[0]`` and ``c[-1]`` are not used. NV5 documents
+    ``TRISOL`` as based on ``tridag`` of section 2.4 of *Numerical
+    Recipes*, so this uses the same algorithm, which is Gaussian
+    elimination without pivoting (the Thomas algorithm).
+
+    Parameters
+    ----------
+    a : numpy.ndarray
+        The subdiagonal, of length ``n``; ``a[0]`` is not used.
+    b : numpy.ndarray
+        The diagonal, of length ``n``.
+    c : numpy.ndarray
+        The superdiagonal, of length ``n``; ``c[-1]`` is not used.
+    r : numpy.ndarray
+        The right-hand side, of length ``n``.
+    double : bool, default: False
+        Whether to compute in double precision, like IDL's ``/DOUBLE``.
+        Otherwise, the computation is in double precision only if any
+        input is double precision, and is in single precision if not.
+
+    Returns
+    -------
+    numpy.ndarray
+        The solution ``u``.
+
+    Raises
+    ------
+    ValueError
+        If the inputs do not all have the same length.
+
+    See Also
+    --------
+    scipy.linalg.solve_banded : Solve a banded system, with ``(l, u) =
+        (1, 1)`` for a tridiagonal one. It uses LAPACK with partial
+        pivoting, so it can differ from `trisol` in the last bits, and
+        it raises an error for a singular matrix.
+
+    Notes
+    -----
+    As there is no pivoting, a zero pivot gives infinite or NaN values,
+    rather than an error.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> u = trisol(
+    ...     np.array([0.0, 1.0, 1.0]),
+    ...     np.array([2.0, 2.0, 2.0]),
+    ...     np.array([1.0, 1.0, 0.0]),
+    ...     np.array([3.0, 4.0, 3.0]),
+    ... )
+    >>> np.round(u, 12).tolist()
+    [1.0, 1.0, 1.0]
+    """
+    arrays = [np.asarray(value) for value in (a, b, c, r)]
+    n = arrays[1].size
+    if any(array.size != n for array in arrays):
+        msg = "The arguments of trisol must all have the same length"
+        raise ValueError(msg)
+    if double or any(array.dtype == np.float64 for array in arrays):
+        dtype = np.dtype(np.float64)
+    else:
+        dtype = np.dtype(np.float32)
+    a, b, c, r = (array.astype(dtype).ravel() for array in arrays)
+    u = np.empty(n, dtype=dtype)
+    gam = np.empty(n, dtype=dtype)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        bet = b[0]
+        u[0] = r[0] / bet
+        for j in range(1, n):
+            gam[j] = c[j - 1] / bet
+            bet = b[j] - a[j] * gam[j]
+            u[j] = (r[j] - a[j] * u[j - 1]) / bet
+        for j in range(n - 2, -1, -1):
+            u[j] -= gam[j + 1] * u[j + 1]
+    return u
+
+
+def _interpolation_weights(
+    coordinate: np.ndarray, size: int, dtype: np.dtype
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Return the lower index and the fraction toward the upper index for
+    each coordinate, after clamping the coordinates to ``[0, size - 1]``.
+    """
+    coordinate = np.clip(np.asarray(coordinate, dtype=dtype), 0, size - 1)
+    index = np.minimum(np.floor(coordinate).astype(np.intp), size - 2)
+    return index, coordinate - index.astype(dtype)
+
+
+def interpolate(
+    p: np.ndarray, x: np.ndarray, y: np.ndarray | None = None
+) -> np.ndarray:
+    """
+    Interpolate an array linearly at fractional subscripts, like
+    ``INTERPOLATE`` in IDL.
+
+    For a two-dimensional ``p``, this is bilinear interpolation at the
+    points ``(x[k], y[k])``, like ``interpolate(p, x, y)`` without
+    ``/GRID``. As in IDL without ``MISSING``, subscripts outside the
+    array are moved to its nearest edge.
+
+    Parameters
+    ----------
+    p : numpy.ndarray
+        A one- or two-dimensional array, with IDL's order of dimensions,
+        so that ``p[i, j]`` here is ``p[i, j]`` in IDL.
+    x : numpy.ndarray
+        The fractional subscripts along the first dimension.
+    y : numpy.ndarray, optional
+        The fractional subscripts along the second dimension, of the same
+        shape as ``x``, if ``p`` is two-dimensional.
+
+    Returns
+    -------
+    numpy.ndarray
+        The interpolated values, with the shape of ``x``. They are single
+        precision unless ``p`` is double precision.
+
+    Raises
+    ------
+    ValueError
+        If ``p`` is not one- or two-dimensional, if ``y`` is not given for
+        a two-dimensional ``p`` or is given for a one-dimensional one, or
+        if a dimension of ``p`` has fewer than 2 elements.
+
+    See Also
+    --------
+    scipy.ndimage.map_coordinates : With ``order=1`` and
+        ``mode="nearest"``, the same interpolation, computed in double
+        precision.
+
+    Notes
+    -----
+    IDL's ``/GRID``, ``CUBIC``, and ``MISSING`` are not ported. The order
+    in which IDL does the arithmetic is not documented, so results in
+    single precision can differ from IDL's in the last bit.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> p = np.array([[0.0, 1.0], [2.0, 3.0]])
+    >>> interpolate(p, np.array([0.5, 2.0]), np.array([0.5, -1.0])).tolist()
+    [1.5, 2.0]
+    """
+    p = np.asarray(p)
+    dtype = p.dtype if p.dtype == np.float64 else np.dtype(np.float32)
+    if p.ndim not in {1, 2} or (y is None) != (p.ndim == 1):
+        msg = "interpolate needs a 1-D array with x, or a 2-D array with x and y"
+        raise ValueError(msg)
+    if min(p.shape) < 2:  # ruff:ignore[PLR2004]
+        msg = "Each dimension of the array must have at least 2 elements"
+        raise ValueError(msg)
+    p = p.astype(dtype)
+    one = dtype.type(1)
+    i, fx = _interpolation_weights(x, p.shape[0], dtype)
+    if y is None:
+        return (one - fx) * p[i] + fx * p[i + 1]
+    j, fy = _interpolation_weights(y, p.shape[1], dtype)
+    return (one - fy) * ((one - fx) * p[i, j] + fx * p[i + 1, j]) + fy * (
+        (one - fx) * p[i, j + 1] + fx * p[i + 1, j + 1]
+    )
+
+
+@dataclasses.dataclass(frozen=True)
+class FitCurveResult:
+    """The results of `fitcurve`, which IDL's ``CURVEFIT`` returns in its arguments."""
+
+    yfit: np.ndarray
+    """The fitted function at ``x``, which is what ``CURVEFIT`` returns."""
+
+    a: np.ndarray
+    """The fitted parameters, which ``CURVEFIT`` returns in ``A``."""
+
+    sigma: np.ndarray
+    """The standard deviations of the parameters (``SIGMA``)."""
+
+    chisq: float
+    """The reduced chi-squared (``CHISQ``)."""
+
+    iter: int
+    """The number of iterations (``ITER``)."""
+
+    status: int
+    """
+    ``0`` if the fit converged, ``1`` if chi-squared increased without
+    bound, and ``2`` if the fit did not converge within ``itmax``
+    iterations (``STATUS``).
+    """
+
+    yerror: float
+    """The standard error between ``yfit`` and ``y`` (``YERROR``)."""
+
+
+@dataclasses.dataclass(frozen=True)
+class _CurveFit:
+    """The data and settings of a fit with `fitcurve`, and its steps."""
+
+    x: Any
+    y: np.ndarray
+    w: np.ndarray
+    function: Callable[..., Any]
+    noderivative: bool
+    iparam: np.ndarray
+    nfree: int
+    dtype: np.dtype
+
+    def evaluate(self, a: np.ndarray) -> np.ndarray:
+        """Return the function at ``x`` for the parameters ``a``."""
+        f = self.function(self.x, a)
+        if not self.noderivative:
+            f = f[0]
+        return self._check(np.asarray(f))
+
+    def _check(self, f: np.ndarray) -> np.ndarray:
+        """Check that ``f`` has one value for each value of ``y``."""
+        if f.size != self.y.size:
+            msg = f"The function returned {f.size} values, but y has {self.y.size}"
+            raise ValueError(msg)
+        return f.ravel()
+
+    def chisq(self, yfit: np.ndarray) -> Any:  # ruff:ignore[ANN401]
+        """Return the reduced chi-squared of ``yfit``."""
+        return np.sum(self.w * (self.y - yfit) ** 2) / self.nfree
+
+    def curvature(self, a: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Return the function at ``a``, the curvature matrix ``alpha``, and
+        the gradient vector ``beta`` of the fitted parameters.
+        """
+        pder = np.zeros((self.y.size, a.size), dtype=self.dtype)
+        if self.noderivative:
+            yfit = self.evaluate(a)
+            eps = np.sqrt(np.finfo(self.dtype).eps)
+            # forward differences
+            for term in range(a.size):
+                p = a.copy()
+                inc = eps * abs(p[term])
+                if inc == 0:
+                    inc = eps
+                p[term] = p[term] + inc
+                pder[:, term] = (self.evaluate(p) - yfit) / inc
+        else:
+            f, derivatives = self.function(self.x, a)
+            yfit = self._check(np.asarray(f))
+            pder = np.asarray(derivatives)
+            if pder.shape != (self.y.size, a.size):
+                msg = (
+                    f"The partial derivatives must have shape {(self.y.size, a.size)}, "
+                    f"not {pder.shape}"
+                )
+                raise ValueError(msg)
+        free = pder[:, self.iparam]
+        beta = ((self.y - yfit) * self.w) @ free
+        alpha = free.T @ (self.w[:, np.newaxis] * free)
+        return yfit, alpha, beta
+
+    def step(
+        self,
+        a: np.ndarray,
+        alpha: np.ndarray,
+        beta: np.ndarray,
+        chisq1: Any,  # ruff:ignore[ANN401]
+        flambda: Any,  # ruff:ignore[ANN401]
+    ) -> tuple[np.ndarray, np.ndarray, Any, np.ndarray, Any] | None:
+        """
+        Increase the damping ``flambda`` until a step lowers chi-squared.
+
+        Returns
+        -------
+        tuple or None
+            The new parameters, function, chi-squared, standard deviations
+            of the fitted parameters, and damping, or `None` if the step is
+            rejected because chi-squared is not finite, or is not lower
+            after 31 tries.
+        """
+        alpha_diag = np.diag(alpha)
+        c = np.sqrt(alpha_diag)
+        c = np.outer(c, c)
+        for lambda_count in itertools.count(1):
+            array = alpha / c
+            np.fill_diagonal(array, np.diag(array) * (1.0 + flambda))
+            array = 1.0 / array if array.size == 1 else np.linalg.inv(array)
+            b = a.copy()
+            b[self.iparam] = a[self.iparam] + (array / c) @ beta
+            yfit = self.evaluate(b)
+            chisq = self.chisq(yfit)
+            sigma = np.sqrt(np.diag(array) / alpha_diag)
+            if not np.isfinite(chisq) or (
+                lambda_count > 30 and chisq >= chisq1  # ruff:ignore[PLR2004]
+            ):
+                return None
+            flambda = flambda * self.dtype.type(10)
+            if chisq <= chisq1:
+                return b, yfit, chisq, sigma, flambda / self.dtype.type(100)
+        raise AssertionError  # pragma: no cover
+
+
+def fitcurve(  # ruff:ignore[PLR0913]
+    x: Any,  # ruff:ignore[ANN401]
+    y: np.ndarray,
+    weights: np.ndarray | None,
+    a: np.ndarray,
+    function: Callable[..., Any],
+    *,
+    fita: np.ndarray | None = None,
+    itmax: int = 20,
+    tol: float | None = None,
+    noderivative: bool = False,
+    double: bool | None = None,
+) -> FitCurveResult:
+    """
+    Fit a nonlinear function by least squares, like ``CURVEFIT`` in IDL.
+
+    This is the gradient-expansion (Levenberg–Marquardt) algorithm of
+    ``CURFIT`` in Bevington, *Data Reduction and Error Analysis for the
+    Physical Sciences*, which IDL's ``curvefit.pro`` is adapted from,
+    with the same steps, defaults, and results as ``curvefit.pro``.
+
+    Parameters
+    ----------
+    x : object
+        The independent variable, which is only passed to ``function``.
+    y : numpy.ndarray
+        The values to fit.
+    weights : numpy.ndarray or None
+        The weight of each value, such as ``1 / sigma**2`` for Gaussian
+        errors ``sigma``, or `None` for no weighting. Without weighting,
+        ``sigma`` of the result is multiplied by ``sqrt(chisq)``.
+    a : numpy.ndarray
+        The initial parameters. The computation is in double precision
+        if they are, and in single precision otherwise.
+    function : callable
+        The function to fit, called as ``function(x, a)``. It returns the
+        values at ``x`` if ``noderivative`` is true, and otherwise a tuple
+        of those and the partial derivatives, of shape ``(len(y),
+        len(a))``. This replaces the procedure given by IDL's
+        ``FUNCTION_NAME``.
+    fita : numpy.ndarray, optional
+        ``0`` for each parameter to keep fixed, and nonzero for each one
+        to fit. Defaults to fitting every parameter.
+    itmax : int, default: 20
+        The maximum number of iterations.
+    tol : float, optional
+        The fit has converged when the relative decrease in chi-squared
+        in an iteration is at most ``tol``. Defaults to ``1e-3``.
+    noderivative : bool, default: False
+        Whether to estimate the partial derivatives by forward
+        differences, rather than from ``function``, like IDL's
+        ``/NODERIVATIVE``.
+    double : bool, optional
+        Whether to compute in double precision. Defaults to whether ``a``
+        is double precision.
+
+    Returns
+    -------
+    FitCurveResult
+        The fitted function, the parameters and their standard
+        deviations, the reduced chi-squared, the number of iterations,
+        the status, and the standard error.
+
+    Raises
+    ------
+    ValueError
+        If no parameter is fitted, if there are not more values than
+        fitted parameters, or if ``function`` returns arrays of the wrong
+        size.
+    numpy.linalg.LinAlgError
+        If the curvature matrix is singular. IDL's ``INVERT`` prints a
+        message and returns a result instead.
+
+    See Also
+    --------
+    scipy.optimize.curve_fit, scipy.optimize.least_squares : These use
+        MINPACK's Levenberg–Marquardt algorithm (with ``method="lm"``),
+        which has a different damping schedule and convergence test, so
+        their parameters differ from those of `fitcurve` by up to about
+        the tolerance, and their uncertainties are computed differently.
+
+    Notes
+    -----
+    These behaviors of ``curvefit.pro`` are reproduced:
+
+    - The partial derivatives are estimated with a step of
+      ``sqrt(eps) * abs(a[k])``, or ``sqrt(eps)`` if ``a[k]`` is 0, where
+      ``eps`` is the machine precision of the computation.
+    - When the fit converges, or reaches ``itmax`` iterations,
+      ``sigma`` is computed from the inverse of the curvature matrix
+      with the damped diagonal of the last step, not from the undamped
+      matrix.
+    - When chi-squared is not finite, or still not lower after 31 tries
+      of the damping, the step is rejected, the parameters of the
+      previous iteration are kept, and the status is 1.
+    - When chi-squared is below ``sum(abs(y)) / 1e7`` before a step, the
+      fit stops without changing the parameters, and ``iter`` is one less
+      than the iteration it stopped in, so 0 if the initial parameters
+      already fit.
+    - When the fit does not converge, ``iter`` is ``itmax + 1``, which is
+      the value of IDL's loop variable after the loop.
+
+    Floating-point errors, such as division by zero, are ignored, as IDL
+    continues after them.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> x = np.arange(10.0)
+    >>> result = fitcurve(
+    ...     x,
+    ...     3.0 * x + 1.0,
+    ...     None,
+    ...     np.array([1.0, 0.0]),
+    ...     lambda x, a: a[0] * x + a[1],
+    ...     noderivative=True,
+    ... )
+    >>> np.round(result.a, 3).tolist(), result.status
+    ([3.0, 1.0], 0)
+    """
+    if double is None:
+        double = np.asarray(a).dtype == np.float64
+    dtype = np.dtype(np.float64 if double else np.float32)
+    a = np.array(a, dtype=dtype).ravel()
+    y = np.asarray(y).ravel()
+    tolerance = dtype.type(1e-3 if tol is None else tol)
+
+    if fita is None or len(fita) != a.size:
+        fita = np.ones(a.size, dtype=int)
+    iparam = np.flatnonzero(np.asarray(fita))
+    if iparam.size == 0:
+        msg = "fita must have at least one parameter to fit"
+        raise ValueError(msg)
+    nfree = y.size - iparam.size
+    if nfree <= 0:
+        msg = "There must be more values in y than parameters to fit"
+        raise ValueError(msg)
+
+    fit = _CurveFit(
+        x=x,
+        y=y,
+        w=np.ones(y.size, dtype=np.float32) if weights is None else np.ravel(weights),
+        function=function,
+        noderivative=noderivative,
+        iparam=iparam,
+        nfree=nfree,
+        dtype=dtype,
+    )
+    flambda = dtype.type(0.001)
+    sigma = np.zeros(a.size, dtype=dtype)
+    status = 2
+    iteration = itmax + 1
+    with np.errstate(all="ignore"):
+        for i in range(1, itmax + 1):
+            yfit, alpha, beta = fit.curvature(a)
+            sigma[iparam] = np.sqrt(1.0 / np.diag(alpha))
+            chisq1 = fit.chisq(yfit)
+            chisq = chisq1
+            if chisq1 < np.sum(np.abs(y)) / 1e7 / nfree:
+                # the parameters already fit
+                status, iteration = 0, i - 1
+                break
+            step = fit.step(a, alpha, beta, chisq1, flambda)
+            if step is None:
+                status, iteration = 1, i
+                break
+            b, yfit, chisq, sigma[iparam], flambda = step
+            a[iparam] = b[iparam]
+            if (chisq1 - chisq) / chisq1 <= tolerance:
+                status, iteration = 0, i
+                break
+        if weights is None:
+            sigma = sigma * np.sqrt(chisq)
+        var = np.sum((yfit - y) ** 2) / nfree if y.size > a.size else 0.0
+        yerror = float(np.sqrt(var))
+    return FitCurveResult(
+        yfit=yfit,
+        a=a,
+        sigma=sigma,
+        chisq=float(chisq),
+        iter=iteration,
+        status=status,
+        yerror=yerror,
+    )

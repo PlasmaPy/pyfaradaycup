@@ -7,14 +7,20 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
+import scipy.linalg
+import scipy.ndimage
+import scipy.optimize
 
 from pyfaradaycup.utils.idl import (
     cdf_epoch_tojuldays,
+    fitcurve,
     interpol,
+    interpolate,
     julday,
     label_region,
     median,
     median_filter,
+    trisol,
     uniq,
     value_locate,
 )
@@ -206,3 +212,288 @@ def test_interpol_types_and_nan() -> None:
     result = interpol(v, x, np.array([5, 10]), nan=True)
     assert result.dtype == np.float32
     np.testing.assert_array_equal(result, [1.5, 2.0])
+
+
+def _tridiagonal_system(n: int, seed: int = 0) -> tuple[np.ndarray, ...]:
+    """Return a random, diagonally dominant tridiagonal system of size ``n``."""
+    rng = np.random.default_rng(seed)
+    a = rng.uniform(-1, 1, n)
+    c = rng.uniform(-1, 1, n)
+    b = 2 + rng.uniform(0, 1, n)
+    r = rng.uniform(-10, 10, n)
+    return a, b, c, r
+
+
+def test_trisol_matches_solve_banded() -> None:
+    """`trisol` agrees with `scipy.linalg.solve_banded` to rounding."""
+    a, b, c, r = _tridiagonal_system(50)
+    bands = np.zeros((3, a.size))
+    bands[0, 1:] = c[:-1]
+    bands[1] = b
+    bands[2, :-1] = a[1:]
+    expected = scipy.linalg.solve_banded((1, 1), bands, r)
+    np.testing.assert_allclose(trisol(a, b, c, r), expected, rtol=1e-13, atol=1e-13)
+
+
+def test_trisol_ignores_unused_elements() -> None:
+    """``a[0]`` and ``c[-1]`` are not part of the matrix."""
+    a, b, c, r = _tridiagonal_system(5)
+    expected = trisol(a, b, c, r)
+    a[0] = c[-1] = 1e30
+    np.testing.assert_array_equal(trisol(a, b, c, r), expected)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "double", "expected"),
+    [
+        (np.float32, False, np.float32),
+        (np.float32, True, np.float64),
+        (np.float64, False, np.float64),
+        (np.int64, False, np.float32),
+    ],
+)
+def test_trisol_type(dtype: type, double: bool, expected: type) -> None:  # ruff:ignore[FBT001]
+    """The result is double precision with ``double`` or double precision inputs."""
+    a, b, c, r = (np.asarray(x).astype(dtype) for x in _tridiagonal_system(4))
+    b = b + 3
+    assert trisol(a, b, c, r, double=double).dtype == expected
+
+
+def test_trisol_mixed_precision() -> None:
+    """A double precision input makes the computation double precision."""
+    a, b, c, r = _tridiagonal_system(4)
+    assert trisol(a.astype(np.float32), b, c, r).dtype == np.float64
+
+
+def test_trisol_zero_pivot() -> None:
+    """A zero pivot gives non-finite values rather than an error, as there is no pivoting."""
+    result = trisol(
+        np.array([0.0, 1.0]),
+        np.array([0.0, 1.0]),
+        np.array([1.0, 0.0]),
+        np.array([1.0, 1.0]),
+    )
+    assert not np.all(np.isfinite(result))
+
+
+def test_trisol_lengths() -> None:
+    """The arguments must all have the same length."""
+    with pytest.raises(ValueError, match="same length"):
+        trisol(np.ones(3), np.ones(3), np.ones(2), np.ones(3))
+
+
+def test_interpolate_2d_matches_map_coordinates() -> None:
+    """Bilinear interpolation, with subscripts moved to the nearest edge."""
+    rng = np.random.default_rng(1)
+    p = rng.uniform(0, 100, (6, 9))
+    x = rng.uniform(-2, 8, 200)
+    y = rng.uniform(-2, 11, 200)
+    expected = scipy.ndimage.map_coordinates(p, [x, y], order=1, mode="nearest")
+    np.testing.assert_allclose(interpolate(p, x, y), expected, rtol=1e-13)
+
+
+def test_interpolate_1d() -> None:
+    """One-dimensional interpolation is like `numpy.interp` on the subscripts."""
+    p = np.array([0.0, 10.0, 30.0, 70.0])
+    x = np.array([-1.0, 0.0, 0.25, 1.5, 3.0, 4.0])
+    expected = np.interp(x, np.arange(p.size), p)
+    np.testing.assert_allclose(interpolate(p, x), expected, rtol=1e-15)
+
+
+def test_interpolate_at_nodes() -> None:
+    """Integer subscripts give the elements of the array exactly."""
+    p = np.arange(12, dtype=np.float32).reshape(3, 4) ** 1.5
+    i, j = np.meshgrid(np.arange(3), np.arange(4), indexing="ij")
+    np.testing.assert_array_equal(interpolate(p, i.ravel(), j.ravel()), p.ravel())
+
+
+@pytest.mark.parametrize(
+    ("dtype", "expected"),
+    [(np.float32, np.float32), (np.float64, np.float64), (np.int16, np.float32)],
+)
+def test_interpolate_type(dtype: type, expected: type) -> None:
+    """The result is single precision unless the array is double precision."""
+    p = np.arange(6).reshape(2, 3).astype(dtype)
+    assert interpolate(p, np.array([0.5]), np.array([0.5])).dtype == expected
+
+
+@pytest.mark.parametrize(
+    ("shape", "with_y"),
+    [((2, 2), False), ((4,), True), ((2, 2, 2), True), ((1, 4), True)],
+)
+def test_interpolate_errors(shape: tuple[int, ...], with_y: bool) -> None:  # ruff:ignore[FBT001]
+    """Arrays and subscripts that are not supported raise `ValueError`."""
+    p = np.zeros(shape)
+    x = np.zeros(1)
+    with pytest.raises(ValueError, match=r"interpolate|at least 2"):
+        interpolate(p, x, x if with_y else None)
+
+
+def _gfunct(x: np.ndarray, a: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Return ``a[0] * exp(a[1] * x) + a[2]`` and its partial derivatives.
+
+    This is the function of the example in NV5's documentation of
+    ``CURVEFIT``.
+
+    As in IDL, the arithmetic is double precision if ``a`` is, which
+    NumPy < 2 does not do for a double precision scalar and a single
+    precision array.
+    """
+    x = np.asarray(x, dtype=np.result_type(x, a))
+    bx = np.exp(a[1] * x)
+    pder = np.stack([bx, a[0] * x * bx, np.ones_like(x)], axis=1)
+    return a[0] * bx + a[2], pder
+
+
+#: The data of the example in NV5's documentation of ``CURVEFIT``.
+_X = np.arange(10, dtype=np.float32)
+_Y = np.array([12.0, 11.0, 10.2, 9.4, 8.7, 8.1, 7.5, 6.9, 6.5, 6.1], dtype=np.float32)
+_WEIGHTS = np.float32(1) / _Y
+_GUESS = np.array([10.0, -0.1, 2.0], dtype=np.float32)
+
+
+NV5_PARAMETERS = [9.91120, -0.100883, 2.07773]
+"""The parameters that IDL prints for the example in NV5's documentation of ``CURVEFIT``."""
+
+NV5_RTOL = 1e-5
+"""
+The relative tolerance for comparing with `NV5_PARAMETERS`.
+
+IDL prints 6 significant digits, which is a rounding of up to 2.4e-6.
+The fit is in single precision (with a machine precision of 1.2e-7),
+and its result differs by up to about 5e-6 between platforms and NumPy
+builds, because of how single precision functions such as ``exp`` are
+rounded.
+"""
+
+
+def test_fitcurve_nv5_example() -> None:
+    """
+    `fitcurve` gives the parameters that IDL prints for the example in
+    NV5's documentation of ``CURVEFIT``, to the precision of the printed
+    values and of single precision arithmetic.
+    """
+    result = fitcurve(_X, _Y, _WEIGHTS, _GUESS, _gfunct)
+    assert result.status == 0
+    assert result.a.dtype == np.float32
+    np.testing.assert_allclose(result.a, NV5_PARAMETERS, rtol=NV5_RTOL)
+
+
+def test_fitcurve_matches_curve_fit() -> None:
+    """
+    `scipy.optimize.curve_fit` gives the same parameters to about the
+    tolerance, but larger uncertainties, since `fitcurve` computes them
+    from the damped curvature matrix of the last step, like IDL.
+    """
+    result = fitcurve(_X, _Y, _WEIGHTS, _GUESS.astype(np.float64), _gfunct)
+    popt, pcov = scipy.optimize.curve_fit(
+        lambda x, a, b, c: a * np.exp(b * x) + c,
+        _X.astype(np.float64),
+        _Y.astype(np.float64),
+        p0=_GUESS.astype(np.float64),
+        sigma=np.sqrt(_Y.astype(np.float64)),
+        absolute_sigma=True,
+    )
+    np.testing.assert_allclose(result.a, popt, rtol=1e-4)
+    sigma = np.sqrt(np.diag(pcov))
+    assert np.all(result.sigma < sigma)
+    np.testing.assert_allclose(result.sigma, sigma, rtol=0.01)
+
+
+def test_fitcurve_noderivative() -> None:
+    """Forward differences give nearly the same fit as the partial derivatives."""
+    exact = fitcurve(_X, _Y, _WEIGHTS, _GUESS.astype(np.float64), _gfunct)
+    result = fitcurve(
+        _X,
+        _Y,
+        _WEIGHTS,
+        _GUESS.astype(np.float64),
+        lambda x, a: _gfunct(x, a)[0],
+        noderivative=True,
+    )
+    assert result.status == 0
+    np.testing.assert_allclose(result.a, exact.a, rtol=1e-3)
+
+
+def test_fitcurve_double() -> None:
+    """The computation is double precision with ``double``."""
+    result = fitcurve(_X, _Y, _WEIGHTS, _GUESS, _gfunct, double=True)
+    assert result.a.dtype == np.float64
+    assert result.sigma.dtype == np.float64
+
+
+def test_fitcurve_no_weighting() -> None:
+    """Without weights, the uncertainties are multiplied by ``sqrt(chisq)``."""
+    unweighted = fitcurve(_X, _Y, None, _GUESS.astype(np.float64), _gfunct)
+    ones = fitcurve(_X, _Y, np.ones(_Y.size), _GUESS.astype(np.float64), _gfunct)
+    np.testing.assert_array_equal(unweighted.a, ones.a)
+    np.testing.assert_allclose(unweighted.sigma, ones.sigma * np.sqrt(ones.chisq))
+
+
+def test_fitcurve_fita() -> None:
+    """Parameters with ``fita`` of 0 are kept fixed and get no uncertainty."""
+    result = fitcurve(
+        _X, _Y, _WEIGHTS, _GUESS.astype(np.float64), _gfunct, fita=np.array([1, 1, 0])
+    )
+    assert result.a[2] == _GUESS[2]
+    assert result.sigma[2] == 0
+    assert result.status == 0
+
+
+def test_fitcurve_already_fit() -> None:
+    """When the initial parameters fit, they are kept, and ``iter`` is 0."""
+    a = np.array([2.0, 0.5])
+    x = np.arange(5.0)
+    result = fitcurve(
+        x, a[0] * x + a[1], None, a, lambda x, a: a[0] * x + a[1], noderivative=True
+    )
+    np.testing.assert_array_equal(result.a, a)
+    assert result.iter == 0
+    assert result.status == 0
+
+
+def test_fitcurve_not_converged() -> None:
+    """When the fit does not converge, the status is 2 and ``iter`` is ``itmax + 1``."""
+    result = fitcurve(_X, _Y, _WEIGHTS, np.array([1.0, -1.0, 0.0]), _gfunct, itmax=1)
+    assert result.status == 2  # ruff:ignore[PLR2004]
+    assert result.iter == 2  # ruff:ignore[PLR2004]
+
+
+def test_fitcurve_chisq_not_finite() -> None:
+    """When every step gives NaN, the status is 1 and the parameters are kept."""
+
+    def function(x: np.ndarray, a: np.ndarray) -> np.ndarray:
+        return x * a[0] if a[0] == 1 else np.full_like(x, np.nan)
+
+    x = np.arange(1.0, 6.0)
+    result = fitcurve(x, 2 * x, None, np.array([1.0]), function, noderivative=True)
+    assert result.status == 1
+    assert result.iter == 1
+    assert result.a.tolist() == [1.0]
+    np.testing.assert_array_equal(result.yfit, x)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"fita": np.array([0, 0, 0])}, "at least one parameter"),
+        ({"y": _Y[:3]}, "more values"),
+    ],
+)
+def test_fitcurve_errors(kwargs: dict, match: str) -> None:
+    """Fits without free parameters or degrees of freedom raise `ValueError`."""
+    y = kwargs.pop("y", _Y)
+    x = _X[: y.size]
+    with pytest.raises(ValueError, match=match):
+        fitcurve(x, y, None, _GUESS, _gfunct, **kwargs)
+
+
+def test_fitcurve_wrong_shapes() -> None:
+    """A function that returns arrays of the wrong shape raises `ValueError`."""
+    with pytest.raises(ValueError, match="returned 9 values"):
+        fitcurve(_X, _Y, None, _GUESS, lambda x, _a: x[1:], noderivative=True)
+    with pytest.raises(ValueError, match="partial derivatives must have shape"):
+        fitcurve(
+            _X, _Y, None, _GUESS, lambda x, a: (_gfunct(x, a)[0], np.zeros((10, 2)))
+        )
