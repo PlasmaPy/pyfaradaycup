@@ -19,6 +19,15 @@ files into Level 0.5 (L0.5 or L05) CDF files:
   which takes a required `L0PATH` argument that is an L0 file or a
   directory of L0 files.
 
+The `pyfaradaycup.l2_to_l3` subpackage is a port, in progress, of the
+IDL code that converts SPC L2i CDF files into L3i CDF files of proton
+and alpha moments and fits. Like `pyfaradaycup.l1_to_l2`, it has one
+private module for each IDL routine, named after it (for example,
+`_spp_swp_spc_load_l2` for `spp_swp_spc_load_l2.pro`), and its
+`README.md` lists the differences from IDL and the remaining tasks.
+Routines that L1 to L2 also uses are ported in `pyfaradaycup.l1_to_l2`
+and imported from there.
+
 ## Development
 
 - Use [uv](https://docs.astral.sh/uv/) to manage environments.
@@ -52,6 +61,11 @@ files into Level 0.5 (L0.5 or L05) CDF files:
   its CDF file. After adding or changing a skeleton CDF file, regenerate
   the descriptions with `uv run python -m pyfaradaycup._cdf_description`
   and commit them with the CDF file. Don't edit the descriptions by hand.
+- The SPC flow angle lookup table
+  (`spp_swp_spc_calfiles_spc_uvphithetalookup_20190819.idl`, 138 MB) is
+  too large for the repository. Tests that need it are skipped unless the
+  `PYFARADAYCUP_CALIBRATION_DIR` environment variable is set to the
+  directory that contains it.
 - Mark long-running tests with `@pytest.mark.slow`. Deselect them with
   `-m "not slow"`.
 - Warnings are treated as errors during tests.
