@@ -29,8 +29,11 @@ import numpy as np
 from spacepy import pycdf
 
 from pyfaradaycup._paths import data_dir
-from pyfaradaycup.utils._cdf import close_cdf, ignore_chararray_deprecation
-from pyfaradaycup.utils.cdf_to_survey import _temporary_path
+from pyfaradaycup.utils._cdf import (
+    close_cdf,
+    ignore_chararray_deprecation,
+    temporary_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +243,7 @@ def convert_one(
         # then renamed, so that an existing file is only replaced by a
         # complete one.
         l2dir.mkdir(parents=True, exist_ok=True)
-        tmp_file = _temporary_path(l2file)
+        tmp_file = temporary_path(l2file)
         try:
             l2cdf = pycdf.CDF(str(tmp_file), str(SKELETON_35F))
             try:
